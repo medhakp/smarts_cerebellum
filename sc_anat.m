@@ -45,10 +45,9 @@ for p = 1:length(participant_list)
     for w = 1:length(week_list)
         week = week_list{w};
         
-        subj_anat = fullfile(path, sprintf('%s_%s_T1w.nii', subj_id, week));
+        subj_anat = fullfile(path, week, sprintf('%s_%s_T1.nii', subj_id, week));
 
     end
-
 
     SPMhome=fileparts(which('spm.m'));
     J=[];
