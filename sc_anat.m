@@ -19,6 +19,10 @@
 % native parameter is set to [0 0]. This is why you only see five output
 % images, despite the code handling six tissue classes.
 
+clear
+clc
+close all
+
 participant_list = {'CU_2310', 'CU_2538', 'CU_2663', 'CU_2697', 'CU_2925'...
     'JHU_2282', 'JHU_2374', 'JHU_2395', 'JHU_2531', 'JHU_2577', 'JHU_2650'...
     'JHU_2684', 'JHU_2713', 'JHU_2789', 'JHU_3175', 'JHU_3176'....
@@ -35,7 +39,7 @@ for p = 1:length(participant_list)
     subj_id = participant_list{p};
 
     % remote desktop
-    path = ['/cifs/diedrichsen/data/smarts_cerebellum/' subj_id];
+    path = ['/cifs/diedrichsen/data/smarts_cerebellum/anatomicals/' subj_id];
 
     % local machine
     %path = ['/Users/medha/Desktop/USRI 2026/smarts_cerebellum/anatomicals' subj_id];
@@ -47,48 +51,49 @@ for p = 1:length(participant_list)
         
         subj_anat = fullfile(path, week, sprintf('%s_%s_T1.nii', subj_id, week));
 
+        SPMhome=fileparts(which('spm.m'));
+        
+        if isfile(subj_anat)
+
+            J=[];
+            J.channel.vols     = {subj_anat};
+            J.channel.biasreg  = 0.001;
+            J.channel.biasfwhm = 60;
+            J.channel.write    = [1 0];
+            J.tissue(1).tpm    = {fullfile(SPMhome,'tpm/TPM.nii,1')};
+            J.tissue(1).ngaus  = 1;
+            J.tissue(1).native = [1 0];
+            J.tissue(1).warped = [0 0];
+            J.tissue(2).tpm    = {fullfile(SPMhome,'tpm/TPM.nii,2')};
+            J.tissue(2).ngaus  = 1;
+            J.tissue(2).native = [1 0];
+            J.tissue(2).warped = [0 0];
+            J.tissue(3).tpm    = {fullfile(SPMhome,'tpm/TPM.nii,3')};
+            J.tissue(3).ngaus  = 2;
+            J.tissue(3).native = [1 0];
+            J.tissue(3).warped = [0 0];
+            J.tissue(4).tpm    = {fullfile(SPMhome,'tpm/TPM.nii,4')};
+            J.tissue(4).ngaus  = 3;
+            J.tissue(4).native = [1 0];
+            J.tissue(4).warped = [0 0];
+            J.tissue(5).tpm    = {fullfile(SPMhome,'tpm/TPM.nii,5')};
+            J.tissue(5).ngaus  = 4;
+            J.tissue(5).native = [1 0];
+            J.tissue(5).warped = [0 0];
+            J.tissue(6).tpm    = {fullfile(SPMhome,'tpm/TPM.nii,6')};
+            J.tissue(6).ngaus  = 2;
+            J.tissue(6).native = [0 0];
+            J.tissue(6).warped = [0 0];
+        
+            J.warp.mrf     = 1;
+            J.warp.cleanup = 1;
+            J.warp.reg     = [0 0.001 0.5 0.05 0.2];
+            J.warp.affreg  = 'mni';
+            J.warp.fwhm    = 0;
+            J.warp.samp    = 3;
+            J.warp.write   = [1 1];
+            matlabbatch{1}.spm.spatial.preproc=J;
+            spm_jobman('run',matlabbatch);
+        end
     end
-
-    SPMhome=fileparts(which('spm.m'));
-    J=[];
-
-    J.channel.vols     = {subj_anat};
-    J.channel.biasreg  = 0.001;
-    J.channel.biasfwhm = 60;
-    J.channel.write    = [1 0];
-    J.tissue(1).tpm    = {fullfile(SPMhome,'tpm/TPM.nii,1')};
-    J.tissue(1).ngaus  = 1;
-    J.tissue(1).native = [1 0];
-    J.tissue(1).warped = [0 0];
-    J.tissue(2).tpm    = {fullfile(SPMhome,'tpm/TPM.nii,2')};
-    J.tissue(2).ngaus  = 1;
-    J.tissue(2).native = [1 0];
-    J.tissue(2).warped = [0 0];
-    J.tissue(3).tpm    = {fullfile(SPMhome,'tpm/TPM.nii,3')};
-    J.tissue(3).ngaus  = 2;
-    J.tissue(3).native = [1 0];
-    J.tissue(3).warped = [0 0];
-    J.tissue(4).tpm    = {fullfile(SPMhome,'tpm/TPM.nii,4')};
-    J.tissue(4).ngaus  = 3;
-    J.tissue(4).native = [1 0];
-    J.tissue(4).warped = [0 0];
-    J.tissue(5).tpm    = {fullfile(SPMhome,'tpm/TPM.nii,5')};
-    J.tissue(5).ngaus  = 4;
-    J.tissue(5).native = [1 0];
-    J.tissue(5).warped = [0 0];
-    J.tissue(6).tpm    = {fullfile(SPMhome,'tpm/TPM.nii,6')};
-    J.tissue(6).ngaus  = 2;
-    J.tissue(6).native = [0 0];
-    J.tissue(6).warped = [0 0];
-
-    J.warp.mrf     = 1;
-    J.warp.cleanup = 1;
-    J.warp.reg     = [0 0.001 0.5 0.05 0.2];
-    J.warp.affreg  = 'mni';
-    J.warp.fwhm    = 0;
-    J.warp.samp    = 3;
-    J.warp.write   = [1 1];
-    matlabbatch{1}.spm.spatial.preproc=J;
-    spm_jobman('run',matlabbatch);
-
 end
