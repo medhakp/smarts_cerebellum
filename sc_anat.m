@@ -23,6 +23,7 @@ clear
 clc
 close all
 
+
 participant_list = {'CU_2310', 'CU_2538', 'CU_2663', 'CU_2697', 'CU_2925'...
     'JHU_2282', 'JHU_2374', 'JHU_2395', 'JHU_2531', 'JHU_2577', 'JHU_2650'...
     'JHU_2684', 'JHU_2713', 'JHU_2789', 'JHU_3175', 'JHU_3176'....
@@ -33,6 +34,7 @@ participant_list = {'CU_2310', 'CU_2538', 'CU_2663', 'CU_2697', 'CU_2925'...
     'CUP_1001', 'CUP_1002', 'JHP_1001', 'JHP_1002', 'JHP_1004'...
     'UZP_1001', 'UZP_1002', 'UZP_1004', 'UZP_1005', 'UZP_1006', 'UZP_1006'...
     'UZP_1007', 'UZP_1008'};
+
 
 for p = 1:length(participant_list)
 
@@ -49,7 +51,20 @@ for p = 1:length(participant_list)
     for w = 1:length(week_list)
         week = week_list{w};
         
-        subj_anat = fullfile(path, week, sprintf('%s_%s_T1.nii', subj_id, week));
+        % Reslice anatomical image within LPI coordinate systems
+        % packages: 
+        	% https://github.com/jdiedrichsen/suit/blob/master/vararginoptions.m and 
+        	% https://github.com/DiedrichsenLab/spmj_tools/tree/main
+            
+            % (1) Reslice anatomical image to set it within LPI co-ordinate frames
+            source  = fullfile(path, week, sprintf('%s_%s_T1.nii', subj_id, week));
+            dest    = fullfile(path,week,sprintf('%s_%s_T1w_LPI.nii', subj_id, week));
+            spmj_reslice_LPI(source,'name', dest);
+            
+            fprintf('Manually retrieve the location of the anterior commissure (x,y,z) before continuing')
+            
+
+        subj_anat = fullfile(path, week, sprintf('%s_%s_T1w_LPI.nii', subj_id, week)); % use LPI resliced img
 
         SPMhome=fileparts(which('spm.m'));
         
