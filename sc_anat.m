@@ -24,7 +24,7 @@ clc
 close all
 
 
-participant_list = {'CU_2310', 'CU_2538', 'CU_2663', 'CU_2697', 'CU_2925'...
+participant_list = { 'CU_2538', 'CU_2663', 'CU_2697', 'CU_2925'...
     'JHU_2282', 'JHU_2374', 'JHU_2395', 'JHU_2531', 'JHU_2577', 'JHU_2650'...
     'JHU_2684', 'JHU_2713', 'JHU_2789', 'JHU_3175', 'JHU_3176'....
     'UZ_2365', 'UZ_2450', 'UZ_2565', 'UZ_2595', 'UZ_2652', 'UZ_2654'...
@@ -58,11 +58,12 @@ for p = 1:length(participant_list)
             
             % (1) Reslice anatomical image to set it within LPI co-ordinate frames
             source  = fullfile(path, week, sprintf('%s_%s_T1.nii', subj_id, week));
-            dest    = fullfile(path,week,sprintf('%s_%s_T1w_LPI.nii', subj_id, week));
-            spmj_reslice_LPI(source,'name', dest);
+            if isfile(source)
+                dest = fullfile(path,week,sprintf('%s_%s_T1w_LPI.nii', subj_id, week));
+                spmj_reslice_LPI(source,'name', dest);
+                fprintf('Manually retrieve the location of the anterior commissure (x,y,z) before continuing')
             
-            fprintf('Manually retrieve the location of the anterior commissure (x,y,z) before continuing')
-            
+            end
 
         subj_anat = fullfile(path, week, sprintf('%s_%s_T1w_LPI.nii', subj_id, week)); % use LPI resliced img
 
