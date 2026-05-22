@@ -8,8 +8,12 @@ function varargout = sc_anat(what, varargin)
     % Use a different baseDir when using your local machine or the cbs
     % server. Add more directory if needed.
     
+    path = 'Documents/';
     addpath([path 'GitHub/spmj_tools/'])
     addpath([path 'GitHub/dataframe/pivot/'])
+
+    % paths for my directories
+    addpath('/home/UWO/mporwal2/Documents/GitHub/smarts_cerebellum')
 
     if isfolder("/cifs/diedrichsen/data/smarts_cerebellum/")
         baseDir = "/cifs/diedrichsen/data/smarts_cerebellum/";
