@@ -69,40 +69,59 @@ function varargout = sc_anat(what, varargin)
                 srcFile = fullfile(baseDir, anatomicalDir, subj_id, week, sprintf('%s_%s_T1.nii', subj_id, week));
                 refFile = fullfile(baseDir, anatomicalDir, subj_id, refT1, sprintf('%s_%s_T1.nii', subj_id, refT1));
             
+                %{
                 if exist(srcFile, 'file') ~= 2
                     error('sc_anat:sourceMissing', 'Source image not found: %s', srcFile);
                 end
+                %}
+
+                % need to have ref exist.
                 if exist(refFile, 'file') ~= 2
                     error('sc_anat:refMissing', 'Reference image not found: %s', refFile);
                 end
-            
-                % Force char (guards against string type sneaking in from subj_id/week/refT1)
-                srcFile = char(srcFile);
-                refFile = char(refFile);
                 
-                J.source = {srcFile};
-                J.ref    = {refFile};
-                J.other  = {''};
-            
-                % Validate that source and ref are proper cellstr (what SPM requires)
-                if ~iscellstr(J.source)
-                    error('sc_anat:badSource', ...
-                        'J.source must be a cellstr. Got class %s, inner class %s.', ...
-                        class(J.source), class(J.source{1}));
+                %{
+                % check which files are missing but in .tsv
+                if ~isfile(srcFile)
+                    disp(srcFile)
                 end
-                if ~iscellstr(J.ref)
-                    error('sc_anat:badRef', ...
-                        'J.ref must be a cellstr. Got class %s, inner class %s.', ...
-                        class(J.ref), class(J.ref{1}));
-                end
+                %}
 
-                J.other = {''};
-                J.eoptions.cost_fun = 'nmi';
-                J.eoptions.sep = [4 2];
-                J.eoptions.tol = [0.02 0.02 0.02 0.001 0.001 0.001 0.01 0.01 0.01 0.001 0.001 0.001];
-                J.eoptions.fwhm = [7 7];
-                matlabbatch{1}.spm.spatial.coreg.estimate=J;
-                spm_jobman('run',matlabbatch);
+                
+                % skips if source file not found
+                if isfile(srcFile)
+                    
+                    % Force char (guards against string type sneaking in from subj_id/week/refT1)
+                    srcFile = char(srcFile);
+                    refFile = char(refFile);
+                    
+                    J.source = {srcFile};
+                    J.ref    = {refFile};
+                    J.other  = {''};
+                
+                    % Validate that source and ref are proper cellstr (what SPM requires)
+                    if ~iscellstr(J.source)
+                        error('sc_anat:badSource', ...
+                            'J.source must be a cellstr. Got class %s, inner class %s.', ...
+                            class(J.source), class(J.source{1}));
+                    end
+                    if ~iscellstr(J.ref)
+                        error('sc_anat:badRef', ...
+                            'J.ref must be a cellstr. Got class %s, inner class %s.', ...
+                            class(J.ref), class(J.ref{1}));
+                    end
+    
+                    J.other = {''};
+                    J.eoptions.cost_fun = 'nmi';
+                    J.eoptions.sep = [4 2];
+                    J.eoptions.tol = [0.02 0.02 0.02 0.001 0.001 0.001 0.01 0.01 0.01 0.001 0.001 0.001];
+                    J.eoptions.fwhm = [7 7];
+                    matlabbatch{1}.spm.spatial.coreg.estimate=J;
+                    spm_jobman('run',matlabbatch);
+                    
+                end
+                
+               
                 
 
 
@@ -131,12 +150,14 @@ function varargout = sc_anat(what, varargin)
                 subj_anat = fullfile(baseDir, anatomicalDir, subj_id, week, sprintf('%s_%s_T1.nii', subj_id, week));
    
                 
-                % spmj_segmentation(anat_path);
-                SPMhome=fileparts(which('spm.m'));
+                
                 
                 if isfile(subj_anat) % just in case
+                    anat_path = fullfile(baseDir, anatomicalDir, subj_id, week, sprintf('%s_%s_T1.nii', subj_id, week));
+                    anat_path = char(anat_path); % must be chars, not string
 
-
+                    % spmj_segmentation(anat_path);
+                    SPMhome=fileparts(which('spm.m'));
                     J=[];
                     % for s=sn WE DONT NEED THIS FOR LOOP 
                     J.channel.vols = {anat_path};
@@ -177,9 +198,10 @@ function varargout = sc_anat(what, varargin)
                     matlabbatch{1}.spm.spatial.preproc=J;
                     spm_jobman('run',matlabbatch);
 
+
                 end
 
-    
+            
         end
     end
 end
