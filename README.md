@@ -21,6 +21,8 @@ This repository provides replicable functions to perform this analysis primarily
   
   Then, inside `sc_anat.m`, run the coregistration as `ANAT:coreg` (script made available in [spmj_tools](https://github.com/DiedrichsenLab/spmj_tools/blob/main/template_functional_singlesess.m)).
 
+  Images are now in aligned anatomical space.
+
 **2. Set q-form matrix equal to s-form matrix**
 
   Manual alignment and coregistration results in a mismatch between an image’s qform and sform matrices, where the former is how an individual was scanned in the coil and the latter is the matrix to align the image with its reference. Hence, we prefer to use the sform matrix.
