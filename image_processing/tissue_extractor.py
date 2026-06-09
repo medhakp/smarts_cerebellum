@@ -65,6 +65,7 @@ def isolate(t1_path, subj_id, week, results_path):
 
 # 2. SUITPy normalization
 """
+June 9: updated with updated suit function
 Normalize T1w anatomical in native space to SUIT (or other) space
 Inputs:
     T1w anatomical
@@ -75,20 +76,30 @@ Outputs:
         fwd_transforms: transformation file for native to SUIT space
 """
 
-def normalize(t1_path, mask_path, results_path): # fix: make option to choose which files are written
+
+def normalize(t1_path, mask_path, results_path,
+              space = 'SUIT'
+              ): # fix: make option to choose which files are written
+    """
+    June 9: updated with updated suit function
+    with correct input arg names
+    and option to choose template space to normalize to
+    """
+
     results = suit.normalize(
         source_file = t1_path,
         mask_file = str(mask_path),
-        space = 'SUIT',
+        space = space,
 
         # optional files
-        write_jacobian_determinant = True,
-        write_log_jacobian_determinant = True, #if log_jac == True else False, 
-        write_ants_transform = False,
-        write_normalized = True,
-        write_inv_deformation = True,
+        write_normalized=True,
+        write_ants_transform=False,
+        write_deformation=True,
+        write_inv_deformation=True,
+        write_jacobian_determinant=True,
+        write_log_jacobian_determinant=True,
 
-        results_folder = results_path,
+        result_folder = results_path,
 
         verbose = 1
     )

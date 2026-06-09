@@ -43,3 +43,5 @@ repo_ignore/trial_imgs/CU_2663_wm_intercept.nii.gz
 repo_ignore/trial_imgs/CU_2663_wm_slope.nii.gz
 repo_ignore/trial_imgs/CU_2697_wm_intercept.nii.gz
 repo_ignore/trial_imgs/CU_2697_wm_slope.nii.gz
+image_analysis/__pycache__/avg_vol.cpython-310.pyc
+image_analysis/avg_vol_tutorial.ipynb
