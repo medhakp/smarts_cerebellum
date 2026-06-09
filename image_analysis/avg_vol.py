@@ -31,18 +31,17 @@ anat_dir = '/cifs/diedrichsen/data/smarts_cerebellum/anatomicals'
 p_df = pd.read_csv(f'{base_dir}/participants_anat.tsv', sep = '\t') # not needed
 
 
+# add input: type of file (e.g. native, tissue_resliced, etc.)
 def avg_vol(subj_id, 
             reference_img, # reference anatomical
-            week_path, # path to week image
-            #week_file,
+            #week_path, # path to week image
             results_path,
             tissue=None):
-    
     """
-    Inputs: UPDATE
-    anat dir; participants file OR [(subj, week) and call it inside a loop].
+    Inputs:
+    anat dir: participants file OR [(subj, week) and call it inside a loop].
     Reference img (inside the Jupyter notebook loop for reading off the info file)
-    week_path (path for each week's image), results_path (store results)
+    #week_path (path for each week's image), results_path (store results)
 
     Everything is done in the reference image. So this function will (...) (resample voxels in other weeks so that they are aligned with the reference, and perform multiple linear regression)
 
@@ -60,6 +59,9 @@ def avg_vol(subj_id,
 
     # all possible weeks.
     weeks = np.array([0,4,12,24,52]) # read from file, use file reading function maybe
+    
+    
+    # THIS PART SHOULD BE DONE IN TUTORIAL, NOT IN FUNCTION. or with a helper function.
 
 
     #____________________________________
@@ -67,8 +69,9 @@ def avg_vol(subj_id,
     p_weeks = []
     for week in weeks:
         #week_path = f'{anat_dir}/{subj_id}/W{week}/wm_results/{subj_id}_W{week}_T1_wm_vol.nii'
-        week_path = week_path
-        #week_path = f'{anat_dir}/{subj_id}/W{week}/{subj_id}_W{week}_T1.nii'
+        #week_path = week_path
+        week_path = f'{anat_dir}/{subj_id}/W{week}/c2{subj_id}_W{week}_T1.nii'
+
 
         # skip over missed measurement weeks.
         if not os.path.exists(week_path):
@@ -85,8 +88,9 @@ def avg_vol(subj_id,
 
     for week in weeks: # resample ALL weeks, including the reference week
         #week_path = f'{anat_dir}/{subj_id}/W{week}/wm_results/{subj_id}_W{week}_T1_wm_vol.nii'
-        week_path = week_path
-        #week_path = f'{anat_dir}/{subj_id}/W{week}/{subj_id}_W{week}_T1.nii'
+        #week_path = week_path
+        week_path = f'{anat_dir}/{subj_id}/W{week}/c2{subj_id}_W{week}_T1.nii'
+
 
         # skip over missed measurement weeks.
         if not os.path.exists(week_path):
@@ -136,7 +140,7 @@ def avg_vol(subj_id,
     slope_img = nib.Nifti1Image(slope, img0.affine)
 
     # fix: name of file should be insertable, too (e.g. which_type = 'native' or smth in fcn input)
-    nib.save(intercept_img, f'{results_path}/{subj_id}_T1_intercept_native.nii.gz') # specify file name
-    nib.save(slope_img, f'{results_path}/{subj_id}_T1_slope_native.nii.gz')
+    nib.save(intercept_img, f'{results_path}/{subj_id}_T1_intercept_wm_native.nii.gz') # specify file name
+    nib.save(slope_img, f'{results_path}/{subj_id}_T1_wm_slope_native.nii.gz')
 
     return B_hat
