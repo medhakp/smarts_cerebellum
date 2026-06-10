@@ -108,6 +108,7 @@ def avg_vol(subj_id,
         
         if not tissue==None:
             week_path = f'{anat_dir}/{subj_id}/W{week}/{tissue_dict[tissue]}{subj_id}_W{week}_T1.nii'
+            #print(f'using {tissue}')
         else:
             week_path = f'{anat_dir}/{subj_id}/W{week}/{subj_id}_W{week}_T1.nii'
 
@@ -117,6 +118,7 @@ def avg_vol(subj_id,
             continue
 
         week_img = nib.load(week_path)
+        print(f'on week {week} for {subj_id}')
 
         week_dict = {
             '0': 0,
@@ -145,21 +147,46 @@ def avg_vol(subj_id,
     B_hat = np.linalg.pinv(X) @ Y
     # where B_hat = [B_0 B_1].T
 
+    #_________________
+    # save image with voxel coordinates
+    slope = np.zeros(img0.shape) # tensor with shape of reference img
+    intercept = np.zeros(img0.shape)
+    # need i, j, k as vectors (they're tensors right now)
+
+    iv = i.flatten()
+    jv = j.flatten()
+    kv = k.flatten()
+
+    slope[iv, jv, kv] = B_hat[1,:] # write the slope into the vectors i, j, k for coordinates
+    intercept[iv, jv, kv] = B_hat[0,:]
+    #________________
+
+    """
+    Joern's pseudocode
+
+    results = np.zeros(img0.shape)
+    results(i,j,k)=B(:,1) # Slopw
+    nifti = np.Nifti1image(results,img0.affine)
+    niftt.to_filename()
+
+    """
+
     # intercept and slope reshaped into Nifti-compatible array
-    intercept = B_hat[0,:].reshape(img0.shape)
-    slope = B_hat[1,:].reshape(img0.shape)
+    #intercept = B_hat[0,:].reshape(img0.shape)
+    #slope = B_hat[1,:].reshape(img0.shape)
 
     """
     So this image is in world coordinates now, and saved with the affine of the original image.
     Should it be converted back to voxel coordinates (bc otherwise, the affine is kinda meaningless)?
+
+    # intercept and slope are already world-coordinates array, so multiply by inverse affine
+    
     """
     
-
     # save as Nifti
     intercept_img = nib.Nifti1Image(intercept, img0.affine)
     slope_img = nib.Nifti1Image(slope, img0.affine)
 
-    # fix: name of file should be insertable, too (e.g. which_type = 'native' or smth in fcn input)
     nib.save(intercept_img, f'{results_path}/{subj_id}_T1_intercept_{image_suffix}.nii.gz') # specify file name
     nib.save(slope_img, f'{results_path}/{subj_id}_T1_slope_{image_suffix}.nii.gz')
 
