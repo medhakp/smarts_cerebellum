@@ -15,6 +15,9 @@ fixes
 - ROI volume function - uses helper summarize.tsv function
 - function to loop over participants information file.
 - documentation for each function.
+
+documentation:
+- specify type of each input
 """
 
 """
@@ -124,15 +127,30 @@ Output:
     - probability of tissue in space
 """
 
+
+# fix: choose output file name in reslice
 def reslice(tissue_path, fwd_def,  mask_path,
-            results_path, subj_id, week, tissue):
-    resliced_img = suit.reslice_image(source_image = tissue_path,
+            results_path, subj_id, tissue, week = None):
+    
+    if week: # if reslicing images by week
+        resliced_img = suit.reslice_image(source_image = tissue_path,
                                       deformation = fwd_def,
                                       mask = str(mask_path)
                                       )
-    nib.save(resliced_img, Path(results_path)/f'{subj_id}_{week}_T1_{tissue}_resliced.nii.gz')
+        nib.save(resliced_img, Path(results_path)/f'{subj_id}_{week}_T1_{tissue}_resliced.nii.gz')
 
-    resliced_img_path = f'{results_path}/{subj_id}_{week}_T1_{tissue}_resliced.nii.gz'
+        resliced_img_path = f'{results_path}/{subj_id}_{week}_T1_{tissue}_resliced.nii.gz'
+
+    else: # week == None (just reslice one img per subj) (e.g. slope reslice)
+        # for the slope: just put slope file suffix as tissue (i.e. _wm_native_slope_resliced.nii.gz)
+        resliced_img = suit.reslice_image(source_image = tissue_path,
+                                      deformation = fwd_def,
+                                      mask = str(mask_path)
+                                      )
+        nib.save(resliced_img, Path(results_path)/f'{subj_id}_T1_{tissue}_resliced.nii.gz')
+
+        resliced_img_path = f'{results_path}/{subj_id}_T1_{tissue}_resliced.nii.gz'
+
     return resliced_img_path
 
 # IS THIS VOLUME IMAGE REALLY NECESSARY? or correct?
