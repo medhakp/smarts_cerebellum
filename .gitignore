@@ -1,6 +1,12 @@
 venv/
 .venv/
 env/
+
+# ignore pycache
+__pychache__/
+*.py[cod]
+*$py.class
+
 initial_wm_analysis.ipynb
 long_wm_overlap_map.ipynb
 make_summarized_tsv.ipynb
