@@ -57,3 +57,6 @@ image_processing/__pycache__/tissue_extractor.cpython-310.pyc
 image_processing/__pycache__/tissue_extractor.cpython-310.pyc
 image_analysis/avg_vol_editor.ipynb
 cerebellar_alignment/CU_2538_W4_cerebellum_only_trial.nii.gz
+trial_sc_coreg.m
+cerebellar_alignment/CU_2538_W4_T1_updated_affine.nii.gz
+cerebellar_alignment/CU_2538_W0_cerebellum_only_trial.nii.gz
