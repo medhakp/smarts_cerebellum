@@ -37,6 +37,7 @@ def avg_vol(subj_id,
             #week_path, # path to week image
             results_path,
             image_suffix,
+            subpath = None, # specify subfolder
             input_suffix = None, # suffix for input image; MUST begin with '_'
             tissue=None):
     """
@@ -45,6 +46,7 @@ def avg_vol(subj_id,
     Reference img (inside the Jupyter notebook loop for reading off the info file)
     #week_path (path for each week's image), results_path (store results)
     results path: directory to store results
+    subpath: path with the images, usually same as the reference image's parent folder
     image suffix: suffix with which to save the slope and intercept images
         suggested: <image_type>_<space> where 'image_type' is "anat", "wm", "gm", etc; 'space' is native or template (<template_name>)
     input_suffix: suffix for input image, if applicable (default = None) - if supplying, must being with "_"
@@ -86,9 +88,9 @@ def avg_vol(subj_id,
         #week_path = f'{anat_dir}/{subj_id}/W{week}/c2{subj_id}_W{week}_T1.nii' # fix
 
         if not tissue==None:
-            week_path = f'{anat_dir}/{subj_id}/W{week}/{tissue_dict[tissue]}{subj_id}_W{week}_T1.nii'
+            week_path = f'{anat_dir}/{subj_id}/{subpath}/W{week}/{tissue_dict[tissue]}{subj_id}_W{week}_T1.nii'
         else:
-            week_path = f'{anat_dir}/{subj_id}/W{week}/{subj_id}_W{week}_T1.nii'
+            week_path = f'{anat_dir}/{subj_id}/{subpath}/W{week}/{subj_id}_W{week}_T1.nii'
 
 
         # skip over missed measurement weeks.
@@ -109,10 +111,10 @@ def avg_vol(subj_id,
         #week_path = week_path
         
         if not tissue==None:
-            week_path = f'{anat_dir}/{subj_id}/W{week}/{tissue_dict[tissue]}{subj_id}_W{week}_T1.nii'
+            week_path = f'{anat_dir}/{subj_id}/{subpath}/W{week}/{tissue_dict[tissue]}{subj_id}_W{week}_T1.nii'
             #print(f'using {tissue}')
         else:
-            week_path = f'{anat_dir}/{subj_id}/W{week}/{subj_id}_W{week}_T1.nii'
+            week_path = f'{anat_dir}/{subj_id}/{subpath}/W{week}/{subj_id}_W{week}_T1.nii'
 
 
         # skip over missed measurement weeks.

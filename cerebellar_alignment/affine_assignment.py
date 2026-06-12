@@ -42,6 +42,7 @@ def affine_assignment(
         subj_id, week (str)
 
         update_sform, update_qform: False by default; updates s-form, q-form matrices of source image with that of reference image.
+        ^I don't think these are needed; I think it's already updated when we save the image
 
     Assigns affine from reference/target image to source image (for world-coordinates alignment).
 
