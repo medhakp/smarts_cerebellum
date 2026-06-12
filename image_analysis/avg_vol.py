@@ -37,6 +37,7 @@ def avg_vol(subj_id,
             #week_path, # path to week image
             results_path,
             image_suffix,
+            input_suffix = None, # suffix for input image; MUST begin with '_'
             tissue=None):
     """
     Inputs:
@@ -46,6 +47,7 @@ def avg_vol(subj_id,
     results path: directory to store results
     image suffix: suffix with which to save the slope and intercept images
         suggested: <image_type>_<space> where 'image_type' is "anat", "wm", "gm", etc; 'space' is native or template (<template_name>)
+    input_suffix: suffix for input image, if applicable (default = None) - if supplying, must being with "_"
 
     Everything is done in the reference image. So this function will (...) (resample voxels in other weeks so that they are aligned with the reference, and perform multiple linear regression)
 
