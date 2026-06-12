@@ -27,6 +27,8 @@ def cerebellum_only_img(cerebellar_mask,
         cerebellar_mask: binary mask of the cerebellum (Nifti or str)
         anat_img: (T1) anatomical whole-brain image (Nifti or str)
         results_path: directory to store resulting image (str)
+    
+    Performs element-wise multiplication.
 
     Output:
         cerebellum-only image (Nifti)
@@ -44,13 +46,17 @@ def cerebellum_only_img(cerebellar_mask,
     anat_arr = anat_img.get_fdata()
 
     # get within-cerebellum-only voxels
-    cerebellar_arr = cerebellar_mask_arr*anat_arr
+    cerebellar_arr = anat_arr*cerebellar_mask_arr
+
+    """
+    Element-wise multiplication (using *) rather than matrix multiplication, so commutes.
+    """
 
     # save as Nifti and save
     cerebellar_img = nib.Nifti1Image(cerebellar_arr, anat_img.affine)
     # this affine will be overwritten by new affine for re-coregistration
 
-    nib.save(cerebellar_img, f'{results_path}/{subj_id}_{week}_T1_cerebellum.nii')
+    nib.save(cerebellar_img, f'{results_path}/{subj_id}_{week}_T1_cerebellum_only.nii')
     # save uncompressed so that it can be used in SPM coreg
 
     return cerebellar_img
