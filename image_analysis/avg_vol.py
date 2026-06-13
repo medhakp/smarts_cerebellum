@@ -61,7 +61,7 @@ def avg_vol(subj_id,
     tissue_dict = {
         'gm': 'c1',
         'wm': 'c2',
-        'csf': 'c2'
+        'csf': 'c3'
     }
 
     img0 = nib.load(reference_img)
