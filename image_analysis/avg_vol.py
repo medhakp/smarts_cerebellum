@@ -30,6 +30,34 @@ base_dir = '/cifs/diedrichsen/data/smarts_cerebellum'
 anat_dir = '/cifs/diedrichsen/data/smarts_cerebellum/anatomicals'
 p_df = pd.read_csv(f'{base_dir}/participants_anat.tsv', sep = '\t') # not needed
 
+# not yet tested; if this doesn't work, use previous version of this function.
+def sufficient_weeks(subj_id, subpath, tissue = None):
+
+    weeks = np.array([0,4,12,24,52])
+
+    p_weeks = []
+    for week in weeks:
+        #week_path = f'{anat_dir}/{subj_id}/W{week}/wm_results/{subj_id}_W{week}_T1_wm_vol.nii'
+        #week_path = week_path
+        #week_path = f'{anat_dir}/{subj_id}/W{week}/c2{subj_id}_W{week}_T1.nii' # fix
+
+        if not tissue==None:
+            week_path = f'{anat_dir}/{subj_id}/{subpath}/W{week}/{tissue_dict[tissue]}{subj_id}_W{week}_T1.nii'
+        else:
+            week_path = f'{anat_dir}/{subj_id}/{subpath}/W{week}/{subj_id}_W{week}_T1.nii'
+
+
+        # skip over missed measurement weeks.
+        if not os.path.exists(week_path):
+            continue
+
+        p_weeks.append(week)
+    
+    if len(p_weeks) == 1: # only one measurement week available
+        return None # exit function (skip subject)
+    
+    # if sufficient measurement weeks (>1)
+    return p_weeks
 
 # add input: type of file (e.g. native, tissue_resliced, etc.)
 def avg_vol(subj_id, 
@@ -37,7 +65,7 @@ def avg_vol(subj_id,
             #week_path, # path to week image
             results_path,
             image_suffix,
-            subpath = None, # specify subfolder
+            subpath = None, # specify subfolder with input
             input_suffix = None, # suffix for input image; MUST begin with '_'
             tissue=None):
     """
@@ -75,33 +103,16 @@ def avg_vol(subj_id,
     # all possible weeks.
     weeks = np.array([0,4,12,24,52]) # read from file, use file reading function maybe
     
-    
-    # THIS PART SHOULD BE DONE IN TUTORIAL, NOT IN FUNCTION. or with a helper function.
+    # if not enough measurement weeks (>1), exit
+    p_weeks = sufficient_weeks(subj_id, subpath, tissue)
 
 
-    #____________________________________
-    # find the number of measurement weeks that exist
-    p_weeks = []
-    for week in weeks:
-        #week_path = f'{anat_dir}/{subj_id}/W{week}/wm_results/{subj_id}_W{week}_T1_wm_vol.nii'
-        #week_path = week_path
-        #week_path = f'{anat_dir}/{subj_id}/W{week}/c2{subj_id}_W{week}_T1.nii' # fix
 
-        if not tissue==None:
-            week_path = f'{anat_dir}/{subj_id}/{subpath}/W{week}/{tissue_dict[tissue]}{subj_id}_W{week}_T1.nii'
-        else:
-            week_path = f'{anat_dir}/{subj_id}/{subpath}/W{week}/{subj_id}_W{week}_T1.nii'
+    # this part is probably not necessary, since p_weeks returned only if >1 weeks
+    if len(p_weeks) == 1:
+        return None
 
 
-        # skip over missed measurement weeks.
-        if not os.path.exists(week_path):
-            continue
-
-        p_weeks.append(week)
-    
-    if len(p_weeks) == 1: # only one measurement week available
-        return None # exit function (skip subject)    
-    #__________________________
 
 
     Y = np.zeros((len(p_weeks), np.prod(img0.shape))) # initialize Y (shape = (k by p)) array, where k = number of weeks available
@@ -110,12 +121,13 @@ def avg_vol(subj_id,
         #week_path = f'{anat_dir}/{subj_id}/W{week}/wm_results/{subj_id}_W{week}_T1_wm_vol.nii'
         #week_path = week_path
         
+        #__________________________________________
+        # find week image if exists
         if not tissue==None:
             week_path = f'{anat_dir}/{subj_id}/{subpath}/W{week}/{tissue_dict[tissue]}{subj_id}_W{week}_T1.nii'
             #print(f'using {tissue}')
         else:
             week_path = f'{anat_dir}/{subj_id}/{subpath}/W{week}/{subj_id}_W{week}_T1.nii'
-
 
         # skip over missed measurement weeks.
         if not os.path.exists(week_path):
@@ -123,7 +135,11 @@ def avg_vol(subj_id,
 
         week_img = nib.load(week_path)
         print(f'on week {week} for {subj_id}')
+        #__________________________________________
 
+        
+
+        # dummy variable for weeks (code as 0, ..., 4)
         week_dict = {
             '0': 0,
             '4': 1,
