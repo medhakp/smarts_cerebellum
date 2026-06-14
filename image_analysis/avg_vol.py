@@ -30,8 +30,16 @@ base_dir = '/cifs/diedrichsen/data/smarts_cerebellum'
 anat_dir = '/cifs/diedrichsen/data/smarts_cerebellum/anatomicals'
 p_df = pd.read_csv(f'{base_dir}/participants_anat.tsv', sep = '\t') # not needed
 
-# not yet tested; if this doesn't work, use previous version of this function.
-def sufficient_weeks(subj_id, subpath, tissue = None):
+#______________________________
+# helper functions
+
+def sufficient_weeks(subj_id, subpath, tissue):
+
+    tissue_dict = {
+        'gm': 'c1',
+        'wm': 'c2',
+        'csf': 'c2'
+    }
 
     weeks = np.array([0,4,12,24,52])
 
@@ -41,10 +49,16 @@ def sufficient_weeks(subj_id, subpath, tissue = None):
         #week_path = week_path
         #week_path = f'{anat_dir}/{subj_id}/W{week}/c2{subj_id}_W{week}_T1.nii' # fix
 
-        if not tissue==None:
-            week_path = f'{anat_dir}/{subj_id}/{subpath}/W{week}/{tissue_dict[tissue]}{subj_id}_W{week}_T1.nii'
+        # e.g. if in cerebellar_alignment dir
+        if not subpath == None:
+            base_path =  f'{anat_dir}/{subj_id}/{subpath}/W{week}/'
         else:
-            week_path = f'{anat_dir}/{subj_id}/{subpath}/W{week}/{subj_id}_W{week}_T1.nii'
+            base_path =  f'{anat_dir}/{subj_id}/W{week}/'
+
+        if not tissue==None:
+            week_path = f'{base_path}/{tissue_dict[tissue]}{subj_id}_W{week}_T1.nii'
+        else:
+            week_path = f'{base_path}/{subj_id}_W{week}_T1.nii'
 
 
         # skip over missed measurement weeks.
@@ -54,68 +68,22 @@ def sufficient_weeks(subj_id, subpath, tissue = None):
         p_weeks.append(week)
     
     if len(p_weeks) == 1: # only one measurement week available
-        return None # exit function (skip subject)
+        return None # exit function (skip subject)    
     
-    # if sufficient measurement weeks (>1)
     return p_weeks
 
-# add input: type of file (e.g. native, tissue_resliced, etc.)
-def avg_vol(subj_id, 
-            reference_img, # reference anatomical
-            #week_path, # path to week image
-            results_path,
-            image_suffix,
-            subpath = None, # specify subfolder with input
-            input_suffix = None, # suffix for input image; MUST begin with '_'
-            tissue=None):
-    """
-    Inputs:
-    anat dir: participants file OR [(subj, week) and call it inside a loop].
-    Reference img (inside the Jupyter notebook loop for reading off the info file)
-    #week_path (path for each week's image), results_path (store results)
-    results path: directory to store results
-    subpath: path with the images, usually same as the reference image's parent folder
-    image suffix: suffix with which to save the slope and intercept images
-        suggested: <image_type>_<space> where 'image_type' is "anat", "wm", "gm", etc; 'space' is native or template (<template_name>)
-    input_suffix: suffix for input image, if applicable (default = None) - if supplying, must being with "_"
 
-    Everything is done in the reference image. So this function will (...) (resample voxels in other weeks so that they are aligned with the reference, and perform multiple linear regression)
-
-    Returns B_hat coefficient matrix (for more flexibility in other possible operations)
+# this entire loop could probably be its own fucntion.
+def response_matrix(Y, 
+                    x, y, z, 
+                    tissue,
+                    weeks, subj_id, subpath):
     
-    """
-
-    # file prefix encoding (based on SPM segmentation notation)
     tissue_dict = {
         'gm': 'c1',
         'wm': 'c2',
-        'csf': 'c3'
+        'csf': 'c2'
     }
-
-    img0 = nib.load(reference_img)
-
-    # later fix: option to reduce to only wtihin-brain voxels
-    
-    # transform into world coordinates
-    i, j, k = np.indices(img0.shape) # matrix indices for premult by affine
-    x,y,z = nt.affine_transform(i, j, k, img0.affine)
-
-    # all possible weeks.
-    weeks = np.array([0,4,12,24,52]) # read from file, use file reading function maybe
-    
-    # if not enough measurement weeks (>1), exit
-    p_weeks = sufficient_weeks(subj_id, subpath, tissue)
-
-
-
-    # this part is probably not necessary, since p_weeks returned only if >1 weeks
-    if len(p_weeks) == 1:
-        return None
-
-
-
-
-    Y = np.zeros((len(p_weeks), np.prod(img0.shape))) # initialize Y (shape = (k by p)) array, where k = number of weeks available
 
     for week in weeks: # resample ALL weeks, including the reference week
         #week_path = f'{anat_dir}/{subj_id}/W{week}/wm_results/{subj_id}_W{week}_T1_wm_vol.nii'
@@ -123,11 +91,15 @@ def avg_vol(subj_id,
         
         #__________________________________________
         # find week image if exists
-        if not tissue==None:
-            week_path = f'{anat_dir}/{subj_id}/{subpath}/W{week}/{tissue_dict[tissue]}{subj_id}_W{week}_T1.nii'
-            #print(f'using {tissue}')
+        if not subpath == None:
+            base_path =  f'{anat_dir}/{subj_id}/{subpath}/W{week}/'
         else:
-            week_path = f'{anat_dir}/{subj_id}/{subpath}/W{week}/{subj_id}_W{week}_T1.nii'
+            base_path =  f'{anat_dir}/{subj_id}/W{week}/'
+
+        if not tissue==None:
+            week_path = f'{base_path}/{tissue_dict[tissue]}{subj_id}_W{week}_T1.nii'
+        else:
+            week_path = f'{base_path}/{subj_id}_W{week}_T1.nii'
 
         # skip over missed measurement weeks.
         if not os.path.exists(week_path):
@@ -155,8 +127,67 @@ def avg_vol(subj_id,
                                 interpolation = 1 # using trilinear resampling
                                 ).flatten() # need to put each week as a row
         
-        # now we have Y as a k by p matrix, where k is the number of weeks.  
+        # now we have Y as a k by p matrix, where k is the number of weeks. 
+        # 
+    return Y 
 
+#_____________________
+
+# add input: type of file (e.g. native, tissue_resliced, etc.)
+def avg_vol(subj_id, 
+            reference_img, # reference anatomical
+            #week_path, # path to week image
+            results_path,
+            image_suffix,
+            subpath = None, # specify subfolder
+            input_suffix = None, # suffix for input image; MUST begin with '_'
+            tissue=None):
+    """
+    Inputs:
+    updated again
+    anat dir: participants file OR [(subj, week) and call it inside a loop].
+    Reference img (inside the Jupyter notebook loop for reading off the info file)
+    #week_path (path for each week's image), results_path (store results)
+    results path: directory to store results
+    subpath: path with the images, usually same as the reference image's parent folder
+    image suffix: suffix with which to save the slope and intercept images
+        suggested: <image_type>_<space> where 'image_type' is "anat", "wm", "gm", etc; 'space' is native or template (<template_name>)
+    input_suffix: suffix for input image, if applicable (default = None) - if supplying, must being with "_"
+
+    Everything is done in the reference image. So this function will (...) (resample voxels in other weeks so that they are aligned with the reference, and perform multiple linear regression)
+
+    Returns B_hat coefficient matrix (for more flexibility in other possible operations)
+    
+    """
+
+    # file prefix encoding (based on SPM segmentation notation)
+    tissue_dict = {
+        'gm': 'c1',
+        'wm': 'c2',
+        'csf': 'c2'
+    }
+
+    img0 = nib.load(reference_img)
+
+    # later fix: option to reduce to only wtihin-brain voxels
+    
+    # transform into world coordinates
+    i, j, k = np.indices(img0.shape) # matrix indices for premult by affine
+    x,y,z = nt.affine_transform(i, j, k, img0.affine)
+
+    # all possible weeks.
+    weeks = np.array([0,4,12,24,52]) # read from file, use file reading function maybe
+    
+    p_weeks = sufficient_weeks(subj_id, subpath, tissue)
+
+
+    Y_empty = np.zeros((len(p_weeks), np.prod(img0.shape))) # initialize Y (shape = (k by p)) array, where k = number of weeks available
+
+    Y = response_matrix(Y_empty,
+                        x,y,z,
+                        tissue,
+                        weeks, subj_id, subpath)
+    
     # design matrix
     num_weeks = len(p_weeks)
     X = [np.ones(shape = (num_weeks)), p_weeks]

@@ -72,3 +72,5 @@ cerebellar_alignment/trial_imgs_CU_2538/CU_2538_T1_intercept_native_wm_updated_a
 cerebellar_alignment/trial_imgs_CU_2538/CU_2538_T1_slope_native_wm_updated_affine.nii.gz
 cerebellar_alignment/trial_imgs_CU_2538/CU_2538_W4_T1_updated_affine.nii.gz
 image_analysis/sample_img_slope_3subj.nii.gz
+image_analysis/fcn_testing_temp.ipynb
+image_analysis/temporary_img_trial.nii.gz
