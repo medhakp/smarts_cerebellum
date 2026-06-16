@@ -146,9 +146,9 @@ def reslice(img_path, fwd_def,  mask_path,
                                       deformation = fwd_def,
                                       mask = str(mask_path)
                                       )
-        nib.save(resliced_img, Path(results_path)/f'{subj_id}_{week}_{suffix}_normalized.nii.gz')
+        nib.save(resliced_img, Path(results_path)/f'{subj_id}_{week}_{suffix}_reslice.nii.gz')
 
-        resliced_img_path = f'{results_path}/{subj_id}_{week}_{suffix}_normalized.nii.gz'
+        resliced_img_path = f'{results_path}/{subj_id}_{week}_{suffix}_reslice.nii.gz'
 
     else: # week == None (just reslice one img per subj) (e.g. slope reslice)
         # for the slope: just put slope file suffix as tissue (i.e. _wm_native_slope_resliced.nii.gz)
@@ -156,9 +156,9 @@ def reslice(img_path, fwd_def,  mask_path,
                                       deformation = fwd_def,
                                       mask = str(mask_path)
                                       )
-        nib.save(resliced_img, Path(results_path)/f'{subj_id}_{suffix}_normalized.nii.gz')
+        nib.save(resliced_img, Path(results_path)/f'{subj_id}_{suffix}_reslice.nii.gz')
 
-        resliced_img_path = f'{results_path}/{subj_id}_{suffix}_normalized.nii.gz'
+        resliced_img_path = f'{results_path}/{subj_id}_{suffix}_reslice.nii.gz'
 
     return resliced_img_path
 
