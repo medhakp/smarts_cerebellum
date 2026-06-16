@@ -128,28 +128,37 @@ Output:
 """
 
 
-# fix: choose output file name in reslice
-def reslice(tissue_path, fwd_def,  mask_path,
-            results_path, subj_id, tissue, week = None):
-    
+def reslice(img_path, fwd_def,  mask_path,
+            results_path, subj_id,
+            suffix, # IF T1, WILL NEED TO SPECIFY HERE TO HAVE IT INCLUDED IN IMAGE NAME
+            week = None):
+    """
+    Inputs:
+        img_path (str): path to image being normalized
+        fwd_def (str): path to relevant forward deformation file
+        mask_path (str): path to cerebellar isolation mask
+        results_path (str): path to directory to store normalization files
+        subj_id (str)
+        suffix (str): suffix for output file name
+    """
     if week: # if reslicing images by week
-        resliced_img = suit.reslice_image(source_image = tissue_path,
+        resliced_img = suit.reslice_image(source_image = img_path,
                                       deformation = fwd_def,
                                       mask = str(mask_path)
                                       )
-        nib.save(resliced_img, Path(results_path)/f'{subj_id}_{week}_T1_{tissue}_resliced.nii.gz')
+        nib.save(resliced_img, Path(results_path)/f'{subj_id}_{week}_{suffix}_normalized.nii.gz')
 
-        resliced_img_path = f'{results_path}/{subj_id}_{week}_T1_{tissue}_resliced.nii.gz'
+        resliced_img_path = f'{results_path}/{subj_id}_{week}_{suffix}_normalized.nii.gz'
 
     else: # week == None (just reslice one img per subj) (e.g. slope reslice)
         # for the slope: just put slope file suffix as tissue (i.e. _wm_native_slope_resliced.nii.gz)
-        resliced_img = suit.reslice_image(source_image = tissue_path,
+        resliced_img = suit.reslice_image(source_image = img_path,
                                       deformation = fwd_def,
                                       mask = str(mask_path)
                                       )
-        nib.save(resliced_img, Path(results_path)/f'{subj_id}_T1_{tissue}_resliced.nii.gz')
+        nib.save(resliced_img, Path(results_path)/f'{subj_id}_{suffix}_normalized.nii.gz')
 
-        resliced_img_path = f'{results_path}/{subj_id}_T1_{tissue}_resliced.nii.gz'
+        resliced_img_path = f'{results_path}/{subj_id}_{suffix}_normalized.nii.gz'
 
     return resliced_img_path
 
