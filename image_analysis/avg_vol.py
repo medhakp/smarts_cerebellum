@@ -38,7 +38,7 @@ def sufficient_weeks(subj_id, subpath, tissue):
     tissue_dict = {
         'gm': 'c1',
         'wm': 'c2',
-        'csf': 'c2'
+        'csf': 'c3'
     }
 
     weeks = np.array([0,4,12,24,52])
@@ -51,9 +51,9 @@ def sufficient_weeks(subj_id, subpath, tissue):
 
         # e.g. if in cerebellar_alignment dir
         if not subpath == None:
-            base_path =  f'{anat_dir}/{subj_id}/{subpath}/W{week}/'
+            base_path =  f'{anat_dir}/{subj_id}/{subpath}/W{week}'
         else:
-            base_path =  f'{anat_dir}/{subj_id}/W{week}/'
+            base_path =  f'{anat_dir}/{subj_id}/W{week}'
 
         if not tissue==None:
             week_path = f'{base_path}/{tissue_dict[tissue]}{subj_id}_W{week}_T1.nii'
@@ -82,7 +82,7 @@ def response_matrix(Y,
     tissue_dict = {
         'gm': 'c1',
         'wm': 'c2',
-        'csf': 'c2'
+        'csf': 'c3'
     }
 
     for week in weeks: # resample ALL weeks, including the reference week
@@ -92,9 +92,9 @@ def response_matrix(Y,
         #__________________________________________
         # find week image if exists
         if not subpath == None:
-            base_path =  f'{anat_dir}/{subj_id}/{subpath}/W{week}/'
+            base_path =  f'{anat_dir}/{subj_id}/{subpath}/W{week}'
         else:
-            base_path =  f'{anat_dir}/{subj_id}/W{week}/'
+            base_path =  f'{anat_dir}/{subj_id}/W{week}'
 
         if not tissue==None:
             week_path = f'{base_path}/{tissue_dict[tissue]}{subj_id}_W{week}_T1.nii'
@@ -164,7 +164,7 @@ def avg_vol(subj_id,
     tissue_dict = {
         'gm': 'c1',
         'wm': 'c2',
-        'csf': 'c2'
+        'csf': 'c3'
     }
 
     img0 = nib.load(reference_img)
