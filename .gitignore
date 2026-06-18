@@ -75,3 +75,4 @@ image_analysis/sample_img_slope_3subj.nii.gz
 image_analysis/fcn_testing_temp.ipynb
 image_analysis/temporary_img_trial.nii.gz
 *.pyc
+trial_col_avg_vol.ipynb

@@ -122,7 +122,7 @@ def response_matrix(Y,
 
     
         # resample each week's image so that voxels are exactly on top of reference week voxels; add to response matrix as row vector
-        Y[week_dict[str(week)]:,] = nt.sample_image(week_img, # response matrix
+        Y[week_dict[str(week)],:] = nt.sample_image(week_img, # response matrix
                                 xm=x, ym = y, zm = z, # world coordinates
                                 interpolation = 1 # using trilinear resampling
                                 ).flatten() # need to put each week as a row
@@ -238,7 +238,7 @@ def avg_vol(subj_id,
     intercept_img = nib.Nifti1Image(intercept, img0.affine)
     slope_img = nib.Nifti1Image(slope, img0.affine)
 
-    nib.save(intercept_img, f'{results_path}/{subj_id}_T1_intercept_{image_suffix}.nii.gz') # specify file name
-    nib.save(slope_img, f'{results_path}/{subj_id}_T1_slope_{image_suffix}.nii.gz')
+    nib.save(intercept_img, f'{results_path}/{subj_id}_intercept_{image_suffix}.nii.gz') # specify file name
+    nib.save(slope_img, f'{results_path}/{subj_id}_slope_{image_suffix}.nii.gz')
 
     return B_hat
