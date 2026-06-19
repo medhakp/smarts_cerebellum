@@ -12,7 +12,9 @@ def parent_lookup(file_path, subj_id):
         file_path (str or Posix path)
         subj_id: str
 
-    Output: subj_id parent folder
+    Outputs:
+        parent (PosixPath): subj_id parent folder
+        level (int): levels from reference image to parent folder
     """
 
     path = Path(file_path)
