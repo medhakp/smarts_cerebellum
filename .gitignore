@@ -76,3 +76,4 @@ image_analysis/fcn_testing_temp.ipynb
 image_analysis/temporary_img_trial.nii.gz
 *.pyc
 trial_col_avg_vol.ipynb
+image_processing/avg_vol_new_trial_delete.ipynb

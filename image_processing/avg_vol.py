@@ -77,7 +77,8 @@ def sufficient_weeks(subj_id, subpath, tissue):
 def response_matrix(Y, 
                     x, y, z, 
                     tissue,
-                    weeks, subj_id, subpath):
+                    p_weeks,
+                    subj_id, subpath):
     
     tissue_dict = {
         'gm': 'c1',
@@ -85,50 +86,23 @@ def response_matrix(Y,
         'csf': 'c3'
     }
 
-    for week in weeks: # resample ALL weeks, including the reference week
-        #week_path = f'{anat_dir}/{subj_id}/W{week}/wm_results/{subj_id}_W{week}_T1_wm_vol.nii'
-        #week_path = week_path
+    for row_idx, week in enumerate(p_weeks): # enumerate through actual week and store the index of that week
+        # so (e.g.) if W0, W24, then store their flattened arrays in rows 1 and 2 respectively in Y matrix
         
-        #__________________________________________
-        # find week image if exists
-        if not subpath == None:
-            base_path =  f'{anat_dir}/{subj_id}/{subpath}/W{week}'
-        else:
-            base_path =  f'{anat_dir}/{subj_id}/W{week}'
+        base_path = f'{anat_dir}/{subj_id}/{subpath}/W{week}' if subpath else f'{anat_dir}/{subj_id}/W{week}'
+        week_path = f'{base_path}/{tissue_dict[tissue]}{subj_id}_W{week}_T1.nii' if tissue else f'{base_path}/{subj_id}_W{week}_T1.nii'
 
-        if not tissue==None:
-            week_path = f'{base_path}/{tissue_dict[tissue]}{subj_id}_W{week}_T1.nii'
-        else:
-            week_path = f'{base_path}/{subj_id}_W{week}_T1.nii'
-
-        # skip over missed measurement weeks.
         if not os.path.exists(week_path):
             continue
 
+        print(week_path)
+
         week_img = nib.load(week_path)
-        print(f'on week {week} for {subj_id}')
-        #__________________________________________
-
         
-
-        # dummy variable for weeks (code as 0, ..., 4)
-        week_dict = {
-            '0': 0,
-            '4': 1,
-            '12': 2,
-            '24': 3,
-            '52': 4
-        }
-
-    
-        # resample each week's image so that voxels are exactly on top of reference week voxels; add to response matrix as row vector
-        Y[week_dict[str(week)],:] = nt.sample_image(week_img, # response matrix
-                                xm=x, ym = y, zm = z, # world coordinates
-                                interpolation = 1 # using trilinear resampling
-                                ).flatten() # need to put each week as a row
-        
-        # now we have Y as a k by p matrix, where k is the number of weeks. 
-        # 
+        Y[row_idx, :] = nt.sample_image(week_img, 
+                                        xm=x, ym=y, zm=z,
+                                        interpolation=1 # trilinear interpolation (since 3 dimensions in array)
+                                        ).flatten() # store each (resampled) voxel array as a row vector for each week
     return Y 
 
 #_____________________
