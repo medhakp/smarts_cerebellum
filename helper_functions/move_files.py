@@ -20,6 +20,7 @@ def move_files(source_dir, dest_dir, ends):
                 os.path.join(source_dir, filename),
                 os.path.join(dest_dir, filename)
             )
+            print(f'Moved {filename} from {source_dir} to {dest_dir}')
 
 
 """

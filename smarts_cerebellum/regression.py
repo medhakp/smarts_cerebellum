@@ -41,8 +41,10 @@ def week_design_matrix(p_weeks):
     """
     num_weeks = len(p_weeks)
     X = [np.ones(shape = (num_weeks)), p_weeks]
-    X = X.T
+    X = np.array(X)
+    X=X.T
     return X
+
 
 
 # should pass to regression_week function the paths for each subject - this will be found using our function.
@@ -91,7 +93,9 @@ def regression_week(reference_img, p_paths, p_weeks):
     slope_img = nib.Nifti1Image(slope, img0.affine)
 
 
-    return intercept_img, slope_img
+    #return intercept_img, slope_img
+
+    return B_hat, X, Y, p_paths, p_weeks, intercept_img, slope_img
 
 
 # now, we have a function that just performs the regression. Now we need the function that will actually call it.
@@ -111,7 +115,7 @@ def perform_regression_week(reference_img, subj_id):
     """
     This will use a sufficient_weeks function: this function will just use functions available in util
     """
-    p_weeks, p_paths = week_path_search(reference_img, subj_id)
+    p_paths, p_weeks = week_path_search(reference_img, subj_id)
 
     if len(p_weeks)<2:
         return None, None # exit function if not enough measurement weeks
