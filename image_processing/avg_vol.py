@@ -88,7 +88,7 @@ def avg_vol(
         X, Y design and response matrices
         intercept_img, slope_img as Nifti images
 
-        Also saves intercept and slope images to specified directory with specified suffix, following convention <subj_id>_<algorithm = intercept/slope>_<suffix = level(=native or template (which))_<coreg, if relevant>_tissue>.
+        Also saves intercept and slope images to specified directory with specified suffix, following convention <subj_id>_<suffix = level(=native or template (which))_<coreg, if relevant>_tissue>_<algorithm = intercept/slope>
     
     """
 
@@ -162,9 +162,9 @@ def avg_vol(
     slope_img = nib.Nifti1Image(slope, img0.affine)
 
     # save image: choose path to save image to (as function input) and specify suffix of file.
-        # image name follows convention: <subj_id>_<algorithm = intercept or slope>_<level = native or template (specify)>
+        # image name follows convention: <subj_id>_<level = native or template (specify)>_<algorithm = intercept or slope>
 
-    nib.save(intercept_img, f'{results_path}/{subj_id}_intercept_{image_suffix}.nii.gz') # specify file name
-    nib.save(slope_img, f'{results_path}/{subj_id}_slope_{image_suffix}.nii.gz')
+    nib.save(intercept_img, f'{results_path}/{subj_id}_{image_suffix}_intercept.nii.gz') # specify file name
+    nib.save(slope_img, f'{results_path}/{subj_id}_{image_suffix}_slope.nii.gz')
 
     return B_hat, X, Y, intercept_img, slope_img
