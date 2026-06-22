@@ -1,15 +1,31 @@
+import numpy as np
+import pandas as pd
+
 import re
 from pathlib import Path
-from smarts_cerebellum.util import find_weeks
 
-"""
-Searches for files in all possible weeks that match the path structure of a reference file.
+def find_weeks(SID):
 
-e.g. if you want to find all anatomicals for a given subject over all weeks.
-"""
+    # @Marco
+    
+    ### look into particpants.tsv and return weeks as numpy array of int e.g., (2, 4, )
+    
+    p_df = pd.read_csv('/cifs/diedrichsen/data/smarts_cerebellum/participants_anat.tsv', sep = '\t')
+
+    # access only that subject's rows
+    df_subj = p_df[p_df.subj_id == SID]
+    weeks = []
+
+    for week in df_subj['week']:
+        weeks.append(week)
+
+    return weeks
+
 
 def week_path_search(reference_file, subj_id):
     """
+    Finds files from other weeks that match the structure of reference file.
+
     Inputs:
         reference_file (str): path to a file whose path will be used as reference.
             That is, this file's path should have the structure that all other files from that week should have.

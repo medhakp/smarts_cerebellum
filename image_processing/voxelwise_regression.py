@@ -34,7 +34,6 @@ def sufficient_weeks(reference_img):
     
     if len(p_weeks) == 1: # only one measurement week available
         return None # exit function (skip subject)    
-
     
     return p_weeks, p_paths
 
@@ -72,26 +71,26 @@ def response_matrix(Y,
 def regression_with_week(
             subj_id, 
             reference_img, # reference anatomical
-            # #week_path, # path to week image
-            # results_path,
-            # image_suffix,
-            # #subpath = None, # specify subfolder
-            # #input_suffix = None, # suffix for input image; MUST begin with '_'
-            # #tissue=None
+            #week_path, # path to week image
+            results_path,
+            image_suffix,
+            #subpath = None, # specify subfolder
+            #input_suffix = None, # suffix for input image; MUST begin with '_'
+            #tissue=None
             ):
     """
     Inputs:
-        subj_id (str): subject ID
+        subj_id (str): subject ID used for output image naming.
         reference_img (str): path to reference image
-        #results_path (str): path to directory to save file to
-        #image_suffix (str): suffix for output image (follow naming convention)
+        results_path (str): path to directory to save file to
+        image_suffix (str): suffix for output image (follow naming convention)
             suggested: <level>_<if coreg, which>_<tissue = wm, gm, T1, ...>
 
     Everything is done in the reference image. So this function will (...) (resample voxels in other weeks so that they are aligned with the reference, and perform multiple linear regression)
 
     Outputs:
-        #B_hat correlation matrix
-        #X, Y design and response matrices
+        B_hat correlation matrix
+        X, Y design and response matrices
         intercept_img, slope_img as Nifti images
 
         Also saves intercept and slope images to specified directory with specified suffix, following convention <subj_id>_<suffix = level(=native or template (which))_<coreg, if relevant>_tissue>_<algorithm = intercept/slope>
