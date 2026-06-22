@@ -20,84 +20,41 @@ from nilearn import masking # for masking within-brain voxels
 
 import nitools as nt
 
+from helper_functions import week_path_search
+
 import os
 
-#_______________________________
-
-# directories
-# make as fcn args?
-base_dir = '/cifs/diedrichsen/data/smarts_cerebellum'
-anat_dir = '/cifs/diedrichsen/data/smarts_cerebellum/anatomicals'
-p_df = pd.read_csv(f'{base_dir}/participants_anat.tsv', sep = '\t') # not needed
-
-#______________________________
 # helper functions
 
-def sufficient_weeks(subj_id, subpath, tissue):
+def sufficient_weeks(reference_img):
 
-    tissue_dict = {
-        'gm': 'c1',
-        'wm': 'c2',
-        'csf': 'c3'
-    }
-
-    weeks = np.array([0,4,12,24,52])
-
-    p_weeks = []
-    for week in weeks:
-        #week_path = f'{anat_dir}/{subj_id}/W{week}/wm_results/{subj_id}_W{week}_T1_wm_vol.nii'
-        #week_path = week_path
-        #week_path = f'{anat_dir}/{subj_id}/W{week}/c2{subj_id}_W{week}_T1.nii' # fix
-
-        # e.g. if in cerebellar_alignment dir
-        if not subpath == None:
-            base_path =  f'{anat_dir}/{subj_id}/{subpath}/W{week}'
-        else:
-            base_path =  f'{anat_dir}/{subj_id}/W{week}'
-
-        if not tissue==None:
-            week_path = f'{base_path}/{tissue_dict[tissue]}{subj_id}_W{week}_T1.nii'
-        else:
-            week_path = f'{base_path}/{subj_id}_W{week}_T1.nii'
-
-
-        # skip over missed measurement weeks.
-        if not os.path.exists(week_path):
-            continue
-
-        p_weeks.append(week)
+    # need at least 2 measurement weeks to run our regression
+    # this function will search for all week files, such that week files are the same path structure as the reference file, but exist for other weeks
+    p_paths, p_weeks = week_path_search(reference_img)
     
     if len(p_weeks) == 1: # only one measurement week available
         return None # exit function (skip subject)    
     
-    return p_weeks
+    return p_weeks, p_paths
 
 
 # this entire loop could probably be its own fucntion.
 def response_matrix(Y, 
                     x, y, z, 
-                    tissue,
-                    p_weeks,
-                    subj_id, subpath):
+                    p_paths
+                    ):
     
-    tissue_dict = {
-        'gm': 'c1',
-        'wm': 'c2',
-        'csf': 'c3'
-    }
+  
 
-    for row_idx, week in enumerate(p_weeks): # enumerate through actual week and store the index of that week
+    for row_idx, week_path in enumerate(p_paths): # enumerate through actual week and store the index of that week
         # so (e.g.) if W0, W24, then store their flattened arrays in rows 1 and 2 respectively in Y matrix
         
-        base_path = f'{anat_dir}/{subj_id}/{subpath}/W{week}' if subpath else f'{anat_dir}/{subj_id}/W{week}'
-        week_path = f'{base_path}/{tissue_dict[tissue]}{subj_id}_W{week}_T1.nii' if tissue else f'{base_path}/{subj_id}_W{week}_T1.nii'
+        # we've already returned all the week paths (images) that are available for a given subject, so just use those
 
-        if not os.path.exists(week_path):
-            continue
-
-        print(week_path)
+        print(f'{week_path} is in Y index {row_idx}')
 
         week_img = nib.load(week_path)
+
         
         Y[row_idx, :] = nt.sample_image(week_img, 
                                         xm=x, ym=y, zm=z,
@@ -105,42 +62,37 @@ def response_matrix(Y,
                                         ).flatten() # store each (resampled) voxel array as a row vector for each week
     return Y 
 
-#_____________________
-
 # add input: type of file (e.g. native, tissue_resliced, etc.)
-def avg_vol(subj_id, 
+def avg_vol(
+            subj_id, 
             reference_img, # reference anatomical
             #week_path, # path to week image
             results_path,
             image_suffix,
-            subpath = None, # specify subfolder
-            input_suffix = None, # suffix for input image; MUST begin with '_'
-            tissue=None):
+            #subpath = None, # specify subfolder
+            #input_suffix = None, # suffix for input image; MUST begin with '_'
+            #tissue=None
+            ):
     """
     Inputs:
-    updated again
-    anat dir: participants file OR [(subj, week) and call it inside a loop].
-    Reference img (inside the Jupyter notebook loop for reading off the info file)
-    #week_path (path for each week's image), results_path (store results)
-    results path: directory to store results
-    subpath: path with the images, usually same as the reference image's parent folder
-    image suffix: suffix with which to save the slope and intercept images
-        suggested: <image_type>_<space> where 'image_type' is "anat", "wm", "gm", etc; 'space' is native or template (<template_name>)
-    input_suffix: suffix for input image, if applicable (default = None) - if supplying, must being with "_"
+        subj_id (str): subject ID used for output image naming.
+        reference_img (str): path to reference image
+        results_path (str): path to directory to save file to
+        image_suffix (str): suffix for output image (follow naming convention)
+            suggested: <level>_<if coreg, which>_<tissue = wm, gm, T1, ...>
 
     Everything is done in the reference image. So this function will (...) (resample voxels in other weeks so that they are aligned with the reference, and perform multiple linear regression)
 
-    Returns B_hat coefficient matrix (for more flexibility in other possible operations)
+    Outputs:
+        B_hat correlation matrix
+        X, Y design and response matrices
+        intercept_img, slope_img as Nifti images
+
+        Also saves intercept and slope images to specified directory with specified suffix, following convention <subj_id>_<algorithm = intercept/slope>_<suffix = level(=native or template (which))_<coreg, if relevant>_tissue>.
     
     """
 
-    # file prefix encoding (based on SPM segmentation notation)
-    tissue_dict = {
-        'gm': 'c1',
-        'wm': 'c2',
-        'csf': 'c3'
-    }
-
+    
     img0 = nib.load(reference_img)
 
     # later fix: option to reduce to only wtihin-brain voxels
@@ -149,22 +101,19 @@ def avg_vol(subj_id,
     i, j, k = np.indices(img0.shape) # matrix indices for premult by affine
     x,y,z = nt.affine_transform(i, j, k, img0.affine)
 
-    # all possible weeks.
-    weeks = np.array([0,4,12,24,52]) # read from file, use file reading function maybe
-    
-    p_weeks = sufficient_weeks(subj_id, subpath, tissue)
+    # get the available weeks for this subject's files
+    p_weeks, p_paths = sufficient_weeks(reference_img)
 
+    # initialize Y (shape = (k by p)) array, where k = number of weeks available
+    Y_empty = np.zeros((len(p_weeks), np.prod(img0.shape)))
 
-    Y_empty = np.zeros((len(p_weeks), np.prod(img0.shape))) # initialize Y (shape = (k by p)) array, where k = number of weeks available
-
-    Y = response_matrix(Y_empty,
-                        x,y,z,
-                        tissue,
-                        weeks, subj_id, subpath)
+    Y = response_matrix(Y=Y_empty,
+                        x=x,y=y,z=z,
+                        p_paths=p_paths)
     
     # design matrix
     num_weeks = len(p_weeks)
-    X = [np.ones(shape = (num_weeks)), p_weeks]
+    X = [np.ones(shape = (num_weeks)), p_weeks] # p_weeks must be INTEGER (or some type of number, like float) for matrix
     X = np.array(X)
     X = X.T
 
@@ -212,7 +161,10 @@ def avg_vol(subj_id,
     intercept_img = nib.Nifti1Image(intercept, img0.affine)
     slope_img = nib.Nifti1Image(slope, img0.affine)
 
+    # save image: choose path to save image to (as function input) and specify suffix of file.
+        # image name follows convention: <subj_id>_<algorithm = intercept or slope>_<level = native or template (specify)>
+
     nib.save(intercept_img, f'{results_path}/{subj_id}_intercept_{image_suffix}.nii.gz') # specify file name
     nib.save(slope_img, f'{results_path}/{subj_id}_slope_{image_suffix}.nii.gz')
 
-    return B_hat
+    return B_hat, X, Y, intercept_img, slope_img
