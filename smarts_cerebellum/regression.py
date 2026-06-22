@@ -93,9 +93,7 @@ def regression_week(reference_img, p_paths, p_weeks):
     slope_img = nib.Nifti1Image(slope, img0.affine)
 
 
-    #return intercept_img, slope_img
-
-    return B_hat, X, Y, p_paths, p_weeks, intercept_img, slope_img
+    return intercept_img, slope_img
 
 
 # now, we have a function that just performs the regression. Now we need the function that will actually call it.
