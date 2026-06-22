@@ -30,7 +30,7 @@ def sufficient_weeks(reference_img):
 
     # need at least 2 measurement weeks to run our regression
     # this function will search for all week files, such that week files are the same path structure as the reference file, but exist for other weeks
-    p_paths, p_weeks = week_path_search(reference_img)
+    p_paths, p_weeks = week_path_search.week_path_search(reference_img)
     
     if len(p_weeks) == 1: # only one measurement week available
         return None # exit function (skip subject)    
@@ -51,7 +51,7 @@ def response_matrix(Y,
         
         # we've already returned all the week paths (images) that are available for a given subject, so just use those
 
-        print(f'{week_path} is in Y index {row_idx}')
+        #print(f'{week_path} is in Y index {row_idx}')
 
         week_img = nib.load(week_path)
 
@@ -92,7 +92,8 @@ def avg_vol(
     
     """
 
-    
+    print(f'currently on {reference_img}')
+
     img0 = nib.load(reference_img)
 
     # later fix: option to reduce to only wtihin-brain voxels
@@ -102,7 +103,12 @@ def avg_vol(
     x,y,z = nt.affine_transform(i, j, k, img0.affine)
 
     # get the available weeks for this subject's files
-    p_weeks, p_paths = sufficient_weeks(reference_img)
+    p_results = sufficient_weeks(reference_img)
+    if p_results is None:
+        print(f'skipping {subj_id}: insufficient measurement weeks')
+        return None, None, None, None, None # if invalid, returns 5 None's; otherwise, returns two lists
+    p_weeks, p_paths = p_results
+
 
     # initialize Y (shape = (k by p)) array, where k = number of weeks available
     Y_empty = np.zeros((len(p_weeks), np.prod(img0.shape)))
