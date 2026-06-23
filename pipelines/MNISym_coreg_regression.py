@@ -99,3 +99,48 @@ def subj_unique_flip(df, image_suffix, output_suffix = 'FlipLR'):
         # save flipped image
         nib.save(flipped_img, f'{base_dir}/Regression/{subj}/{subj}_{image_suffix}_{output_suffix}.nii.gz')
         
+
+
+# use the template for image properties: affine, voxel array shape.
+
+template_path = '/home/UWO/mporwal2/Documents/GitHub/smarts_cerebellum/tpl-MNI152NLin2009cSymC_T1w.nii'
+template_img = nib.load(template_path)
+template_affine = template_img.affine
+
+
+def average_image_right(df, suffix):
+    """
+    @Authors: Marco,
+    """
+    counter = 0
+    
+    # empty array in the shape of the slope image
+    slope = np.zeros((template_img.get_fdata()).shape)
+
+    for subj in df.subj_id.unique():
+        
+        subj_dir = f'{base_dir}/Regression/{subj}'
+        subj_slope = f'{subj_dir}/{subj}_{suffix}.nii.gz'
+
+        if not Path(subj_slope).exists():
+            continue
+
+        subj_slope_img = nib.load(subj_slope)
+
+        subj_df = df[df.subj_id == subj]
+
+        if (subj_df.iloc[0]['LesionSide']).strip() == 'left':
+            # flip slope
+            subj_slope_img = mirror_lesion.FlipLR(subj_slope_img)
+
+        
+        subj_slope_arr = subj_slope_img.get_fdata()
+        print(subj_slope)
+
+        # add each image to the overall slope image
+        slope +=subj_slope_arr
+        counter +=1 # number of slope matrices used
+        
+    # average
+    slope = slope/counter
+    return slope
