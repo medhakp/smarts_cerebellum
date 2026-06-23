@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import nitools as nt
 import nibabel as nib
+from pathlib import Path
 
 """
 Get the overall image for a series of images. For example, average slope in MNISym space.
@@ -25,7 +26,14 @@ def get_world_coordinates(image_path):
     affine = image.affine
     voxel_array = image.get_fdata()
 
-    i, j, k = np.meshgrid(voxel_array.shape, indexing = 'ij')
+
+    
+    i, j, k = np.meshgrid(
+                          np.arange(voxel_array.shape[0]),
+                          np.arange(voxel_array.shape[1]),
+                          np.arange(voxel_array.shape[2]),
+                          indexing = 'ij'
+    )
 
     x,y,z = nt.affine_transform(i, j, k, affine)
 
@@ -37,7 +45,7 @@ def get_world_coordinates(image_path):
     return world_array
 
 
-def subj_unique_world_coords(p_df, suffix):
+def subj_unique_world_coords(df, suffix):
     """
     Loops through all subjects in participants dataframe, finds images, performs some function
     
@@ -49,9 +57,13 @@ def subj_unique_world_coords(p_df, suffix):
     """
 
     world_arrs = []
-    for subj in p_df['subj_id'].unique():
+    for subj in df['subj_id'].unique():
         # for each subject, find their slope image for type given by suffix
         subj_slope = f'{base_dir}/Regression/{subj}/{subj}_{suffix}.nii.gz'
+
+        if not Path(subj_slope).exists():
+            print(f'Path not exist for {subj}; skipping')
+            continue
 
         subj_world_arr = get_world_coordinates(subj_slope)
 
@@ -60,11 +72,12 @@ def subj_unique_world_coords(p_df, suffix):
     return world_arrs
 
 
-def average_image(affine, suffix):
+def average_image(df, affine, suffix):
     """
     Function to get overall image
 
     Inputs:
+        df (Pandas dataframe): dataframe with subjects whose images are part of this average
         affine (np.array): affine with which to write resultant image
         suffix (str): suffix of images being read, such that files follow naming convention '{subj}_{suffix}.nii.gz;
             e.g. suffix = 'MNISym_GM_coreg_reslice_slope'
@@ -74,7 +87,7 @@ def average_image(affine, suffix):
     """
 
     # get all image arrays
-    world_arrays = subj_unique_world_coords(suffix = suffix)
+    world_arrays = subj_unique_world_coords(df, suffix = suffix)
 
     # get mean of all arrays
     result = np.mean(world_arrays, axis = 0) # np array (tensor)
