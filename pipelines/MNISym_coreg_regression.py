@@ -123,6 +123,7 @@ def average_image_right(df, suffix):
         subj_slope = f'{subj_dir}/{subj}_{suffix}.nii.gz'
 
         if not Path(subj_slope).exists():
+            print(f'skipped {subj}')
             continue
 
         subj_slope_img = nib.load(subj_slope)
@@ -135,7 +136,7 @@ def average_image_right(df, suffix):
 
         
         subj_slope_arr = subj_slope_img.get_fdata()
-        print(subj_slope)
+
 
         # add each image to the overall slope image
         slope +=subj_slope_arr
