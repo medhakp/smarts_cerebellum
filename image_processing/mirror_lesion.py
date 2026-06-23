@@ -19,7 +19,7 @@ An even greater improvement would be if it could find said line.
 # imports
 import nibabel as nib
 
-def axis_lesion_flip(image):
+def FlipLR(image):
     """
     Simple flip: flips image along x-axis (L-R flip)
 
