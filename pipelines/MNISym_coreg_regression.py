@@ -108,7 +108,7 @@ template_img = nib.load(template_path)
 template_affine = template_img.affine
 
 
-def average_image_right(df, suffix):
+def mean_image_right(df, suffix):
     """
     @Authors: Marco,
     """
@@ -144,4 +144,39 @@ def average_image_right(df, suffix):
         
     # average
     slope = slope/counter
+
+    return slope
+
+
+def median_image_right(df, suffix):
+    """
+    @Authors: Marco,
+    """
+
+    arrays = [] # tuple of (slope) tensors
+    
+    # empty array in the shape of the slope image
+    slope = np.zeros((template_img.get_fdata()).shape)
+
+    for subj in df.subj_id.unique():
+        
+        subj_dir = f'{base_dir}/Regression/{subj}'
+        subj_slope = f'{subj_dir}/{subj}_{suffix}.nii.gz'
+
+        if not Path(subj_slope).exists():
+            print(f'skipped {subj}')
+            continue
+
+        subj_slope_img = nib.load(subj_slope)
+
+        subj_df = df[df.subj_id == subj]
+
+        if (subj_df.iloc[0]['LesionSide']).strip() == 'left':
+            # flip slope
+            subj_slope_img = mirror_lesion.FlipLR(subj_slope_img)
+            
+        arrays.append(subj_slope_img.get_fdata())
+    
+    # stack arrays to get median
+    slope = np.median(np.stack(arrays, axis = 0), axis = 0)
     return slope
