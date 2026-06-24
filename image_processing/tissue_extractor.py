@@ -243,7 +243,10 @@ def atlas_summ(tissue_vol_img, atlas, maps, space = 'SUIT'): # fix: make region-
 
     return df
 
-def descriptive_dataframe(atlas_df, p_df):
+
+
+
+def descriptive_dataframe(atlas_df, p_df, subj):
     """
     Creates a descriptive dataframe
     UNIQUE SUBJECT IMAGE, NOT WEEKS! --> weeks under construction!
@@ -256,28 +259,46 @@ def descriptive_dataframe(atlas_df, p_df):
         atlas_df (Pandas dataframe): updated dataframe (with descriptive information)
     """
 
-    # loop through all available subjects - weeks not used, so just use ref week as the week
-    for subj in p_df.subj_id.unique():
-        # since we're doing just one image per subject (not by week):
-        # cut the dataframe to access only one row for each subject - descriptive data is the same
-        refT1 = p_df[p_df.subj_id == subj]['RefT1'].iloc[0].strip()
-        subj_df = p_df[(p_df.subj_id == subj) & (p_df.Week.str.strip() == refT1)]
+    # try doing this for only one subject; then, we can loop through in the call
+    refT1 = p_df[p_df.subj_id == subj]['RefT1'].iloc[0].strip()
+    subj_df = p_df[(p_df.subj_id == subj) & (p_df.Week.str.strip() == refT1)]
 
 
-        # mask the row to which we are adding data
-        row_mask = (atlas_df.subj_id == subj)
-        print(f'Writing data for {subj}')
+    # mask the row to which we are adding data
+    row_mask = (atlas_df.subj_id == subj)
+    print(f'Writing data for {subj}')
 
-        # assign values - not using .str,
-        atlas_df.loc[row_mask, 'ID'] = subj_df['ID'].values
-        atlas_df.loc[row_mask, 'Centre'] = subj_df['Centre'].values
-        atlas_df.loc[row_mask, 'RefT1'] = refT1
-        atlas_df.loc[row_mask, 'age'] = subj_df['age'].values
-        atlas_df.loc[row_mask, 'Gender'] = subj_df.Gender.values
-        atlas_df.loc[row_mask, 'isPatient'] = subj_df.isPatient.values
-        atlas_df.loc[row_mask, 'LesionSide'] = subj_df.LesionSide.values
-        atlas_df.loc[row_mask, 'LesionLocation'] = subj_df.LesionLocation.values
-        atlas_df.loc[row_mask, 'handedness'] = subj_df.handedness.values
+    atlas_df.loc[row_mask, 'ID'] = subj_df['ID'].values[0]
+    atlas_df.loc[row_mask, 'Centre'] = subj_df['Centre'].values[0]
+    atlas_df.loc[row_mask, 'RefT1'] = refT1
+    atlas_df.loc[row_mask, 'age'] = subj_df['age'].values[0]
+    atlas_df.loc[row_mask, 'Gender'] = subj_df.Gender.values[0]
+    atlas_df.loc[row_mask, 'isPatient'] = subj_df.isPatient.values[0]
+    atlas_df.loc[row_mask, 'LesionSide'] = subj_df.LesionSide.values[0]
+    atlas_df.loc[row_mask, 'LesionLocation'] = subj_df.LesionLocation.values[0]
+    atlas_df.loc[row_mask, 'handedness'] = subj_df.handedness.values[0]
+
+    # # loop through all available subjects - weeks not used, so just use ref week as the week
+    # for subj in p_df.subj_id.unique():
+    #     # since we're doing just one image per subject (not by week):
+    #     # cut the dataframe to access only one row for each subject - descriptive data is the same
+    #     refT1 = p_df[p_df.subj_id == subj]['RefT1'].iloc[0].strip()
+    #     subj_df = p_df[(p_df.subj_id == subj) & (p_df.Week.str.strip() == refT1)]
+
+
+    #     # mask the row to which we are adding data
+    #     row_mask = (atlas_df.subj_id == subj)
+    #     print(f'Writing data for {subj}')
+
+    #     atlas_df.loc[row_mask, 'ID'] = subj_df['ID'].values[0]
+    #     atlas_df.loc[row_mask, 'Centre'] = subj_df['Centre'].values[0]
+    #     atlas_df.loc[row_mask, 'RefT1'] = refT1
+    #     atlas_df.loc[row_mask, 'age'] = subj_df['age'].values[0]
+    #     atlas_df.loc[row_mask, 'Gender'] = subj_df.Gender.values[0]
+    #     atlas_df.loc[row_mask, 'isPatient'] = subj_df.isPatient.values[0]
+    #     atlas_df.loc[row_mask, 'LesionSide'] = subj_df.LesionSide.values[0]
+    #     atlas_df.loc[row_mask, 'LesionLocation'] = subj_df.LesionLocation.values[0]
+    #     atlas_df.loc[row_mask, 'handedness'] = subj_df.handedness.values[0]
     
     return atlas_df
 
@@ -304,13 +325,18 @@ def make_summarized_dataframe(p_df,
 
     """
 
+    dfs = []
+
     # loop through all subjects - perform each operation on each subject
     for subj in p_df.subj_id.unique():
         # find their files - returns string list of files
         file_list = utils.file_search(search_path = search_path, subj_id = subj, suffixes = suffixes)
 
+        if not file_list:
+            continue # skip subjects without the files
+        
         # summarize volume in each ROI for each file type
-        dfs = []
+        
         df = suit.summarize_data(
                                  images = file_list,
                                  atlas = the_atlas,
@@ -321,15 +347,19 @@ def make_summarized_dataframe(p_df,
         )
         
         df['subj_id']= subj
-        dfs.append(df)
+
+        # then make the descriptive dataframe for each subject
+        descriptive_df = descriptive_dataframe(atlas_df = df, p_df = p_df, subj = subj)
+
+        # add all dataframes to the list
+        dfs.append(descriptive_df)
 
     # combine all of them
     all_df = pd.concat(dfs, ignore_index = True)
 
-    # now we can pass this atlas_df to the descriptive dataframe-maker function
-    descriptive_df = descriptive_dataframe(atlas_df = all_df, p_df = p_df)
+    
 
-    return descriptive_df
+    return all_df
 
 
 """
