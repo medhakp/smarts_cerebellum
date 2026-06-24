@@ -37,7 +37,11 @@ import SUITPy.atlas as atlas
 
 #import tissue_extractor as te
 
+import smarts_cerebellum.globals as gl
+from image_processing import utils
+
 from pathlib import Path
+
 
 
 # specify tissue in function call
@@ -239,7 +243,95 @@ def atlas_summ(tissue_vol_img, atlas, maps, space = 'SUIT'): # fix: make region-
 
     return df
 
+def descriptive_dataframe(atlas_df, p_df):
+    """
+    Creates a descriptive dataframe
+    UNIQUE SUBJECT IMAGE, NOT WEEKS! --> weeks under construction!
+
+    Inputs:
+        atlas_df (Pandas dataframe): dataframe from atlas summary
+        p_info (Pandas dataframe): dataframe with descriptive information for participants
+
+    Outputs:
+        atlas_df (Pandas dataframe): updated dataframe (with descriptive information)
+    """
+
+    # loop through all available subjects - weeks not used, so just use ref week as the week
+    for subj in p_df.subj_id.unique():
+        # since we're doing just one image per subject (not by week):
+        # cut the dataframe to access only one row for each subject - descriptive data is the same
+        refT1 = p_df[p_df.subj_id == subj]['RefT1'].iloc[0].strip()
+        subj_df = p_df[(p_df.subj_id == subj) & (p_df.Week.str.strip() == refT1)]
+
+
+        # mask the row to which we are adding data
+        row_mask = (atlas_df.subj_id == subj)
+        print(f'Writing data for {subj}')
+
+        # assign values - not using .str,
+        atlas_df.loc[row_mask, 'ID'] = subj_df['ID'].values
+        atlas_df.loc[row_mask, 'Centre'] = subj_df['Centre'].values
+        atlas_df.loc[row_mask, 'RefT1'] = refT1
+        atlas_df.loc[row_mask, 'age'] = subj_df['age'].values
+        atlas_df.loc[row_mask, 'Gender'] = subj_df.Gender.values
+        atlas_df.loc[row_mask, 'isPatient'] = subj_df.isPatient.values
+        atlas_df.loc[row_mask, 'LesionSide'] = subj_df.LesionSide.values
+        atlas_df.loc[row_mask, 'LesionLocation'] = subj_df.LesionLocation.values
+        atlas_df.loc[row_mask, 'handedness'] = subj_df.handedness.values
+    
+    return atlas_df
+
+
 # Make summarized dataframe
+def make_summarized_dataframe(p_df,
+                              search_path, suffixes,
+                              the_atlas, maps, space,
+                              ):
+    """
+    Make full summarized dataframe that has: ROIs for each subject, along with descriptive information
+
+    Inputs:
+        p_df (Pandas dataframe): info file for participants
+        search_path (str): directory where files are stored (parent directory for all subjects)
+        suffixes (tuple of str): suffixes for all files you want to find
+
+        the_atlas (str): cerebellar atlas --> see SUITPy
+        maps (str): map to use in summarizing (cerebellar map) --> see SUITPy
+        space: space of the files
+
+
+    Outputs:
+
+    """
+
+    # loop through all subjects - perform each operation on each subject
+    for subj in p_df.subj_id.unique():
+        # find their files - returns string list of files
+        file_list = utils.file_search(search_path = search_path, subj_id = subj, suffixes = suffixes)
+
+        # summarize volume in each ROI for each file type
+        dfs = []
+        df = suit.summarize_data(
+                                 images = file_list,
+                                 atlas = the_atlas,
+                                 maps = maps,
+                                 space = space,
+                                 stats = ['mean', 'nansum']
+
+        )
+        
+        df['subj_id']= subj
+        dfs.append(df)
+
+    # combine all of them
+    all_df = pd.concat(dfs, ignore_index = True)
+
+    # now we can pass this atlas_df to the descriptive dataframe-maker function
+    descriptive_df = descriptive_dataframe(atlas_df = all_df, p_df = p_df)
+
+    return descriptive_df
+
+
 """
 summarized dataframe; default as .tsv
 """
