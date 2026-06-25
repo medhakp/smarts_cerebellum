@@ -47,7 +47,6 @@ def _use_flipped(subj, search_path, flip, flip_lesion_df, suffixes, flipped_suff
     """
     if flip != 'false':
             
-            print(f'using {flip} for finding files') # temporary check
 
             if subj in flip_lesion_df.subj_id.unique():
                 file_list = file_search(search_path = search_path, subj_id = subj, suffixes = flipped_suffixes)
@@ -67,9 +66,9 @@ def make_summarized_dataframe(p_df,
                               the_atlas, maps, space,
 
                               suffixes,
-                              
+                              flip,
                               flipped_suffixes = None,
-                              flip = 'false',
+                              
                               ):
     """
     Make full summarized dataframe that has: ROIs for each subject, along with descriptive information
@@ -89,41 +88,17 @@ def make_summarized_dataframe(p_df,
         flip (str): flip lesion
             'false': don't flip
             left: flip lesions on left hemisphere to the right hemisphere
-            right: flip lesions on right hemisphere to the left hemisphere
 
 
     Outputs:
 
     """
 
-    """
-    # these suffixes can go in the pipeline's .py file
-
-    suffixes = [
-        'MNISym_CSF_coreg_reslice_slope.nii.gz',
-        'MNISym_logJac_coreg_reslice_slope.nii.gz',
-        'MNISym_WM_coreg_reslice_slope.nii.gz',
-        'MNISym_GM_coreg_reslice_slope.nii.gz',
-        'MNISym_T1_coreg_reslice_slope.nii.gz'
-    ]
-
-    flipped_suffixes = [
-        'MNISym_CSF_coreg_reslice_slope_FlipLR.nii.gz',
-        'MNISym_logJac_coreg_reslice_slope_FlipLR.nii.gz',
-        'MNISym_WM_coreg_reslice_slope_FlipLR.nii.gz',
-        'MNISym_GM_coreg_reslice_slope_FlipLR.nii.gz',
-        'MNISym_T1_coreg_reslice_slope_FlipLR.nii.gz'
-    ]
-    """
-
     dfs = []
 
-    if flip != 'false':
+    if flip == 'left':
         # need to strip bc sometimes have whitespaces - get rid of those
-        flip_lesion_df = p_df[p_df.LesionSide.str.strip() == 'flip']
-
-        # temporary check
-        print(f'using {flip}')
+        flip_lesion_df = p_df[p_df.LesionSide.str.strip() == 'left']
 
 
     # loop through all subjects - perform each operation on each subject
