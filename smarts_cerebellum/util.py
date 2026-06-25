@@ -6,6 +6,9 @@ import pandas as pd
 import re
 from pathlib import Path
 
+
+# HELPER FUNCTIONS
+#___________________________________________________________________________________
 def find_weeks(SID):
 
     # @Marco
@@ -98,3 +101,4 @@ def file_search(search_path, subj_id, suffixes):
         file_list.append(file_path)
     
     return file_list
+#___________________________________________________________________________________
