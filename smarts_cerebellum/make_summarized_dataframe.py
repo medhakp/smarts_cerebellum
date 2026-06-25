@@ -1,12 +1,9 @@
 import numpy as np
 import pandas as pd
 
-import re
-import nibabel as nib
-from pathlib import Path
 import SUITPy as suit
 
-from smarts_cerebellum.helper_fcns import file_search
+from smarts_cerebellum.util import file_search
 
 def _assemble_dataframe(atlas_df, p_df, subj):
     """
