@@ -146,9 +146,18 @@ def make_summarized_dataframe(p_df,
     return all_df
 
 
-def flip_left_lesion(path, left_lesion_df, space='MNISym', segment='T1', metric='slope'):
+def flip_left_lesion(path, left_lesion_df, suffix):
     '''
     flip left lesion to the right
+    
+    Inputs:
+        path (str): base path to subject files
+        left_lesion_df (Pandas dataframe): dataframe containing all participants with left hemisphere lesion - to be flipped!
+        suffix (str): image suffix (for image to be flipped)
+
+        Filenames follow convention {subj}_{suffix}.nii.gz
+        Output images saved as {subj}_{suffix}_FlipLR.nii.gz
+        File path follows convention {path}/{subj}/{file_name}
     '''
 
     def _FlipLR(image):
@@ -172,12 +181,12 @@ def flip_left_lesion(path, left_lesion_df, space='MNISym', segment='T1', metric=
 
 
     for subj in left_lesion_df.subj_id.unique():
-        flip = f'{path}/{subj}/{subj}_{space}_{segment}_coreg_reslice_{metric}.nii.gz'
+        flip = f'{path}/{subj}/{subj}_{suffix}.nii.gz'
         if not Path(flip).is_file():
             print(f'Skip {subj}')
             continue
         flipped = _FlipLR(flip)
-        nib.save(flipped, f'{path}/{subj}/{subj}_{space}_{segment}_coreg_reslice_{metric}_FlipLR.nii.gz')
+        nib.save(flipped, f'{path}/{subj}/{subj}_{suffix}_FlipLR.nii.gz')
 
 def find_weeks(SID):
 
