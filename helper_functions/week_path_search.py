@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from smarts_cerebellum.util import find_weeks
+from helper_functions import find_weeks
 
 """
 Searches for files in all possible weeks that match the path structure of a reference file.

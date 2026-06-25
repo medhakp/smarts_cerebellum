@@ -1,4 +1,6 @@
-# need path to root directory
+# these functions have been generalized and moved to smarts_cerebellum.util - hopefully they work
+# then, this file is deprecated
+
 """
 Functions for the following pipeline:
 
@@ -37,10 +39,27 @@ base_dir = '/cifs/diedrichsen/data/smarts_cerebellum'
 p_df = pd.read_csv('/cifs/diedrichsen/data/smarts_cerebellum/participants_anat.tsv', sep = '\t')
 
 
+# this has been made into a general function in smarts_cerebellum.util - call it from there
+# as input, you need: subdir (folder), suffix (image_name) - so you can put those in the notebook as insertables with type (since otherwise the name is the exact same)
+"""
+ref_img = f'{base_dir}/MNISym_{type}/{subj}/{subj}_{refT1}_MNISym_{type}_coreg_reslice.nii.gz'
+This is in the format:
+    path: smarts_cerebellum/subdir/subj
+    image: subj_refT1_suffix.nii.gz where suffix = MNISym_{type}_coreg_reslice, so we can just have {type} as an insertable in the notebook
 
+results_path = f'{base_dir}/Regression/{subj}'
+nib.save(intercept_img, f'{results_path}/{subj}_MNISym_{type}_coreg_reslice_intercept.nii.gz')
+nib.save(slope_img, f'{results_path}/{subj}_MNISym_{type}_coreg_reslice_slope.nii.gz')
+These are as:
+    path: smarts_cerebellum/Regression/subj
+    image: subj_suffix_intercept/slope.nii.gz where suffix is exactlyt he same as the input image.
+
+
+"""
 def subj_unique_regression_MNISym_coreg(type):
 
     """
+    
     Function for local use.
 
     Function to perform regression on coregistered and normalized (to MNISym template) images
@@ -78,7 +97,7 @@ def subj_unique_regression_MNISym_coreg(type):
 
 # name will be like <subj_id>_MNISym_GM_reslice_<alg = intercept/slope>.nii.gz
 
-
+# this is in smarts_cerebellum.util
 def subj_unique_flip(df, image_suffix, output_suffix = 'FlipLR'):
     """
     Flips specified image along the x-axis
@@ -103,11 +122,13 @@ def subj_unique_flip(df, image_suffix, output_suffix = 'FlipLR'):
 
 # use the template for image properties: affine, voxel array shape.
 
+# add this to notebook maybe? Not sure.
 template_path = '/home/UWO/mporwal2/Documents/GitHub/smarts_cerebellum/tpl-MNI152NLin2009cSymC_T1w.nii'
 template_img = nib.load(template_path)
 template_affine = template_img.affine
 
 
+# put mean_image in its own function. --> make these in overall images? And the call in utils
 def mean_image_right(df, suffix):
     """
     @Authors: Marco,

@@ -4,9 +4,7 @@ import pandas as pd
 
 import nitools as nt
 
-from smarts_cerebellum.util import find_weeks
-from smarts_cerebellum.util import week_path_search
-
+from smarts_cerebellum.helper_fcns import week_path_search
 # NEED TO ADD CREDITS FOR CODE DESIGN
 # @Joern
 
