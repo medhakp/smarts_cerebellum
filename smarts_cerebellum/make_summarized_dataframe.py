@@ -131,7 +131,7 @@ def make_summarized_dataframe(p_df,
         # find their files - returns string list of files
 
         # if need to flip lesions, find the flipped files
-        file_list = _use_flipped(search_path = search_path, flip = flip, 
+        file_list = _use_flipped(subj = subj, search_path = search_path, flip = flip, 
                                  flip_lesion_df = flip_lesion_df, 
                                  suffixes = suffixes, flipped_suffixes = flipped_suffixes)
        

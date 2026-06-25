@@ -21,13 +21,13 @@ import smarts_cerebellum.globals as gl
 
 
 base_dir = gl.baseDir
-p_df = pd.read_csv(f'{base_dir}/participants_anat.tsv', sep = '\t')
+
 
 """
 Make this a general function call: the only part that is specific to MNISym_coreg is the path name, so have a general path name.
 Then, when we call it in MNISym_coreg_regression pipeline, we can just have the path defined before we call the function, and have an insertable "type".
 """
-def subj_unique_regression_week(subdir, suffix):
+def subj_unique_regression_week(subdir, suffix, p_df):
 
     """
     General call for regression function (voxel-wise regression on each subject's weeks).
@@ -64,14 +64,12 @@ def subj_unique_regression_week(subdir, suffix):
 
         # if images exist, save them
         if intercept_img is not None and slope_img is not None:
-            #results_path = f'{base_dir}/Regression/{subj}'
             
-            results_path = f'{base_dir}/regression_test/{subj}'
-            
+            results_path = f'{base_dir}/Regression/{subj}'
             results_path = Path(results_path)
 
             # comment this out if this directory already exists
-            #results_path.mkdir(parents = True, exist_ok = True)
+            results_path.mkdir(parents = True)
 
             nib.save(intercept_img, f'{results_path}/{subj}_{suffix}_intercept.nii.gz')
             nib.save(slope_img, f'{results_path}/{subj}_{suffix}_slope.nii.gz')
