@@ -229,6 +229,6 @@ flip_left_lesion(path = reg_path, segment = 'logJac')
 # MAKE SUMMARIZED DATAFRAME
 summarized_df = MNISym_coreg_summarized_df()
 save_df_path = f'{gl.baseDir}/Regression'
-summarized_df.to_csv(os.path.join(save_df_path, 'MNISym_coreg_slope_AtlasSUIT_summarized.tsv'), sep='\t', index=False)
+summarized_df.to_csv(os.path.join(save_df_path, 'MNISym_coreg_slope_rightLesion_AtlasSUIT_summarized.tsv'), sep='\t', index=False)
 
 """
