@@ -1,3 +1,18 @@
+"""
+MNISym_coreg_regression pipeline
+
+For files that have been (a) full-image coregistered, (b) normalized to MNI Symmetric template
+
+**pipeline**
+    - voxel-wise regression
+
+    - get mean and median slope images for each of patients and controls
+
+    - get left_lesion-only images
+
+    - make a summarized dataframe for (mean, median, sum) volume in ROIs defined by atlas "Diedrichsen_2009"
+"""
+
 import numpy as np
 import pandas as pd
 
@@ -33,7 +48,7 @@ means_dir = f'{gl.baseDir}/Regression/mean_images'
 medians_dir = f'{gl.baseDir}/Regression/median_images'
 #______________________________________________________________________
 
-def subj_unique_regression_MNISym_coreg(type):
+def regression_MNISym_coreg(segment):
 
     """
     
@@ -42,8 +57,8 @@ def subj_unique_regression_MNISym_coreg(type):
     Function to perform regression on coregistered and normalized (to MNISym template) images
 
     Input:
-        type (str): type of image; used for finding image and for saving images
-            valid types: GM, WM, T1
+        segment (str): type of image; used for finding image and for saving images
+            valid segments: GM, WM, T1
             TBA: CSF
     """
 
@@ -51,7 +66,7 @@ def subj_unique_regression_MNISym_coreg(type):
 
         # find each subject's reference image, and run it through the regression
         refT1 = (p_df.loc[(p_df['subj_id']==subj), 'RefT1'].iloc[0]).strip()
-        ref_img = f'{gl.baseDir}/MNISym_{type}/{subj}/{subj}_{refT1}_MNISym_{type}_coreg_reslice.nii.gz'
+        ref_img = f'{gl.baseDir}/MNISym_{segment}/{subj}/{subj}_{refT1}_MNISym_{segment}_coreg_reslice.nii.gz'
 
         print(f"Regression on {subj} \n")
 
@@ -68,86 +83,51 @@ def subj_unique_regression_MNISym_coreg(type):
             # comment this out if this directory already exists
             #results_path.mkdir(parents = True, exist_ok = True)
 
-            nib.save(intercept_img, f'{results_path}/{subj}_MNISym_{type}_coreg_reslice_intercept.nii.gz')
-            nib.save(slope_img, f'{results_path}/{subj}_MNISym_{type}_coreg_reslice_slope.nii.gz')
+            nib.save(intercept_img, f'{results_path}/{subj}_MNISym_{segment}_coreg_reslice_intercept.nii.gz')
+            nib.save(slope_img, f'{results_path}/{subj}_MNISym_{segment}_coreg_reslice_slope.nii.gz')
 
 
-def mean_image_right(segment, df):
+
+# get MEAN slope images
+def MNISym_coreg_slope_mean_right(segment, group, df):
+
     """
-    @Authors: Marco,
+    local function for getting mean slope images
+
+    Inputs:
+        segment(str): T1, WM, GM, CSF, logJac
+        group (str): patients, controls
+        df (Pandas dataframe): dataframe for patients or controls
     """
-    counter = 0
+    suffix = f'MNISym_{segment}_coreg_reslice'
 
-    left_lesion_df = df[df.LesionSide == 'left ']
+    # call mean function
+    mean_slope = template_overall_image.mean_image_right(df = df, suffix = suffix, template_img = template_img)
     
-    # empty array in the shape of the slope image
-    slope = np.zeros((template_img.get_fdata()).shape)
-
-    for subj in df.subj_id.unique():
-        
-        subj_dir = f'{gl.baseDir}/Regression/{subj}'
-        subj_slope = f'{subj_dir}/{subj}_MNISym_{segment}_coreg_reslice_slope.nii.gz'
-
-        if not Path(subj_slope).exists():
-            print(f'skipped {subj}')
-            continue
-
-        subj_slope_img = nib.load(subj_slope)
+    # save image (with affine of template)
+    mean_slope_img = nib.Nifti1Image(mean_slope, template_affine)
+    nib.save(mean_slope_img, f'{means_dir}/{group}_MNISym_{segment}_coreg_slope_mean.nii')
 
 
-        if subj in left_lesion_df.subj_id.unique():
-            # flip slope
-            subj_slope_img = mirror_lesion.FlipLR(subj_slope_img)
+# get MEDIAN slope images
+def MNISym_coreg_slope_median_right(segment, group, df):
 
-        
-        subj_slope_arr = subj_slope_img.get_fdata()
-
-
-        # add each image to the overall slope image
-        slope +=subj_slope_arr
-        counter +=1 # number of slope matrices used
-        
-    # average
-    slope = slope/counter
-
-    return slope
-
-
-def median_image_right(segment, df):
     """
-    @Authors: Marco,
+    local function for getting median slope images
+
+    Inputs:
+        segment(str): T1, WM, GM, CSF, logJac
+        group (str): patients, controls
+        df (Pandas dataframe): dataframe for patients or controls
     """
+    suffix = f'MNISym_{segment}_coreg_reslice'
 
-    arrays = [] # tuple of (slope) tensors
+    # call mean function
+    median_slope = template_overall_image.median_image_right(df = df, suffix = suffix, template_img = template_img)
     
-    left_lesion_df = df[df.LesionSide == 'left ']
-
-    
-    # empty array in the shape of the slope image
-    slope = np.zeros((template_img.get_fdata()).shape)
-
-    for subj in df.subj_id.unique():
-        
-        subj_dir = f'{gl.baseDir}/Regression/{subj}'
-        subj_slope = f'{subj_dir}/{subj}_MNISym_{segment}_coreg_reslice_slope.nii.gz'
-
-        if not Path(subj_slope).exists():
-            print(f'skipped {subj}')
-            continue
-
-        subj_slope_img = nib.load(subj_slope)
-
-        if subj in left_lesion_df.subj_id.unique():
-            # flip slope
-            subj_slope_img = mirror_lesion.FlipLR(subj_slope_img)
-
-            
-        arrays.append(subj_slope_img.get_fdata())
-    
-    # stack arrays to get median
-    slope = np.median(np.stack(arrays, axis = 0), axis = 0)
-    return slope
-
+    # save image (with affine of template)
+    median_slope_img = nib.Nifti1Image(median_slope, template_affine)
+    nib.save(median_slope_img, f'{medians_dir}/{group}_MNISym_{segment}_coreg_slope_mean.nii')
 
 
 def flip_left_lesion(path, left_lesion_df, space='MNISym', segment='T1', metric='slope'):
@@ -165,6 +145,17 @@ def flip_left_lesion(path, left_lesion_df, space='MNISym', segment='T1', metric=
         nib.save(flipped, f'{path}/{subj}/{subj}_{space}_{segment}_coreg_reslice_{metric}_FlipLR.nii.gz')
 
 
+def MNISym_coreg_summarized_df():
+    summarized_df = make_summarized_dataframe.make_summarized_dataframe(p_df = p_df,
+                               search_path = f'{gl.baseDir}/Regression',
+                               the_atlas = 'Diedrichsen_2009',
+                               maps = 'atl-Anatom', # labels from anatomical atlas
+                               space = 'MNISym',
+                               suffixes = suffixes,
+                               flipped_suffixes = flipped_suffixes,
+                               flip = 'left'
+                               )
+    return summarized_df
 
 # use flipped images where necessary
 suffixes = [
@@ -185,55 +176,51 @@ flipped_suffixes = [
 
 
 # REGRESSION
-subj_unique_regression_MNISym_coreg('T1')
-subj_unique_regression_MNISym_coreg('WM')
-subj_unique_regression_MNISym_coreg('GM')
-subj_unique_regression_MNISym_coreg('CSF')
-subj_unique_regression_MNISym_coreg('logJac')
+regression_MNISym_coreg('WM')
+regression_MNISym_coreg('GM')
+regression_MNISym_coreg('CSF')
+regression_MNISym_coreg('logJac')
+regression_MNISym_coreg('T1')
 
 # MEAN IMAGES - PATIENTS
-mean_image_right('T1', patients_df)
-mean_image_right('WM', patients_df)
-mean_image_right('GM', patients_df)
-mean_image_right('CSF', patients_df)
-mean_image_right('logJac', patients_df)
+MNISym_coreg_slope_mean_right('T1', 'patients', patients_df)
+MNISym_coreg_slope_mean_right('WM', 'patients', patients_df)
+MNISym_coreg_slope_mean_right('GM', 'patients', patients_df)
+MNISym_coreg_slope_mean_right('CSF', 'patients', patients_df)
+MNISym_coreg_slope_mean_right('logJac', 'patients', patients_df)
 
 # MEDIAN IMAGES - PATIENTS
-median_image_right('T1', patients_df)
-median_image_right('WM', patients_df)
-median_image_right('GM', patients_df)
-median_image_right('CSF', patients_df)
-median_image_right('logJac', patients_df)
+MNISym_coreg_slope_median_right('T1', 'patients', patients_df)
+MNISym_coreg_slope_median_right('WM', 'patients', patients_df)
+MNISym_coreg_slope_median_right('GM', 'patients', patients_df)
+MNISym_coreg_slope_median_right('CSF', 'patients', patients_df)
+MNISym_coreg_slope_median_right('logJac', 'patients', patients_df)
 
 # MEAN IMAGES - CONTROLS
-mean_image_right('T1', controls_df)
-mean_image_right('WM', controls_df)
-mean_image_right('GM', controls_df)
-mean_image_right('CSF', controls_df)
-mean_image_right('logJac', controls_df)
+MNISym_coreg_slope_mean_right('T1', 'controls', controls_df)
+MNISym_coreg_slope_mean_right('WM', 'controls', controls_df)
+MNISym_coreg_slope_mean_right('GM', 'controls', controls_df)
+MNISym_coreg_slope_mean_right('CSF', 'controls', controls_df)
+MNISym_coreg_slope_mean_right('logJac', 'controls', controls_df)
 
 # MEDIAN IMAGES - CONTROLS
-median_image_right('T1', controls_df)
-median_image_right('WM', controls_df)
-median_image_right('GM', controls_df)
-median_image_right('CSF', controls_df)
-median_image_right('logJac', controls_df)
+MNISym_coreg_slope_median_right('T1', controls_df)
+MNISym_coreg_slope_median_right('WM', controls_df)
+MNISym_coreg_slope_median_right('GM', controls_df)
+MNISym_coreg_slope_median_right('CSF', controls_df)
+MNISym_coreg_slope_median_right('logJac', controls_df)
 
+
+# FLIP LESION IMAGES WHERE NECESSARY
 flip_left_lesion(path = reg_path, segment = 'T1')
 flip_left_lesion(path = reg_path, segment = 'WM')
 flip_left_lesion(path = reg_path, segment = 'GM')
 flip_left_lesion(path = reg_path, segment = 'CSF')
 flip_left_lesion(path = reg_path, segment = 'logJac')
 
-summarized_df = make_summarized_dataframe.make_summarized_dataframe(p_df = p_df,
-                               search_path = f'{gl.baseDir}/Regression',
-                               the_atlas = 'Diedrichsen_2009',
-                               maps = 'atl-Anatom',
-                               space = 'MNISym',
-                               suffixes = suffixes,
-                               flipped_suffixes = flipped_suffixes,
-                               flip = 'left'
-                               )
-
+# MAKE SUMMARIZED DATAFRAME
+summarized_df = MNISym_coreg_summarized_df()
+save_df_path = f'{gl.baseDir}/Regression'
+summarized_df.to_csv(os.path.join(save_df_path, 'MNISym_coreg_slope_AtlasSUIT_summarized.tsv'), sep='\t', index=False)
 
 

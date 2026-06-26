@@ -14,23 +14,34 @@ from smarts_cerebellum import mirror_lesion
 
 base_dir = gl.baseDir
 
-def mean_image_right(df, suffix, template_img):
+def mean_image_right(df, 
+                     suffix,
+                     template_img,
+                     left_lesion_df):
     """
     @Authors: Marco,
 
-    only for use in regression slopes for now
+    Calculates mean image where all lesions are on RH.
+
+    Only for use in regression slopes for now.
+
+    Inputs:
+        df (Pandas dataframe): contains participants whose images should be added to the stat (mean/median) image
+        suffix (str): suffix of image for each subject
+        template_img (Nifti1Image): template to which images have been normalized
+    
 
     slope image searched for as {subj_dir}/{subj}_{suffix}_slope.nii.gz
         where subdir is smarts_cerebellum/Regression/subj
     """
+
     counter = 0
-    
-    # empty array in the shape of the slope image
+
     slope = np.zeros((template_img.get_fdata()).shape)
 
     for subj in df.subj_id.unique():
-        
-        subj_dir = f'{base_dir}/Regression/{subj}'
+
+        subj_dir = f'{gl.baseDir}/Regression/{subj}'
         subj_slope = f'{subj_dir}/{subj}_{suffix}_slope.nii.gz'
 
         if not Path(subj_slope).exists():
@@ -39,31 +50,40 @@ def mean_image_right(df, suffix, template_img):
 
         subj_slope_img = nib.load(subj_slope)
 
-        subj_df = df[df.subj_id == subj]
+        if subj in left_lesion_df.subj_id.unique():
+            subj_slope_img = mirror_lesion.FlipLR(subj_slope_img) # flip slope
 
-        if (subj_df.iloc[0]['LesionSide']).strip() == 'left':
-            # flip slope
-            subj_slope_img = mirror_lesion.FlipLR(subj_slope_img)
-
-        
         subj_slope_arr = subj_slope_img.get_fdata()
-
 
         # add each image to the overall slope image
         slope +=subj_slope_arr
         counter +=1 # number of slope matrices used
-        
+
     # average
     slope = slope/counter
 
     return slope
 
 
-def median_image_right(df, suffix, template_img):
+def median_image_right(df,
+                       suffix,
+                       template_img,
+                       left_lesion_df):
     """
     @Authors: Marco,
 
-    only for use in regression slopes for now
+    Calculates median image where all lesions are on RH.
+
+    Only for use in regression slopes for now.
+
+    Inputs:
+        df (Pandas dataframe): contains participants whose images should be added to the stat (mean/median) image
+        suffix (str): suffix of image for each subject
+        template_img (Nifti1Image): template to which images have been normalized
+    
+
+    slope image searched for as {subj_dir}/{subj}_{suffix}_slope.nii.gz
+        where subdir is smarts_cerebellum/Regression/subj
     """
 
     arrays = [] # tuple of (slope) tensors
@@ -73,7 +93,7 @@ def median_image_right(df, suffix, template_img):
 
     for subj in df.subj_id.unique():
         
-        subj_dir = f'{base_dir}/Regression/{subj}'
+        subj_dir = f'{gl.baseDir}/Regression/{subj}'
         subj_slope = f'{subj_dir}/{subj}_{suffix}_slope.nii.gz'
 
         if not Path(subj_slope).exists():
@@ -82,14 +102,13 @@ def median_image_right(df, suffix, template_img):
 
         subj_slope_img = nib.load(subj_slope)
 
-        subj_df = df[df.subj_id == subj]
+        if subj in left_lesion_df.subj_id.unique():
+            subj_slope_img = mirror_lesion.FlipLR(subj_slope_img) # flip slope
 
-        if (subj_df.iloc[0]['LesionSide']).strip() == 'left':
-            # flip slope
-            subj_slope_img = mirror_lesion.FlipLR(subj_slope_img)
             
         arrays.append(subj_slope_img.get_fdata())
     
     # stack arrays to get median
     slope = np.median(np.stack(arrays, axis = 0), axis = 0)
     return slope
+            
