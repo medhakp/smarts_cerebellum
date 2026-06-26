@@ -1,6 +1,6 @@
-# Structural changes to the cerebellum following cortical stroke
+# Image processing of T1 anatomical images
 
-Investigating anatomical changes to the cerebellum following cortical stroke over a year followign stroke.
+Functions for processing T1 anatomical images.
 
 This repository provides replicable functions to perform this analysis primarily using SPM12 and SUITPy.
 
@@ -22,6 +22,16 @@ This repository provides replicable functions to perform this analysis primarily
   Then, inside `sc_anat.m`, run the coregistration as `ANAT:coreg` (script made available in [spmj_tools](https://github.com/DiedrichsenLab/spmj_tools/blob/main/template_functional_singlesess.m)).
 
   Images are now in aligned anatomical space.
+
+  If coregistering, there are several cogistrations that can be done:
+
+  &nbsp;&nbsp;&nbsp; (a) full-image coregistration (default)
+
+  &nbsp;&nbsp;&nbsp; (b) cerebellum-only coregistration: see cerebellar_alignment pipeline
+
+  &nbsp;&nbsp;&nbsp; (c) full-brain coregistration: ignores extra-brain tissue
+
+  &nbsp;&nbsp;&nbsp; (d) no coregistration (e.g. straight to normalization in template space)
 
 **2. Set q-form matrix equal to s-form matrix**
 
