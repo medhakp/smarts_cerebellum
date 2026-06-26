@@ -13,8 +13,8 @@ from smarts_cerebellum import regression
 from pathlib import Path
 
 
-
-p_df = pd.read_csv('/cifs/diedrichsen/data/smarts_cerebellum/participants_anat.tsv', sep = '\t')
+# add this to globals
+p_df = pd.read_csv(f'{gl.baseDir}/participants_anat.tsv', sep = '\t')
 
 
 def regression_native_coreg(segment):
@@ -32,20 +32,32 @@ def regression_native_coreg(segment):
         refT1 = (p_df.loc[(p_df['subj_id']==subj), 'RefT1'].iloc[0]).strip()
         ref_img = f'{gl.baseDir}/anatomicals/{subj}/{refT1}/{tissue_dict[segment]}{subj}_{refT1}_T1.nii'
 
-    print(f"Regression (native coreg) on {subj} \n")
+        print(f"Regression (native coreg) on {subj} with {segment} \n")
 
-    intercept_img, slope_img = regression.perform_regression_week(subj_id = subj,
-                         reference_img = ref_img
-                         )
-    
+        intercept_img, slope_img = regression.perform_regression_week(subj_id = subj,
+                            reference_img = ref_img
+                            )
+        
 
-    # if images exist, save them
-    if intercept_img is not None and slope_img is not None:
-        results_path = f'{gl.baseDir}/Regression/{subj}'
-        results_path = Path(results_path)
+        # if images exist, save them
+        if intercept_img is not None and slope_img is not None:
+            results_path = f'{gl.baseDir}/Regression/{subj}'
+            results_path = Path(results_path)
 
-        # if directory does not exist, make it.
-        # results_path.mkdir(parents = True) # exist_ok = True, don't use this
+            # if directory does not exist, make it.
+            # results_path.mkdir(parents = True) # exist_ok = True
 
-        nib.save(intercept_img, f'{results_path}/{subj}_native_{segment}_coreg_intercept.nii.gz')
-        nib.save(slope_img, f'{results_path}/{subj}_native_{segment}_coreg_slope.nii.gz')
+            nib.save(intercept_img, f'{results_path}/{subj}_native_{segment}_coreg_intercept.nii.gz')
+            nib.save(slope_img, f'{results_path}/{subj}_native_{segment}_coreg_slope.nii.gz')
+
+
+
+regression_native_coreg('GM')
+
+"""
+# REGRESSION
+regression_native_coreg('GM')
+regression_native_coreg('WM')
+regression_native_coreg('CSF')
+regression_native_coreg('T1')
+"""

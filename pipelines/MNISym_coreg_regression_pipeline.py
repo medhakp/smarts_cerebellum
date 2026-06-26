@@ -12,9 +12,6 @@ For files that have been (a) full-image coregistered, (b) normalized to MNI Symm
 
     - make a summarized dataframe for (mean, median, sum) volume in ROIs defined by atlas "Diedrichsen_2009"
 """
-# need path to root directory
-import sys
-sys.path.append('/home/UWO/mporwal2/Documents/GitHub/smarts_cerebellum/')
 
 import numpy as np
 import pandas as pd
@@ -180,10 +177,6 @@ flipped_suffixes = [
     'MNISym_logJac_coreg_reslice_slope_FlipLR.nii.gz'
 ]
 
-# MAKE SUMMARIZED DATAFRAME
-summarized_df = MNISym_coreg_summarized_df()
-save_df_path = f'{gl.baseDir}/Regression'
-summarized_df.to_csv(os.path.join(save_df_path, 'MNISym_coreg_slope_AtlasSUIT_summarized.tsv'), sep='\t', index=False)
 
 
 """

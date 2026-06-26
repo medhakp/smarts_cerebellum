@@ -9,11 +9,6 @@ Functions for running the following pipeline:
     - images that we have normalized: T1, segmentations (GM, WM, CSF)
 """
 
-# need path to root directory
-import sys
-sys.path.append('/home/UWO/mporwal2/Documents/GitHub/smarts_cerebellum/')
-
-
 # Imports
 
 import pandas as pd
@@ -71,9 +66,6 @@ def generate_MNISym_coreg_transformation_files(df=p_df):
 
         print(f'{subj} {week} normalization done \n')
         
-    
-
-
 
 def normalize_coreg_to_MNISym(
         segment,
@@ -134,3 +126,8 @@ def normalize_coreg_to_MNISym(
                    week = week)
         
         print(f'Normalization of {segment} done for {subj} {week}')
+
+
+if __name__=='__main__':
+
+    normalize_coreg_to_MNISym(...)
