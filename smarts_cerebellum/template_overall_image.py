@@ -16,8 +16,7 @@ base_dir = gl.baseDir
 
 def mean_image_right(df, 
                      suffix,
-                     template_img,
-                     left_lesion_df):
+                     template_img):
     """
     @Authors: Marco,
 
@@ -35,6 +34,8 @@ def mean_image_right(df,
         where subdir is smarts_cerebellum/Regression/subj
     """
 
+    left_lesion_df = df[df.LesionSide == 'left ']
+    
     counter = 0
 
     slope = np.zeros((template_img.get_fdata()).shape)
@@ -68,7 +69,7 @@ def mean_image_right(df,
 def median_image_right(df,
                        suffix,
                        template_img,
-                       left_lesion_df):
+                       ):
     """
     @Authors: Marco,
 
@@ -86,6 +87,8 @@ def median_image_right(df,
         where subdir is smarts_cerebellum/Regression/subj
     """
 
+    left_lesion_df = df[df.LesionSide == 'left ']
+    
     arrays = [] # tuple of (slope) tensors
     
     # empty array in the shape of the slope image
