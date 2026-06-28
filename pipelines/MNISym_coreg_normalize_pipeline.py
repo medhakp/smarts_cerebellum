@@ -13,8 +13,13 @@ Functions for running the following pipeline:
 
 import pandas as pd
 
+# temporary...for image_processing, init not working?
+import sys
+sys.path.append('/home/UWO/mporwal2/Documents/GitHub/smarts_cerebellum/')
+
 from image_processing import tissue_extractor as te
 import smarts_cerebellum.globals as gl
+from smarts_cerebellum import make_summarized_dataframe_weeks
 
 from pathlib import Path
 import os
@@ -128,6 +133,35 @@ def normalize_coreg_to_MNISym(
         print(f'Normalization of {segment} done for {subj} {week}')
 
 
+
+def MNISym_coreg_normalized_summarized_df(segment):
+    """
+    only works for one type of image for now; this isn't to be used extensively, just as a test
+    """
+
+    # choose which segment to put in df
+    suffixes = [
+        f'MNISym_{segment}_coreg_reslice.nii.gz'
+    ]
+    search_path = os.path.join(gl.baseDir, f'MNISym_{segment}')
+
+    weeks_df = make_summarized_dataframe_weeks.make_summarized_dataframe_weeks(p_df = p_df, search_path = search_path,
+                               the_atlas = 'Diedrichsen_2009',
+                               maps = 'atl-Anatom', # labels from anatomical atlas
+                               space = 'MNISym',
+                               suffixes = suffixes,
+                               )
+    
+    save_df_path = f'{gl.baseDir}/MNISym_{segment}'
+    weeks_df.to_csv(os.path.join(save_df_path, f'MNISym_coreg_{segment}_normalized_AtlasSUIT_summarized.tsv'), sep='\t', index=False)
+
+
+MNISym_coreg_normalized_summarized_df('WM')
+
+#
+
+"""
 if __name__=='__main__':
 
     normalize_coreg_to_MNISym(...)
+"""

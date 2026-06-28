@@ -101,4 +101,48 @@ def file_search(search_path, subj_id, suffixes):
         file_list.append(file_path)
     
     return file_list
+
+
+
+def file_search_weeks(search_path, subj_id, week, suffixes):
+    """
+    Function to search for all files for a given subject-week with specified suffixes.
+    Also checks if files exist - only returns those that exist.
+
+    Inputs:
+        search_path (str): base path to search for files in
+        subj_id (str): subject whose file(s) to search for - searches in their directory
+        week (str): subject's week to search in
+        suffixes (tuple of str): suffixes of files; include extension (i.e. .nii or .nii.gz extensions)
+        # (TBA) week (str): if subject files are stored by weeks
+    
+    Outputs:
+        file_list (tuple of str): list of files for that subject-week
+    """
+
+    file_list = []
+
+    for suffix in suffixes:
+        file_path = f'{search_path}/{subj_id}/{subj_id}_{week}_{suffix}'
+
+        if not Path(file_path).is_file():
+            #print(f'Path {file_path} not found; skipping')
+            continue
+
+        file_list.append(file_path)
+    
+    return file_list
+
+
+# this function can just do the subject-week loop and return subj_id, week
+def subj_week_loop(df):
+    for i in range(0, df.shape[0]):
+        p_id = df['ID'].iloc[i]
+        week = (df['Week'].iloc[i]).strip() # sometimes have extra white spaces
+        p_centre = (str(df['Centre'].iloc[i])).strip()
+        subj_id = f'{p_centre.strip()}_{p_id}'
+
+        # return each subj_id, week one at a time
+        yield subj_id, week
+    
 #___________________________________________________________________________________
