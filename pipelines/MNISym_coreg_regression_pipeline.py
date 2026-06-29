@@ -13,6 +13,11 @@ For files that have been (a) full-image coregistered, (b) normalized to MNI Symm
     - make a summarized dataframe for (mean, median, sum) volume in ROIs defined by atlas "Diedrichsen_2009"
 """
 
+# need path to root directory -> temporarily, init not seeming to work?
+import sys
+sys.path.append('/home/UWO/mporwal2/Documents/GitHub/smarts_cerebellum/')
+sys.path.append('/home/UWO/mporwal2/cerebellar_atlases')
+
 import numpy as np
 import pandas as pd
 
@@ -92,7 +97,7 @@ def regression_MNISym_coreg(segment):
 
 
 # get MEAN slope images
-def MNISym_coreg_slope_mean_right(segment, group, df):
+def MNISym_coreg_slope_mean_right(segment, group, df, save_suffix = ''):
 
     """
     local function for getting mean slope images
@@ -109,11 +114,11 @@ def MNISym_coreg_slope_mean_right(segment, group, df):
     
     # save image (with affine of template)
     mean_slope_img = nib.Nifti1Image(mean_slope, template_affine)
-    nib.save(mean_slope_img, f'{means_dir}/{group}_MNISym_{segment}_coreg_slope_mean.nii')
+    nib.save(mean_slope_img, f'{means_dir}/{group}_MNISym_{segment}_coreg_slope_mean{save_suffix}.nii')
 
 
 # get MEDIAN slope images
-def MNISym_coreg_slope_median_right(segment, group, df):
+def MNISym_coreg_slope_median_right(segment, group, df, save_suffix = ''):
 
     """
     local function for getting median slope images
@@ -130,7 +135,7 @@ def MNISym_coreg_slope_median_right(segment, group, df):
     
     # save image (with affine of template)
     median_slope_img = nib.Nifti1Image(median_slope, template_affine)
-    nib.save(median_slope_img, f'{medians_dir}/{group}_MNISym_{segment}_coreg_slope_median.nii')
+    nib.save(median_slope_img, f'{medians_dir}/{group}_MNISym_{segment}_coreg_slope_median{save_suffix}.nii')
 
 
 def flip_left_lesion(path, left_lesion_df = left_lesion_df, space='MNISym', segment='T1', metric='slope'):
@@ -148,11 +153,11 @@ def flip_left_lesion(path, left_lesion_df = left_lesion_df, space='MNISym', segm
         nib.save(flipped, f'{path}/{subj}/{subj}_{space}_{segment}_coreg_reslice_{metric}_FlipLR.nii.gz')
 
 
-def MNISym_coreg_summarized_df():
+def MNISym_coreg_summarized_df(p_df = p_df, the_atlas = 'Diedrichsen_2009', maps = 'atl_Anatom'):
     summarized_df = make_summarized_dataframe.make_summarized_dataframe(p_df = p_df,
                                search_path = f'{gl.baseDir}/Regression',
-                               the_atlas = 'Diedrichsen_2009',
-                               maps = 'atl-Anatom', # labels from anatomical atlas
+                               the_atlas = the_atlas,
+                               maps = maps, # labels from anatomical atlas
                                space = 'MNISym',
                                suffixes = suffixes,
                                flipped_suffixes = flipped_suffixes,
@@ -176,6 +181,11 @@ flipped_suffixes = [
     'MNISym_CSF_coreg_reslice_slope_FlipLR.nii.gz',
     'MNISym_logJac_coreg_reslice_slope_FlipLR.nii.gz'
 ]
+
+# IN MAKE_DATAFRAME, WHEN FETCHING ATLAS: it looks fro atlas with name atl_Anatom but atlas (from fetch) is atl-Anatom
+# so renamed the atlas in cerebellar_atlases to match the underscore
+
+
 
 
 
@@ -225,6 +235,13 @@ flip_left_lesion(path = reg_path, segment = 'WM')
 flip_left_lesion(path = reg_path, segment = 'GM')
 flip_left_lesion(path = reg_path, segment = 'CSF')
 flip_left_lesion(path = reg_path, segment = 'logJac')
+
+
+# MAKING MEAN, MEDIAN IMAGES, BUT EXCLUDING THIS OUTLIER (CUP_1001) -- JUST FOR GM FOR CONTROLS
+exclude_df = p_df[p_df.subj_id != 'CUP_1001']
+exclude_controls_df = exclude_df[exclude_df.isPatient==0]
+MNISym_coreg_slope_mean_right('GM', 'controls', exclude_controls_df, save_suffix = '_exclude')
+MNISym_coreg_slope_median_right('GM', 'controls', exclude_controls_df, save_suffix = '_exclude')
 
 # MAKE SUMMARIZED DATAFRAME
 summarized_df = MNISym_coreg_summarized_df()

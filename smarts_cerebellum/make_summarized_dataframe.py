@@ -63,13 +63,13 @@ def _use_flipped(subj, search_path, flip, flip_lesion_df, suffixes, flipped_suff
 # Make summarized dataframe
 def make_summarized_dataframe(p_df,
                               search_path,
-                              the_atlas, maps, space,
-
+                              the_atlas, 
+                              maps, 
+                              space,
                               suffixes,
                               flip,
                               flipped_suffixes = None,
-                              #use_weeks = False, # if using subject weeks, set True
-                              
+                              #use_weeks = False, # if using subject weeks, set True                              
                               ):
     """
     Make full summarized dataframe that has: ROIs for each subject, along with descriptive information
