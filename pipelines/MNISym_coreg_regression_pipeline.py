@@ -153,7 +153,7 @@ def flip_left_lesion(path, left_lesion_df = left_lesion_df, space='MNISym', segm
         nib.save(flipped, f'{path}/{subj}/{subj}_{space}_{segment}_coreg_reslice_{metric}_FlipLR.nii.gz')
 
 
-def MNISym_coreg_summarized_df(p_df = p_df, the_atlas = 'Diedrichsen_2009', maps = 'atl_Anatom'):
+def MNISym_coreg_summarized_df(p_df = p_df, the_atlas = 'Diedrichsen_2009', maps = 'atl-Anatom'):
     summarized_df = make_summarized_dataframe.make_summarized_dataframe(p_df = p_df,
                                search_path = f'{gl.baseDir}/Regression',
                                the_atlas = the_atlas,
@@ -182,10 +182,10 @@ flipped_suffixes = [
     'MNISym_logJac_coreg_reslice_slope_FlipLR.nii.gz'
 ]
 
-# IN MAKE_DATAFRAME, WHEN FETCHING ATLAS: it looks fro atlas with name atl_Anatom but atlas (from fetch) is atl-Anatom
-# so renamed the atlas in cerebellar_atlases to match the underscore
-
-
+# MAKE SUMMARIZED DATAFRAME
+summarized_df = MNISym_coreg_summarized_df(the_atlas = 'Nettekoven_2024', maps = 'atl-NettekovenAsym32')
+save_df_path = f'{gl.baseDir}/Regression'
+summarized_df.to_csv(os.path.join(save_df_path, 'MNISym_coreg_slope_rightLesion_NettekovenAsym32_summarized.tsv'), sep='\t', index=False)
 
 
 
@@ -242,6 +242,8 @@ exclude_df = p_df[p_df.subj_id != 'CUP_1001']
 exclude_controls_df = exclude_df[exclude_df.isPatient==0]
 MNISym_coreg_slope_mean_right('GM', 'controls', exclude_controls_df, save_suffix = '_exclude')
 MNISym_coreg_slope_median_right('GM', 'controls', exclude_controls_df, save_suffix = '_exclude')
+
+
 
 # MAKE SUMMARIZED DATAFRAME
 summarized_df = MNISym_coreg_summarized_df()
