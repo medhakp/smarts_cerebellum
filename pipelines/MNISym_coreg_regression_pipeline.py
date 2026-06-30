@@ -182,12 +182,6 @@ flipped_suffixes = [
     'MNISym_logJac_coreg_reslice_slope_FlipLR.nii.gz'
 ]
 
-# MAKE SUMMARIZED DATAFRAME
-summarized_df = MNISym_coreg_summarized_df(the_atlas = 'Nettekoven_2024', maps = 'atl-NettekovenAsym32')
-save_df_path = f'{gl.baseDir}/Regression'
-summarized_df.to_csv(os.path.join(save_df_path, 'MNISym_coreg_slope_rightLesion_NettekovenAsym32_summarized.tsv'), sep='\t', index=False)
-
-
 
 """
 # lines to run each function for segments
@@ -242,6 +236,12 @@ exclude_df = p_df[p_df.subj_id != 'CUP_1001']
 exclude_controls_df = exclude_df[exclude_df.isPatient==0]
 MNISym_coreg_slope_mean_right('GM', 'controls', exclude_controls_df, save_suffix = '_exclude')
 MNISym_coreg_slope_median_right('GM', 'controls', exclude_controls_df, save_suffix = '_exclude')
+
+
+# MAKE SUMMARIZED DATAFRAME
+summarized_df = MNISym_coreg_summarized_df(the_atlas = 'Nettekoven_2024', maps = 'atl-NettekovenAsym32')
+save_df_path = f'{gl.baseDir}/Regression'
+summarized_df.to_csv(os.path.join(save_df_path, 'MNISym_coreg_slope_rightLesion_NettekovenAsym32_summarized.tsv'), sep='\t', index=False)
 
 
 
