@@ -43,6 +43,7 @@ def world_indices(img):
 def response_matrix_week(subj_path_dict,
                          x,y,z, # indices from world image
                          week, # which week this matrix is for
+                         template_img,
                          ):
     # initialize empty array
     week_subj_rows = []
@@ -54,7 +55,7 @@ def response_matrix_week(subj_path_dict,
             subj_img = nib.load(s_path)
 
             row = nt.sample_image(subj_img, 
-                                  xm = x, ym = y, zm = z, # resample to template world indices - pass to fcn template world indices
+                                  xm = x, ym = y, zm = z, # resample to template world indices
                                   interpolation = 1
                                   ).flatten() # store as row vector
         except Exception: # file path not exist; subj not added to s_id for that week
@@ -67,9 +68,93 @@ def response_matrix_week(subj_path_dict,
     Y_w = np.array(week_subj_rows)
     week_subj_ids = np.array(week_subj_ids)
 
-    return Y_w,week_subj_ids, week # returns week used
+    # store the number of voxels
+    num_voxels = np.prod(template_img.get_fdata())
+    
+
+    return Y_w, week_subj_ids, week, num_voxels # returns week used
 
 
+def brain_voxel_array(Y, thres = 1e-6):
+    """
+    removes voxels from array that are below a certain threshold
+
+    for all voxels, takes the sum of each col (voxel has own col); is sum < thres, remove col
+    """
+    sums = Y.sum(axis = 0) 
+    zero_mask = sums == thres
+    Y = Y[:,~zero_mask] # cols not in zero_mask
+    return Y, len(zero_mask) # return number voxels removed (cols)
+
+# SHOULD USE THE SAME N_t EVERYWHERE - just have it in the mian fcn
+
+# make a dataframe for each voxel
+def voxel_dataframe(Y, subj, time_points, N_t):
+    """
+    Makes a dataframe for each voxel, where cols are:
+    subj, week, y = voxel
+
+    Inputs:
+        Y = voxel matrix
+        subjs (list): subjects that were included in the matrix; get form response_matrix_week
+        timepoints (list)
+    """
+    # for this function, pretend we have all the information we need
+    #N_t = len(time_points)
+    df = pd.DataFrame(data = Y, columns = [f'T{i}' for i in range(N_t)])
+    df['subj'] = subj
+    df = pd.melt(df, id_vars = 'subj', value_vars = [f'T{i}' for i in range(N_t)], var_name = 'Week', value_name = 'y')
+    return df
+
+# even better:
+# make a tensor filled with NaN for (subjects, voxels, weeks)
+# need to check how this tensor is being built - is it correct?
+def Y_tensor(df):
+    """
+    Function to make tensor out of subj-voxel matrices, where each matrix is for a given week
+
+    Inputs:
+        matrices = list of matrices
+        N_p: number of subjects
+        N_t: number of time points
+        P: number of voxels (use from response_matrix_week)
+        In this tensor, only brain voxels, so number of voxels = total_voxels - voxels_removed
+        df: dataframe containing all subjects being used in this tensor (e.g. all patients)
+    """
+    # initialize tensor with NaN
+    v = num_voxels - len(zero_mask) # num_voxels_total - num_voxels_removed
+    N_p = len(df.subj_id.unique())
+    Y_tensor = np.full((N_p, N_t, v), np.nan)
+
+    # get the position of each subject
+    subj_pos = {s: i for i, s in enumerate(df.subj_id.unique())}
+
+    for idx, w in enumerate(time_points):
+        Y_w, week_subjs, week, num_voxels = response_matrix_week(subj_path_dict[idx],
+                                                                 x,y,z,
+                                                                 w,
+                                                                 template_img
+                                                                 )
+        subj_idx = [subj_pos[s] for s in week_subjs] # position to place each subject's voxels in
+        Y_tensor[subj_idx, idx, :] = Y_w # will be placed in order of weeks
+
+    return Y_tensor
+
+# call to make the dataframe + run lme
+def main(subj_path_dict, time_points):
+    """
+    for each week: build the response matrix; clean it; add it to a list
+    Then: for each matrix in the list, take the ith column [0 - P], put it in another matrix.
+        PROBLEM is if we don't have the same number of rows (subjects across weeks) for all columns in the matrix - broadcasting problems, potentially
+        instead (slower): we can
+
+    
+    then for each matrix, we extract the i^th column, make it into a dataframe with subj, week, voxel_val (so we have one dataframe for each week), and concat
+    """
+
+    # now we have our tensor. So each voxel is stored along the z-axis, so for each index on z-axis, get x-y matrix, make df, run lme, save results
+
+#______________________________________________________________
 
 def make_week_dataframe(
                    subj_path_dict, 

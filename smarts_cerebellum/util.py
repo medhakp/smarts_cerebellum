@@ -201,7 +201,7 @@ def subj_path_search(reference_file, ref_subj_id, week, df):
         subj_path = re.sub(re.escape(ref_subj_id), subj_id, ref_path)
 
         if not Path(subj_path).exists():
-            print(subj_path)
+            #print(subj_path)
             #print(f'skipped {subj_id} {week}')
             continue
 
