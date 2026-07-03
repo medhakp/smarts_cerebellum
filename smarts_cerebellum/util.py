@@ -6,6 +6,7 @@ import pandas as pd
 import re
 from pathlib import Path
 import nibabel as nib
+import smarts_cerebellum.globals as gl
 
 
 # this function can just do the subject-week loop and return subj_id, week
@@ -152,20 +153,21 @@ def file_search_weeks(search_path, subj_id, week, suffixes):
 subj_search functions: functions to search for files across different subjects (within the same week)
 """
 #___________________________________________________________________________________
-def find_subjects(week):
+def find_subjects(week, df):
     """
     Finds all subjects with data for a given week (int)
+
+    Put in your own df, in case you wanted something like just patients
     """
-    p_df = pd.read_csv(f'{gl.baseDir}/participants_anat.tsv', sep = '\t')
-    
+        
     # get only that week's dataframe
-    df_week = p_df[p_df.week == week]
+    df_week = df[df.week == week]
     subjects = []
     for subj in df_week.subj_id:
         subjects.append(subj)
     return subjects
 
-def subj_path_search(reference_file, ref_subj_id, week):
+def subj_path_search(reference_file, ref_subj_id, week, df):
     """
     Given a reference file (path) and a reference subject id:
     looks in the path for that ref_subj_id and replaces it with other subj_id
@@ -192,7 +194,7 @@ def subj_path_search(reference_file, ref_subj_id, week):
     # subject paths and subjects available for a given week
     subj_paths = []
     subj_available = []
-    subjects = find_subjects(week)
+    subjects = find_subjects(week, df)
 
     for subj_id in subjects:
         # replace subj_id token
