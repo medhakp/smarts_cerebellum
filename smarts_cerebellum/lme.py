@@ -1,7 +1,10 @@
 """
 Function to run voxel-wise lme; for now, just random intercept model
 
-To-do: get in-brain voxels only (test with this part)
+If image normalized to cerebellum-only template, then outside voxels are 0
+So instead of binary mask, maybe take the sum of each voxel column and if sum is zero, remove that column (outside-brain voxels are zero)
+fslstats mask.nii.gz -V (voxel count)
+
 """
 
 import numpy as np
@@ -13,7 +16,6 @@ import statsmodels.formula.api as smf
 
 import smarts_cerebellum.globals as gl
 from smarts_cerebellum.util import subj_path_search
-from smarts_cerebellum import cerebellum_only_image as coi
 
 
 
@@ -25,8 +27,8 @@ templateC_mask = '' # cerebellum-only mask (binary) of template
 time_points = [0, 4, 12, 24, 52]
 
 # for file searching: file in a given week across different subjects
-ref_subj = 'CU_2310',
-subdir = 'MNISym_T1',
+ref_subj = 'CU_2310'
+subdir = 'MNISym_T1'
 file_suffix = 'MNISym_T1_coreg_reslice.nii.gz'
 
 
@@ -50,10 +52,7 @@ def response_matrix_week(subj_path_dict,
     for s_id, s_path in subj_path_dict.items():
         # let's do a try-except loop
         try:
-            s_img = nib.load(s_path)
-            
-            # get cerebellum-only image
-            subj_img = coi.cerebellum_only_img(cerebellar_mask = templateC_mask, anat_img = s_img)
+            subj_img = nib.load(s_path)
 
             row = nt.sample_image(subj_img, 
                                   xm = x, ym = y, zm = z, # resample to template world indices - pass to fcn template world indices
@@ -121,6 +120,9 @@ def lme_dataframe(df,
                   ):
     """
     Make full response dataframe (concatenate week dataframes)
+    
+    Inputs:
+        df: subj_info df
     """
     # make subj-path dictionaries for all weeks
     subj_path_dictionaries = make_week_dicts(df)
@@ -136,6 +138,8 @@ def lme_dataframe(df,
 
     Y_df = pd.concat(dfs, axis = 0, ignore_index = True)
     return Y_df
+
+# save this dataframe
 
 """
 Example for just getting the response dataframe:
