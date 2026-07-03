@@ -1,25 +1,10 @@
 """
 Create a cerebellum-only image (of T1 anatomical).
 """
-# Imports
-
-# model libraries
-import numpy as np
-import pandas as pd
-
-# image reading libraries
 import nibabel as nib
-
-from pathlib import Path
-import os
 
 def cerebellum_only_img(cerebellar_mask,
                         anat_img,
-
-                        # for saving image name
-                        results_path,
-                        subj_id,
-                        week
                         ):
     """
     Creates a cerebellum-only image.

@@ -1,7 +1,7 @@
 """
 Function to run voxel-wise lme; for now, just random intercept model
 
-To-do: get in-brain voxels only
+To-do: get in-brain voxels only (test with this part)
 """
 
 import numpy as np
@@ -13,10 +13,14 @@ import statsmodels.formula.api as smf
 
 import smarts_cerebellum.globals as gl
 from smarts_cerebellum.util import subj_path_search
+from smarts_cerebellum import cerebellum_only_image as coi
+
+
 
 
 template_img = '/home/UWO/mporwal2/Documents/GitHub/smarts_cerebellum/tpl-MNI152NLin2009cSymC_T1w.nii'
 template_img = nib.load(template_img)
+templateC_mask = '' # cerebellum-only mask (binary) of template
 
 time_points = [0, 4, 12, 24, 52]
 
@@ -24,7 +28,6 @@ time_points = [0, 4, 12, 24, 52]
 ref_subj = 'CU_2310',
 subdir = 'MNISym_T1',
 file_suffix = 'MNISym_T1_coreg_reslice.nii.gz'
-
 
 
 def world_indices(img):
@@ -47,7 +50,11 @@ def response_matrix_week(subj_path_dict,
     for s_id, s_path in subj_path_dict.items():
         # let's do a try-except loop
         try:
-            subj_img = nib.load(s_path) # replace with this cerebellum-only image
+            s_img = nib.load(s_path)
+            
+            # get cerebellum-only image
+            subj_img = coi.cerebellum_only_img(cerebellar_mask = templateC_mask, anat_img = s_img)
+
             row = nt.sample_image(subj_img, 
                                   xm = x, ym = y, zm = z, # resample to template world indices - pass to fcn template world indices
                                   interpolation = 1
