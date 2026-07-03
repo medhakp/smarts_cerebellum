@@ -22,7 +22,6 @@ from smarts_cerebellum.util import subj_path_search
 
 template_img = '/home/UWO/mporwal2/Documents/GitHub/smarts_cerebellum/tpl-MNI152NLin2009cSymC_T1w.nii'
 template_img = nib.load(template_img)
-templateC_mask = '' # cerebellum-only mask (binary) of template
 
 time_points = [0, 4, 12, 24, 52]
 
@@ -155,6 +154,25 @@ small_df = p_df.iloc[:11] # just try on a few subjects
 lme_df = lme.lme_dataframe(small_df) # runs in ~11.3s
 lme_df
 """
+
+def brain_voxels_df(lme_df):
+    """
+    cleans dataframe: removes voxel columns where all voxels in that column are zero (removes out-of-brain voxels)
+    """
+    # get voxel columns
+    voxel_cols = [v for v in lme_df.columns if v.startswith('v')]
+
+    # convert to numpy - faster as pd
+    lme_voxel_arr = lme_df[voxel_cols].values
+
+    # get sums of each col and save those whose sum if zero
+    sums = lme_voxel_arr.sum(axis = 0)
+    zero_voxels = sums == 0
+    zero_cols = np.array(voxel_cols)[zero_voxels]
+
+    # return cleaned-up df
+    lme_df = lme_df.drop(columns = zero_cols)
+    return lme_df
 
 def run_lme(lme_df):
     """
