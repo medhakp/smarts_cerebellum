@@ -1,8 +1,15 @@
+"""
+Function to run voxel-wise lme; for now, just random intercept model
+
+To-do: get in-brain voxels only
+"""
+
 import numpy as np
 import pandas as pd
 import nibabel as nib
 import nitools as nt
 import os
+import statsmodels.formula.api as smf
 
 import smarts_cerebellum.globals as gl
 from smarts_cerebellum.util import subj_path_search
@@ -13,6 +20,10 @@ template_img = nib.load(template_img)
 
 time_points = [0, 4, 12, 24, 52]
 
+# for file searching: file in a given week across different subjects
+ref_subj = 'CU_2310',
+subdir = 'MNISym_T1',
+file_suffix = 'MNISym_T1_coreg_reslice.nii.gz'
 
 
 
@@ -83,10 +94,9 @@ def make_week_dataframe(
 
 
 def make_week_dicts(df,
-                    ref_subj = 'CU_2310',
-                    #time_points = [0, 4, 12, 24, 52],
-                    subdir = 'MNISym_T1',
-                    file_suffix = 'MNISym_T1_coreg_reslice.nii.gz',
+                    ref_subj = ref_subj,
+                    subdir = subdir,
+                    file_suffix = file_suffix,
                     ):
     """
     Make dictionaries for all weeks (time points)
@@ -131,6 +141,105 @@ from smarts_cerebellum import lme
 p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants_anat.tsv'), sep = '\t')
 small_df = p_df.iloc[:11] # just try on a few subjects
 
-response_df = lme.lme_dataframe(small_df) # runs in ~11.3s
-response_df
+lme_df = lme.lme_dataframe(small_df) # runs in ~11.3s
+lme_df
 """
+
+def run_lme(lme_df):
+    """
+    Function to actually run the lme (voxel-wise); uses statsmodels mixedlm random intercept model
+    """
+    
+    results = []
+    results_df = []
+
+    # get voxel columns from df
+    voxel_cols = [v for v in lme_df.columns if v.startswith('v')]
+
+    # run lme on each voxel individually
+    for voxel in voxel_cols:
+        voxel_df = lme_df[['Subj', 'Week', f'{voxel}']]
+
+        # try running model and adding its results to a row;
+        # except convergence fails, runtime error, etc.
+        try:
+            model = smf.mixedlm(f'{voxel}~Week', data = voxel_df, groups = 'Subj').fit()
+            row={
+                'voxel': voxel,
+
+                'intercept': model.fe_params['Intercept'],
+                'intercept_bse': model.bse_fe['Intercept'],
+                'intercept_z': model.tvalues['Intercept'],
+                'intercept_p': model.pvalues['Intercept'],
+
+                'Week': model.fe_params['Week'],
+                'Week_bse': model.bse_fe['Week'],
+                'Week_z': model.tvalues['Week'],
+                'Week_p': model.pvalues['Week'],
+
+                'subj_var': model.params['Subj Var'],
+                'subj_var_bse': model.bse['Subj Var'],
+                'subj_var_z': model.tvalues['Subj Var'],
+                'subj_var_p': model.pvalues['Subj Var'],
+
+                'cov_re': model.cov_re.iloc[0,0], # only gets the intercept cov - intercept model
+                'log_likelihood': model.llf,
+
+                'intercept_ci_low': model.conf_int().loc['Intercept', 0],
+                'intercept_ci_high': model.conf_int().loc['Intercept', 1],
+                'Week_ci_low': model.conf_int().loc['Week', 0],
+                'Week_ci_high': model.conf_int().loc['Week', 1],
+                'subj_var_ci_low': model.conf_int().loc['Subj Var', 0],
+                'subj_var_ci_high': model.conf_int().loc['Subj Var', 1],
+
+                'converged': model.converged, # bool
+
+                # successful run
+                'exception_type': np.nan,
+                'exception_message': np.nan
+            }
+
+        except Exception as e: # model fails: not converge or runtime error, etc
+            row={
+                'voxel': voxel,
+
+                'intercept': np.nan,
+                'intercept_bse': np.nan,
+                'intercept_z': np.nan,
+                'intercept_p': np.nan,
+
+                'Week': np.nan,
+                'Week_bse': np.nan,
+                'Week_z': np.nan,
+                'Week_p': np.nan,
+
+                'subj_var': np.nan,
+                'subj_var_bse': np.nan,
+                'subj_var_z': np.nan,
+                'subj_var_p': np.nan,
+
+                'cov_re': np.nan,
+                'log_likelihood': np.nan,
+
+                'intercept_ci_low': np.nan,
+                'intercept_ci_high': np.nan,
+                'Week_ci_low': np.nan,
+                'Week_ci_high': np.nan,
+                'subj_var_ci_low': np.nan,
+                'subj_var_ci_high': np.nan,
+
+                'converged': model.converged, # bool
+
+                # save type of exception: name, message
+                'exception_type': type(e).__name__,
+                'exception_message': str(e)
+
+            }
+        
+        # add each row to list
+        results.append(row)
+
+    # make dataframe
+    results_df = pd.DataFrame(results)
+    return results_df
+      
