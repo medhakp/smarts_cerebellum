@@ -56,7 +56,7 @@ def cerebellum_only_img(cerebellar_mask,
     cerebellar_img = nib.Nifti1Image(cerebellar_arr, anat_img.affine)
     # this affine will be overwritten by new affine for re-coregistration
 
-    nib.save(cerebellar_img, f'{results_path}/{subj_id}_{week}_T1_cerebellum_only.nii')
+    #nib.save(cerebellar_img, f'{results_path}/{subj_id}_{week}_T1_cerebellum_only.nii')
     # save uncompressed so that it can be used in SPM coreg
 
     return cerebellar_img

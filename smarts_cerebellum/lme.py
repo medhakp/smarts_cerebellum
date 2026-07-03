@@ -47,7 +47,7 @@ def response_matrix_week(subj_path_dict,
     for s_id, s_path in subj_path_dict.items():
         # let's do a try-except loop
         try:
-            subj_img = nib.load(s_path)
+            subj_img = nib.load(s_path) # replace with this cerebellum-only image
             row = nt.sample_image(subj_img, 
                                   xm = x, ym = y, zm = z, # resample to template world indices - pass to fcn template world indices
                                   interpolation = 1
