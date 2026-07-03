@@ -20,9 +20,7 @@ def subj_week_loop(df):
         yield subj_id, week
 
 
-"""
-week search functions: functions to search for files across different weeks (within-subject)
-"""
+
 #___________________________________________________________________________________
 def find_weeks(SID):
 
@@ -154,36 +152,59 @@ def file_search_weeks(search_path, subj_id, week, suffixes):
 subj_search functions: functions to search for files across different subjects (within the same week)
 """
 #___________________________________________________________________________________
-def find_subjs(week):
-
-    # takes week as int
-
-   
-    ### look into particpants.tsv and returns subjs with given week
+def find_subjects(week):
+    """
+    Finds all subjects with data for a given week (int)
+    """
+    p_df = pd.read_csv(f'{gl.baseDir}/participants_anat.tsv', sep = '\t')
     
-    p_df = pd.read_csv('/cifs/diedrichsen/data/smarts_cerebellum/participants_anat.tsv', sep = '\t')
-
-    # access only rows with that week
+    # get only that week's dataframe
     df_week = p_df[p_df.week == week]
+    subjects = []
+    for subj in df_week.subj_id:
+        subjects.append(subj)
+    return subjects
+
+def subj_path_search(reference_file, ref_subj_id, week):
+    """
+    Given a reference file (path) and a reference subject id:
+    looks in the path for that ref_subj_id and replaces it with other subj_id
+
+    NOTE:
     
-    subjs = []
+    make sure to use this function correctly: put subj = 'subj_id', week = INT.
 
-    for subj in df_week['subj_id'].unique():
-        subjs.append(subj)
+    In search_path, do it like `MNISym_T1/{subj}/{subj}_W{week}_MNISym_T1_coreg_reslice.nii.gz'
 
-    return subjs
-
-def subj_path_search(reference_file, week):
+    EXAMPLE CALL:
+    subj = 'CU_2310'
+    week = 24
+    search_path = f'{gl.baseDir}/MNISym_T1/{subj}/{subj}_W{week}_MNISym_T1_coreg_reslice.nii.gz'
+    subj_paths, subj_available = subj_path_search(search_path, subj, week)
     """
-    Finds files from other subjects within a given week - match the structure of the reference file.
-    As reference file, give the file path for a subject within that week.
-    """
+
     ref_path = str(reference_file)
 
-    # find all places in file path that specify subj_id
-    match = re.search(f'')
+    if ref_subj_id not in ref_path:
+        print(f"Subject token {ref_subj_id} not found in ref path, {ref_path}")
+        return None
+    
+    # subject paths and subjects available for a given week
+    subj_paths = []
+    subj_available = []
+    subjects = find_subjects(week)
 
-    # our base_dir should be path-specific, so after you go to smarts_cerebellum, you should specify any subdirs before the subject (e.g. anatomicals, MNISym, etc.)
-    # so this will look for a path like base_dir/subj/subj_WEEK_suffix
+    for subj_id in subjects:
+        # replace subj_id token
+        subj_path = re.sub(re.escape(ref_subj_id), subj_id, ref_path)
 
+        if not Path(subj_path).exists():
+            print(subj_path)
+            #print(f'skipped {subj_id} {week}')
+            continue
+
+        subj_paths.append(subj_path)
+        subj_available.append(subj_id)
+
+    return subj_paths, subj_available
 #___________________________________________________________________________________
