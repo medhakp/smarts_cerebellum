@@ -30,6 +30,8 @@ ref_subj = 'CU_2310'
 subdir = 'MNISym_T1'
 file_suffix = 'MNISym_T1_coreg_reslice.nii.gz'
 
+thres = 1e-6
+
 
 def world_indices(img):
     """
@@ -43,7 +45,6 @@ def world_indices(img):
 def response_matrix_week(subj_path_dict,
                          x,y,z, # indices from world image
                          week, # which week this matrix is for
-                         template_img,
                          ):
     # initialize empty array
     week_subj_rows = []
@@ -62,54 +63,31 @@ def response_matrix_week(subj_path_dict,
             print(f'path {s_path} not exist; skip')
             continue
 
-        week_subj_rows.append(row)
-        week_subj_ids.append(s_id)
+        week_subj_rows.append(row) # voxels
+        week_subj_ids.append(s_id) # subj_id in order of their voxels put in rows
     
     Y_w = np.array(week_subj_rows)
     week_subj_ids = np.array(week_subj_ids)
-
-    # store the number of voxels
-    num_voxels = np.prod(template_img.get_fdata())
     
 
-    return Y_w, week_subj_ids, week, num_voxels # returns week used
+    return Y_w, week_subj_ids, week # returns week used
 
 
-def brain_voxel_array(Y, thres = 1e-6):
+def clean_tensor(Y, thres = 1e-6):
     """
     removes voxels from array that are below a certain threshold
 
-    for all voxels, takes the sum of each col (voxel has own col); is sum < thres, remove col
+    for all voxels, takes the sum of each col (voxel has own col); is sum <= thres, remove col
     """
-    sums = Y.sum(axis = 0) 
-    zero_mask = sums == thres
-    Y = Y[:,~zero_mask] # cols not in zero_mask
-    return Y, len(zero_mask) # return number voxels removed (cols)
 
-# SHOULD USE THE SAME N_t EVERYWHERE - just have it in the mian fcn
+    sums = np.nansum(Y, axis=(0, 1))
+    zero_mask = (sums <= thres) # this mask will be used to populate B later
+    Y = Y[:, :, ~zero_mask]
+    
+    return Y, zero_mask # return number voxels removed (cols)
 
-# make a dataframe for each voxel
-def voxel_dataframe(Y, subj, time_points, N_t):
-    """
-    Makes a dataframe for each voxel, where cols are:
-    subj, week, y = voxel
 
-    Inputs:
-        Y = voxel matrix
-        subjs (list): subjects that were included in the matrix; get form response_matrix_week
-        timepoints (list)
-    """
-    # for this function, pretend we have all the information we need
-    #N_t = len(time_points)
-    df = pd.DataFrame(data = Y, columns = [f'T{i}' for i in range(N_t)])
-    df['subj'] = subj
-    df = pd.melt(df, id_vars = 'subj', value_vars = [f'T{i}' for i in range(N_t)], var_name = 'Week', value_name = 'y')
-    return df
-
-# even better:
-# make a tensor filled with NaN for (subjects, voxels, weeks)
-# need to check how this tensor is being built - is it correct?
-def Y_tensor(df):
+def Y_tensor(df, subj_path_dict, time_points = time_points, template_img=template_img):
     """
     Function to make tensor out of subj-voxel matrices, where each matrix is for a given week
 
@@ -122,26 +100,60 @@ def Y_tensor(df):
         df: dataframe containing all subjects being used in this tensor (e.g. all patients)
     """
     # initialize tensor with NaN
-    v = num_voxels - len(zero_mask) # num_voxels_total - num_voxels_removed
-    N_p = len(df.subj_id.unique())
-    Y_tensor = np.full((N_p, N_t, v), np.nan)
 
-    # get the position of each subject
+    num_voxels = np.prod(template_img.get_fdata().shape)
+    # number of zero voxels should be same for all weeks; get number of zero voxels from template image
+    
+    
+
+    N_p = len(df.subj_id.unique()) # need to have a row for each subject (x-axis); if missing data, they will have NaN
+    N_t = len(time_points)
+
+
+    Y_tensor = np.full((N_p, N_t, num_voxels), np.nan)
+    #Y_tensor = np.zeros((N_p, N_t, num_voxels))
+
+    x,y,z = world_indices(template_img) # for making response matrices for each week
+
     subj_pos = {s: i for i, s in enumerate(df.subj_id.unique())}
 
     for idx, w in enumerate(time_points):
-        Y_w, week_subjs, week, num_voxels = response_matrix_week(subj_path_dict[idx],
+        Y_w, week_subjs, week = response_matrix_week(subj_path_dict[idx],
                                                                  x,y,z,
-                                                                 w,
-                                                                 template_img
+                                                                 w, # returned as-is
                                                                  )
         subj_idx = [subj_pos[s] for s in week_subjs] # position to place each subject's voxels in
-        Y_tensor[subj_idx, idx, :] = Y_w # will be placed in order of weeks
+        Y_tensor[subj_idx, idx, :] = Y_w # each subject-week row placed in subj-week row in tensor
 
     return Y_tensor
 
+# will need to use clean_tensor before putting in dataframe
+
+
+# SHOULD USE THE SAME N_t EVERYWHERE - just have it in the mian fcn
+
+# make a dataframe for each voxel
+def voxel_dataframe(Y, subjs, time_points):
+    """
+    Makes a dataframe for each voxel, where cols are:
+    subj, week, y = voxel
+    """
+    # for this function, pretend we have all the information we need
+    N_t = len(time_points)
+    df = pd.DataFrame(data = Y, index = subjs, columns = [f'W{i}' for i in range(N_t)])
+    df.index.name = 'subj'
+
+    df = df.reset_index()
+    df = df.melt(id_vars = 'subj', value_vars = [f'W{i}' for i in range(N_t)], var_name = 'Week', value_name = 'y')
+    return df
+
+# even better:
+# make a tensor filled with NaN for (subjects, voxels, weeks)
+# need to check how this tensor is being built - is it correct?
+
+
 # call to make the dataframe + run lme
-def main(subj_path_dict, time_points):
+def main(subj_path_dict, df, time_points = time_points):
     """
     for each week: build the response matrix; clean it; add it to a list
     Then: for each matrix in the list, take the ith column [0 - P], put it in another matrix.
@@ -151,6 +163,26 @@ def main(subj_path_dict, time_points):
     
     then for each matrix, we extract the i^th column, make it into a dataframe with subj, week, voxel_val (so we have one dataframe for each week), and concat
     """
+    # get the tensor - that contains all the data
+    Y = Y_tensor(df, subj_path_dict)
+
+    # clean tensor
+    Y = clean_tensor(Y)
+
+    # get dataframe for each voxel
+    subjs = [df.subj_id.unique()]
+    for v in range(Y.shape[-1]): # iterate over voxels, so last dim
+        V = Y[:,:,v] # (subj, week) matrix for that voxel
+        # this gets: for each voxel, the matrix (subj, week)
+        voxel_df = voxel_dataframe(V, subjs, time_points)
+
+        # drop NaN rows in dataframe
+        voxel_df.dropna(axis = 0, subset = ['y'], inplace = True, ignore_index = True)
+
+
+    # run lme for each dataframe
+
+    # save betas
 
     # now we have our tensor. So each voxel is stored along the z-axis, so for each index on z-axis, get x-y matrix, make df, run lme, save results
 
