@@ -175,7 +175,7 @@ def voxel_dataframe(Y, subjs, time_points):
 # make a tensor filled with NaN for (subjects, voxels, weeks)
 # need to check how this tensor is being built - is it correct?
 
-#%%
+##%%
 def beta_image(B, i, j, k, week_num, template_img = template_img):
     """
     Function to make image (one per week) from matrix B
@@ -194,7 +194,7 @@ def beta_image(B, i, j, k, week_num, template_img = template_img):
     return beta_img
     
 
-#%%
+##%%
 # call to make the dataframe + run lme
 def main(subj_path_dict, df, time_points = time_points):
     """
