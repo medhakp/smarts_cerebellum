@@ -14,6 +14,9 @@ import nitools as nt
 import os
 import statsmodels.formula.api as smf
 
+# parallel jobs (for model fit over many voxels)
+from joblib import Parallel, delayed
+
 import smarts_cerebellum.globals as gl
 from smarts_cerebellum.util import subj_path_search
 
@@ -127,24 +130,23 @@ def Y_tensor(df, subj_path_dict, time_points = time_points, template_img=templat
     return Y_tensor, num_voxels, i, j, k
 
 
-def clean_tensor(Y, thres = 1e-6):
+def clean_tensor(Y, thres = thres):
     """
     removes voxels from array that are below a certain threshold
 
     for all voxels, takes the sum of each col (voxel has own col); is sum <= thres, remove col
     """
-
-    thres = 1e-6
     sums = np.nansum(Y, axis=(0, 1))
-    zero_mask = (sums <= thres) 
-    Y = Y[:, :, ~zero_mask]
+    nan_cols = np.isnan(Y).any(axis = (0,1)) # nan values
+    exclude_mask = (sums <= thres) | nan_cols
+    Y = Y[:, :, ~exclude_mask]
 
     # just need indices (col values) - get first array from np.where
-    zero_idx = np.where(zero_mask)[0] # zero voxels
-    brain_idx = np.where(~zero_mask)[0] # voxels not removed (in-brain voxels)
+    exclude_idx = np.where(exclude_mask)[0] # zero voxels
+    brain_idx = np.where(~exclude_mask)[0] # voxels not removed (in-brain voxels)
     
     
-    return Y, zero_idx, brain_idx # return cols with removed voxels and in-brain voxels
+    return Y, exclude_idx, brain_idx # return cols with removed voxels and in-brain voxels
 
 
 # will need to use clean_tensor before putting in dataframe
@@ -194,6 +196,15 @@ def beta_image(B, i, j, k, week_num, template_img = template_img):
     return beta_img
     
 
+# putting this in its own function to run in parallel
+def voxel_fit(v, Y, subjs):
+
+    V = Y[:,:,v] # (subj, week) matrix for that voxel
+    voxel_df = voxel_dataframe(V, subjs, time_points)
+    model = smf.mixedlm('y~Week', data = voxel_df, groups = 'subj').fit()
+    return model.fe_params.to_numpy()
+
+
 ##%%
 # call to make the dataframe + run lme
 def main(subj_path_dict, df,
@@ -217,20 +228,18 @@ def main(subj_path_dict, df,
     # get dataframe for each voxel
     subjs = df.subj_id.unique() # for df; make sure not array
 
-    betas = []
+    # only running on in-brain voxels
+    n_brain_voxels = len(brain_idx)
 
-    for v in range(Y.shape[-1]): # iterate over voxels, so last dim
-        V = Y[:,:,v] # (subj, week) matrix for that voxel
-        # this gets: for each voxel, the matrix (subj, week)
-        voxel_df = voxel_dataframe(V, subjs, time_points)
+    # run voxel-wise lme fit in parallel
+    results = Parallel(n_jobs = -1)( # use all cores
+        delayed(voxel_fit)(v, Y, subjs) for v in range(n_brain_voxels)
+    ) # returns betas for k = 5 weeks for each voxel
 
-        # drop NaN rows in dataframe
-        voxel_df.dropna(axis = 0, subset = ['y'], inplace = True, ignore_index = True)
+    # need each voxel's betas in a column; use column-stack
+    # betas (matrix) only contains in-brain voxels
+    betas = np.column_stack(results)
 
-        model = smf.mixedlm('y~Week', data = voxel_df, groups = 'subj').fit()
-
-        # store betas in a list
-        betas.append(model.fe_params.to_numpy()) # add each voxel's betas to a list
     
     # make a numpy array of betas
     betas = np.array(betas) # shape = (brain_voxels, weeks)
@@ -244,7 +253,7 @@ def main(subj_path_dict, df,
         # want to populate in-brain voxel cols in B with betas (coefs)
         # so first col in betas corresponds to the first in-brain voxel (so that brain_idx in B)
         
-        # out-of-brain voxels do not appear in betas; left out (as zero)
+        # out-of-brain voxels do not appear in betas; left out (as zero) in B
 
         B[:,idx] = betas[:,a]
         # each week is stored in a row in B, where B.shape = (5 weeks, P voxels) (P = ALL voxels, incl. out-of-brain)
