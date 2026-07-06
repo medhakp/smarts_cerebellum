@@ -19,12 +19,11 @@ from smarts_cerebellum.util import subj_path_search
 
 
 
-
+# function macros
 template_img = '/home/UWO/mporwal2/Documents/GitHub/smarts_cerebellum/tpl-MNI152NLin2009cSymC_T1w.nii'
 template_img = nib.load(template_img)
 
 time_points = [0, 4, 12, 24, 52]
-
 
 thres = 1e-6
 
@@ -253,22 +252,3 @@ def main(subj_path_dict, df, time_points = time_points):
         beta_images.append(beta_img) # list of Nifti1Images
     
     return betas, B, beta_images
-
-
-# this is another function - to save each week image
-
-    # save betas to array: each voxel gets its own column for k = 5 weeks
-        # also need to populate with zeroes - use zero_mask to get these
-
-        # populate B for that voxel's column:
-        # for each voxel, do this
-
-    
-
-    # run lme for each dataframe
-
-    # save betas
-
-    # now we have our tensor. So each voxel is stored along the z-axis, so for each index on z-axis, get x-y matrix, make df, run lme, save results
-
-    # each image put back in voxel coordiantes
