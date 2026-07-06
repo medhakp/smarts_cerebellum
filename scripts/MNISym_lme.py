@@ -18,6 +18,9 @@ prefix = 'MNISymC_T1'
 #_____________________________________________
 
 p_df = pd.read_csv(f'{gl.baseDir}/participants_anat.tsv', sep = '\t')
+patients_df = p_df[p_df.isPatient == 1]
+controls_df = p_df[p_df.isPatient == 0]
+
 
 ##%%
 # subject-week path dicts: for each week, dict is: subj_id: subj_path; for each of w weeks, its dict is in list position w-1
@@ -30,6 +33,11 @@ subj_path_dict = lme.make_week_dicts(df = p_df, ref_subj = ref_subj, subdir = su
 betas, B, beta_images, mask_images, status_list = lme.main(subj_path_dict = subj_path_dict, df = p_df,
          results_path = results_path, prefix = prefix)
 
+"""
+NEED TO FIX THIS FUNCTION!
+(a) run with patients and controls separately (df for each)
+(b) binary masks are not correct...
+"""
 
 
 # %%
