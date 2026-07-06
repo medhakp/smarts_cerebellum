@@ -25,12 +25,26 @@ template_img = nib.load(template_img)
 
 time_points = [0, 4, 12, 24, 52]
 
-# for file searching: file in a given week across different subjects
-ref_subj = 'CU_2310'
-subdir = 'MNISym_T1'
-file_suffix = 'MNISym_T1_coreg_reslice.nii.gz'
 
 thres = 1e-6
+
+
+def make_week_dicts(df,
+                    ref_subj,
+                    subdir,
+                    file_suffix,
+                    ):
+    """
+    Make dictionaries for all weeks (time points)
+
+    Returns LIST of dictionaries
+    """
+    dictionaries = []
+    for week in time_points:
+        ref_search_path = os.path.join(gl.baseDir, subdir, ref_subj, f'{ref_subj}_W{week}_{file_suffix}')
+        paths, subjs = subj_path_search(ref_search_path, ref_subj, week, df)
+        dictionaries.append(dict(zip(subjs, paths)))
+    return dictionaries
 
 
 def world_indices(img):
@@ -39,10 +53,10 @@ def world_indices(img):
     """
     i, j, k = np.indices(img.shape)
     x,y,z = nt.affine_transform(i, j, k, img.affine)
-    return x,y,z
+    return x,y,z, i, j, k
 
 
-def response_matrix_week(subj_path_dict,
+def response_matrix_week(subj_path_dict_idx,
                          x,y,z, # indices from world image
                          week, # which week this matrix is for
                          ):
@@ -50,7 +64,7 @@ def response_matrix_week(subj_path_dict,
     week_subj_rows = []
     week_subj_ids = [] # extra check: store subj_id AFTER they are added to matrix
     
-    for s_id, s_path in subj_path_dict.items():
+    for s_id, s_path in subj_path_dict_idx.items():
         # let's do a try-except loop
         try:
             subj_img = nib.load(s_path)
@@ -99,7 +113,7 @@ def Y_tensor(df, subj_path_dict, time_points = time_points, template_img=templat
     Y_tensor = np.full((N_p, N_t, num_voxels), np.nan)
     #Y_tensor = np.zeros((N_p, N_t, num_voxels))
 
-    x,y,z = world_indices(template_img) # for making response matrices for each week
+    x,y,z, i,j,k = world_indices(template_img) # for making response matrices for each week
 
     subj_pos = {s: i for i, s in enumerate(df.subj_id.unique())}
 
@@ -111,7 +125,7 @@ def Y_tensor(df, subj_path_dict, time_points = time_points, template_img=templat
         subj_idx = [subj_pos[s] for s in week_subjs] # position to place each subject's voxels in
         Y_tensor[subj_idx, idx, :] = Y_w # each subject-week row placed in subj-week row in tensor
 
-    return Y_tensor, num_voxels
+    return Y_tensor, num_voxels, i, j, k
 
 
 def clean_tensor(Y, thres = 1e-6):
@@ -162,14 +176,33 @@ def voxel_dataframe(Y, subjs, time_points):
 # make a tensor filled with NaN for (subjects, voxels, weeks)
 # need to check how this tensor is being built - is it correct?
 
+#%%
+def beta_image(B, i, j, k, week_num, template_img = template_img):
+    """
+    Function to make image (one per week) from matrix B
+    """
 
+    # initialize empty array
+    beta_arr = np.zeros(template_img.shape)
+    iv = i.flatten()
+    jv = j.flatten()
+    kv = k.flatten()
+
+    # get col of B from that week and populate along voxel coord indices
+    beta_arr[iv, jv, kv] = B[week_num,:]
+
+    beta_img = nib.Nifti1Image(beta_arr, template_img.affine)
+    return beta_img
+    
+
+#%%
 # call to make the dataframe + run lme
 def main(subj_path_dict, df, time_points = time_points):
     """
     function to perform lme; calls above (prerequisite) functions
     """
     # get the tensor - that contains all the data
-    Y, num_voxels = Y_tensor(df, subj_path_dict)
+    Y, num_voxels, i, j, k = Y_tensor(df, subj_path_dict)
 
     # clean tensor
     Y, _, brain_idx = clean_tensor(Y)
@@ -201,7 +234,7 @@ def main(subj_path_dict, df, time_points = time_points):
     betas = betas.T # shape = (weeks, brain_voxels)
 
     # now, populate B with betas (only with in-brain voxel indices)
-    for i, idx in enumerate(brain_idx):
+    for a, idx in enumerate(brain_idx):
         # indexing is like:
         # brain_idx is the index in B matrix (which has col for ALL voxels)
         # i has index for betas
@@ -210,9 +243,16 @@ def main(subj_path_dict, df, time_points = time_points):
         
         # out-of-brain voxels do not appear in betas; left out (as zero)
 
-        B[:,idx] = betas[:,i]
+        B[:,idx] = betas[:,a]
+        # each week is stored in a row in B, where B.shape = (5 weeks, P voxels) (P = ALL voxels, incl. out-of-brain)
+
+    beta_images = []
+    # make beta image for each week
+    for b, _ in enumerate(time_points): # b^th time point
+        beta_img = beta_image(B, i, j, k, b)
+        beta_images.append(beta_img) # list of Nifti1Images
     
-    return betas, B
+    return betas, B, beta_images
 
 
 # this is another function - to save each week image
