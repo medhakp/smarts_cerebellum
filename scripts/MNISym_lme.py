@@ -27,10 +27,9 @@ subj_path_dict = lme.make_week_dicts(df = p_df, ref_subj = ref_subj, subdir = su
 # betas, B, beta_images = lme.main(subj_path_dict = subj_path_dict, df = p_df,
 #                                  results_path = results_path, prefix = prefix)
 
-betas, B, beta_images = lme.main(subj_path_dict = subj_path_dict, df = p_df,
+betas, B, beta_images, mask_images, status_list = lme.main(subj_path_dict = subj_path_dict, df = p_df,
          results_path = results_path, prefix = prefix)
 
 
 
-# %%
 # %%
