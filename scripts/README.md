@@ -1,4 +1,6 @@
-# Pipelines for cerebellar analysis
+# Scripts for cerebellar analysis
+
+## Pipelines
 
 Here we offer several pipelines for cerebellar analysis; these pipelines take an image (e.g. anatomical, segmenetation, slope from regression) from native space to a template space.
 
