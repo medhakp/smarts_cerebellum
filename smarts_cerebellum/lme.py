@@ -112,7 +112,7 @@ def Y_tensor(df, subj_path_dict, time_points = time_points, template_img=templat
     Y_tensor = np.full((N_p, N_t, num_voxels), np.nan)
     #Y_tensor = np.zeros((N_p, N_t, num_voxels))
 
-    x,y,z, i,j,k = world_indices(template_img) # for making response matrices for each week
+    x,y,z, i, j, k = world_indices(template_img) # for making response matrices for each week
 
     subj_pos = {s: i for i, s in enumerate(df.subj_id.unique())}
 
@@ -196,9 +196,13 @@ def beta_image(B, i, j, k, week_num, template_img = template_img):
 
 ##%%
 # call to make the dataframe + run lme
-def main(subj_path_dict, df, time_points = time_points):
+def main(subj_path_dict, df,
+          results_path, prefix, # for image name when saving
+          time_points = time_points):
     """
     function to perform lme; calls above (prerequisite) functions
+
+    prefix: e.g. MNISymC_T1 (space_segment)
     """
     # get the tensor - that contains all the data
     Y, num_voxels, i, j, k = Y_tensor(df, subj_path_dict)
@@ -247,8 +251,9 @@ def main(subj_path_dict, df, time_points = time_points):
 
     beta_images = []
     # make beta image for each week
-    for b, _ in enumerate(time_points): # b^th time point
-        beta_img = beta_image(B, i, j, k, b)
+    for b, beta_week in enumerate(time_points): # b^th time point (week)
+        beta_img = beta_image(B, i, j, k, week_num = b)
         beta_images.append(beta_img) # list of Nifti1Images
+        nib.save(beta_img, f'{results_path}/{prefix}_W{beta_week}_lme_beta.nii.gz')
     
     return betas, B, beta_images
