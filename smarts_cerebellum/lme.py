@@ -129,6 +129,8 @@ def Y_tensor(df, subj_path_dict, time_points = time_points, template_img=templat
 
     return Y_tensor, num_voxels, i, j, k
 
+# make a tensor filled with NaN for (subjects, voxels, weeks)
+# need to check how this tensor is being built - is it correct?
 
 def clean_tensor(Y, thres = thres):
     """
@@ -136,23 +138,29 @@ def clean_tensor(Y, thres = thres):
 
     for all voxels, takes the sum of each col (voxel has own col); is sum <= thres, remove col
     """
+    # remove voxels whose cols sum to 0 (less than thres)
     sums = np.nansum(Y, axis=(0, 1))
-    nan_cols = np.isnan(Y).any(axis = (0,1)) # nan values
-    exclude_mask = (sums <= thres) | nan_cols
-    Y = Y[:, :, ~exclude_mask]
+
+    # instead: clean subj-week arrays in 2d array (for each voxel) when you load it
+
+    # remove missing rows for subj: if subj doesn't have voxels for that week, remove their week row
+    # collapse along axes for subj-voxel: if that week is NaN, remove
+    #nan_cols = np.isnan(Y).any(axis = 2) # nan values
+    # Y.shape = (N_p, N_t, P) - so sum along week-voxels
+
+    zero_mask = (sums <= thres) #| nan_cols
+    #nan_mask = nan_cols
+
+    # clean axis 2 (out-of-brain voxels)
+    Y = Y[:, :, ~zero_mask]
 
     # just need indices (col values) - get first array from np.where
-    exclude_idx = np.where(exclude_mask)[0] # zero voxels
-    brain_idx = np.where(~exclude_mask)[0] # voxels not removed (in-brain voxels)
+    zero_idx2 = np.where(zero_mask)[0] # zero voxels
+    brain_idx2 = np.where(~zero_mask)[0] # voxels not removed (in-brain voxels)
     
-    
-    return Y, exclude_idx, brain_idx # return cols with removed voxels and in-brain voxels
+    # returning only removed columns (voxels), since need these to populate B later
+    return Y, zero_idx2, brain_idx2 # return cols with removed voxels and in-brain voxels
 
-
-# will need to use clean_tensor before putting in dataframe
-
-
-# SHOULD USE THE SAME N_t EVERYWHERE - just have it in the mian fcn
 
 # make a dataframe for each voxel
 def voxel_dataframe(Y, subjs, time_points):
@@ -173,9 +181,7 @@ def voxel_dataframe(Y, subjs, time_points):
 
     return df
 
-# even better:
-# make a tensor filled with NaN for (subjects, voxels, weeks)
-# need to check how this tensor is being built - is it correct?
+
 
 ##%%
 def beta_image(B, i, j, k, week_num, template_img = template_img):
@@ -200,9 +206,18 @@ def beta_image(B, i, j, k, week_num, template_img = template_img):
 def voxel_fit(v, Y, subjs):
 
     V = Y[:,:,v] # (subj, week) matrix for that voxel
+
     voxel_df = voxel_dataframe(V, subjs, time_points)
-    model = smf.mixedlm('y~Week', data = voxel_df, groups = 'subj').fit()
-    return model.fe_params.to_numpy()
+    voxel_df.dropna(axis = 0, subset = ['y'], inplace = True, ignore_index = True)
+
+    # in case of non-convergence
+    try:
+        model = smf.mixedlm('y~Week', data = voxel_df, groups = 'subj').fit()
+        return model.fe_params.to_numpy()
+    except Exception:
+        # return zeroes array of the same size as model.fe_params
+        print(f'non-convergence case for voxel {v}')
+        return np.zeros((5))
 
 
 ##%%
@@ -228,12 +243,9 @@ def main(subj_path_dict, df,
     # get dataframe for each voxel
     subjs = df.subj_id.unique() # for df; make sure not array
 
-    # only running on in-brain voxels
-    n_brain_voxels = len(brain_idx)
-
     # run voxel-wise lme fit in parallel
-    results = Parallel(n_jobs = -1)( # use all cores
-        delayed(voxel_fit)(v, Y, subjs) for v in range(n_brain_voxels)
+    results = Parallel(n_jobs = 8)( # num cores to use = 8
+        delayed(voxel_fit)(v, Y, subjs) for v in range(Y.shape[-1])
     ) # returns betas for k = 5 weeks for each voxel
 
     # need each voxel's betas in a column; use column-stack

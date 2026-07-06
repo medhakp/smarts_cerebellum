@@ -19,15 +19,18 @@ prefix = 'MNISymC_T1'
 
 p_df = pd.read_csv(f'{gl.baseDir}/participants_anat.tsv', sep = '\t')
 
-
-
+##%%
 # subject-week path dicts: for each week, dict is: subj_id: subj_path; for each of w weeks, its dict is in list position w-1
 subj_path_dict = lme.make_week_dicts(df = p_df, ref_subj = ref_subj, subdir = subdir, file_suffix = file_suffix)
 
 # images saved by this function
+# betas, B, beta_images = lme.main(subj_path_dict = subj_path_dict, df = p_df,
+#                                  results_path = results_path, prefix = prefix)
+
 betas, B, beta_images = lme.main(subj_path_dict = subj_path_dict, df = p_df,
-                                 results_path = results_path, prefix = prefix)
+         results_path = results_path, prefix = prefix)
 
 
 
+# %%
 # %%
