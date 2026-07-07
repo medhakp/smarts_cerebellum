@@ -209,17 +209,12 @@ def voxel_fit(v, Y, subjs):
     voxel_df = voxel_dataframe(V, subjs, time_points)
     voxel_df.dropna(axis = 0, subset = ['y'], inplace = True, ignore_index = True)
 
-
     try:
-        with warnings.catch_warnings():
-            warnings.filterwarnings('error', category = ConvergenceWarning)
-            model = smf.mixedlm('y~Week', data = voxel_df, groups = 'subj').fit(maxiter = 400)
-
-        return model.fe_params.to_numpy(), {'voxel': v, 'converged': True} # converged
-    
+        model = smf.mixedlm('y~Week', data = voxel_df, groups = 'subj').fit(maxiter = 400)
+        return model.fe_params.to_numpy(), {'voxel': v, 'converged': model.converged}
     except Exception as e:
-        return model.fe_params.to_numpy(), {'voxel': v, 'converged': False, 'error': str(e)}
-
+        num_params = 5
+        return np.full(num_params, np.nan), {'voxel': v, 'converged': False} # nan value for other model failures
 
 
 ##%%
