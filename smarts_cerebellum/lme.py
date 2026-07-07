@@ -211,10 +211,10 @@ def voxel_fit(v, Y, subjs):
 
     try:
         model = smf.mixedlm('y~Week', data = voxel_df, groups = 'subj').fit(maxiter = 400)
-        return model.fe_params.to_numpy(), {'voxel': v, 'converged': model.converged}
+        return model.fe_params.to_numpy(), model.bse_fe.to_numpy(), {'voxel': v, 'converged': model.converged}
     except Exception as e:
         num_params = 5
-        return np.full(num_params, np.nan), {'voxel': v, 'converged': False} # nan value for other model failures
+        return np.full(num_params, np.nan), np.full(num_params, np.nan), {'voxel': v, 'converged': False} # nan value for other model failures (nan for both betas, beta se)
 
 
 ##%%
@@ -236,6 +236,7 @@ def main(subj_path_dict, df,
     # initialize B to store coefficients. shape = (week, voxels)
     N_t = len(time_points)
     B = np.zeros((N_t, num_voxels)) # image of fe
+    S = np.zeros((N_t, num_voxels)) # image of fe_se
     binary_mask = np.zeros((N_t, num_voxels)) # binary mask
 
     # get dataframe for each voxel
@@ -247,18 +248,23 @@ def main(subj_path_dict, df,
     ) # returns betas for k = 5 weeks for each voxel
 
 
-    betas_list, status_list = zip(*results)
+    betas_list, bse_list, status_list = zip(*results)
 
-    betas = np.column_stack(betas_list) # (5, p = num_in_brain_voxels))
+    betas = np.column_stack(betas_list) # (5, p = num_in_brain_voxels)
+    betas_se = np.column_stack(bse_list)
     
     # make a numpy array of betas
     betas = np.array(betas) # shape = (brain_voxels, weeks)
+    betas_se = np.array(betas_se)
     #betas = betas.T # shape = (weeks, brain_voxels)
 
     # now, populate B with betas (only with in-brain voxel indices)
     for a, idx in enumerate(brain_idx):
         # only populate indices with those voxel cols in brain - otherwise, leave zero
+
+        # make images: betas, errors
         B[:,idx] = betas[:,a]
+        S[:,idx] = betas_se[:,a]
         # each week is stored in a row in B, where B.shape = (5 weeks, P voxels) (P = ALL voxels, incl. out-of-brain)
 
         # make binary mask: if voxel in status_list[v] (dict, v^th in list) has converge = False, put 0 in that binary mask's column
@@ -269,18 +275,22 @@ def main(subj_path_dict, df,
             binary_mask[:,idx] = 0
 
     beta_images = []
+    bse_images = []
     mask_images = []
 
     for b, beta_week in enumerate(time_points): # b^th time point (week)
 
         # make Nifti1Image from each of B, binary_mask (for each week - fcn handles this)
         beta_img = nifti_image(B, i, j, k, week_num = b) # nifti_image returns one function per week
+        bse_img = nifti_image(S, i, j, k, week_num = b)
         mask_img = nifti_image(binary_mask, i, j, k, week_num = b)
 
         beta_images.append(beta_img) # list of Nifti1Images
+        bse_images.append(bse_img)
         mask_images.append(mask_img)
 
         nib.save(beta_img, f'{results_path}/{prefix}_W{beta_week}_lme_beta.nii.gz')
+        nib.save(bse_img, f'{results_path}/{prefix}_W{beta_week}_lme_bse.nii.gz')
         nib.save(mask_img, f'{results_path}/{prefix}_W{beta_week}_lme_conv_mask.nii.gz')
     
-    return betas, B, beta_images, binary_mask, mask_images, status_list
+    return B, S, status_list
