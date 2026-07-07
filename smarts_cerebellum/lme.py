@@ -142,15 +142,9 @@ def clean_tensor(Y, thres = thres):
 
     for all voxels, takes the sum of each col (voxel has own col); is sum <= thres, remove col
     """
-    # remove voxels whose cols sum to 0 (less than thres)
+    
+    # voxels (axis = 2) whose sum is <=thres
     sums = np.nansum(Y, axis=(0, 1))
-
-    # instead: clean subj-week arrays in 2d array (for each voxel) when you load it
-
-    # remove missing rows for subj: if subj doesn't have voxels for that week, remove their week row
-    # collapse along axes for subj-voxel: if that week is NaN, remove
-    #nan_cols = np.isnan(Y).any(axis = 2) # nan values
-    # Y.shape = (N_p, N_t, P) - so sum along week-voxels
 
     zero_mask = (sums <= thres) #| nan_cols
     #nan_mask = nan_cols
@@ -178,9 +172,7 @@ def voxel_dataframe(Y, subjs, time_points):
 
     df = pd.DataFrame(data = Y, index = subjs,  columns = time_points)
     df.index.name = 'subj'
-
     df = df.reset_index()
-
     df = df.melt(id_vars = 'subj', value_vars = time_points, var_name = 'Week', value_name = 'y')
 
     return df
@@ -188,22 +180,23 @@ def voxel_dataframe(Y, subjs, time_points):
 
 
 ##%%
-def beta_image(B, i, j, k, week_num, template_img = template_img):
+def nifti_image(A, i, j, k, week_num, template_img = template_img):
     """
-    Function to make image (one per week) from matrix B
+    Function to make image (one per week) from matrix A
+    NOTE: week_num is relative position of week (e.g. 0, 1, 2, ...) NOT week point (not 0, 4, 12, ...) - use enumerate indices
     """
 
     # initialize empty array
-    beta_arr = np.zeros(template_img.shape)
+    img_arr = np.zeros(template_img.shape)
     iv = i.flatten()
     jv = j.flatten()
     kv = k.flatten()
 
     # get col of B from that week and populate along voxel coord indices
-    beta_arr[iv, jv, kv] = B[week_num,:]
+    img_arr[iv, jv, kv] = A[week_num,:] # populate indices with each row - each week has a flattened vector stored in rows.
 
-    beta_img = nib.Nifti1Image(beta_arr, template_img.affine)
-    return beta_img
+    nifti_img = nib.Nifti1Image(img_arr, template_img.affine)
+    return nifti_img
 
 
 # make binary mask for convergence
@@ -216,17 +209,16 @@ def voxel_fit(v, Y, subjs):
     voxel_df = voxel_dataframe(V, subjs, time_points)
     voxel_df.dropna(axis = 0, subset = ['y'], inplace = True, ignore_index = True)
 
-    non_conv = [] # store voxels that failed to converge
-    store_exceptions = dict() # keys = voxel; value = warning
 
-    # in case of non-convergence: catch warning; save for binary mask
     try:
         with warnings.catch_warnings():
             warnings.filterwarnings('error', category = ConvergenceWarning)
             model = smf.mixedlm('y~Week', data = voxel_df, groups = 'subj').fit(maxiter = 400)
+
         return model.fe_params.to_numpy(), {'voxel': v, 'converged': True} # converged
+    
     except Exception as e:
-        return np.zeros(5), {'voxel': v, 'converged': False, 'error': str(e)}
+        return model.fe_params.to_numpy(), {'voxel': v, 'converged': False, 'error': str(e)}
 
 
 
@@ -252,25 +244,17 @@ def main(subj_path_dict, df,
     binary_mask = np.zeros((N_t, num_voxels)) # binary mask
 
     # get dataframe for each voxel
-    subjs = df.subj_id.unique() # for df; make sure not array
+    subjs = df.subj_id.unique()
 
     # run voxel-wise lme fit in parallel
-    results = Parallel(n_jobs = 8)( # num cores to use = 8
+    results = Parallel(n_jobs = 8)(
         delayed(voxel_fit)(v, Y, subjs) for v in range(Y.shape[-1])
     ) # returns betas for k = 5 weeks for each voxel
 
-    # now results returns:
-        # array of shape (5,) (for each voxel) (betas or zeroes, if not converge)
-        # dictionary (per voxel) - voxel, converged, (exception, if not converge)
-    # so need to get two lists out of results
 
     betas_list, status_list = zip(*results)
 
-    # need each voxel's betas in a column; use column-stack
-    # betas (matrix) only contains in-brain voxels
-    betas = np.column_stack(betas_list)
-    # should be: betas.shape = (5, P) where P voxels 
-        # (P runs of model, each produce np.array of shape (5,) for 5 weeks)
+    betas = np.column_stack(betas_list) # (5, p = num_in_brain_voxels))
     
     # make a numpy array of betas
     betas = np.array(betas) # shape = (brain_voxels, weeks)
@@ -278,14 +262,6 @@ def main(subj_path_dict, df,
 
     # now, populate B with betas (only with in-brain voxel indices)
     for a, idx in enumerate(brain_idx):
-        # indexing is like:
-        # brain_idx is the index in B matrix (which has col for ALL voxels)
-        # i has index for betas
-        # want to populate in-brain voxel cols in B with betas (coefs)
-        # so first col in betas corresponds to the first in-brain voxel (so that brain_idx in B)
-        
-        # out-of-brain voxels do not appear in betas; left out (as zero) in B
-
         # only populate indices with those voxel cols in brain - otherwise, leave zero
         B[:,idx] = betas[:,a]
         # each week is stored in a row in B, where B.shape = (5 weeks, P voxels) (P = ALL voxels, incl. out-of-brain)
@@ -294,17 +270,17 @@ def main(subj_path_dict, df,
         voxel_dict = status_list[a] # (convergence status) dictionary for that voxel
         if voxel_dict['converged'] == True:
             binary_mask[:,idx] = 1 # if converged, fill that voxel's col with ones
-        else:
+        else: # this part not necessary; matrix already initialized wtih zeroes
             binary_mask[:,idx] = 0
 
     beta_images = []
     mask_images = []
-    # make beta image, binary masks for each week
+
     for b, beta_week in enumerate(time_points): # b^th time point (week)
 
-        # beta_image general use function to make image - rename this!
-        beta_img = beta_image(B, i, j, k, week_num = b)
-        mask_img = beta_image(binary_mask, i, j, k, week_num = b)
+        # make Nifti1Image from each of B, binary_mask (for each week - fcn handles this)
+        beta_img = nifti_image(B, i, j, k, week_num = b) # nifti_image returns one function per week
+        mask_img = nifti_image(binary_mask, i, j, k, week_num = b)
 
         beta_images.append(beta_img) # list of Nifti1Images
         mask_images.append(mask_img)
