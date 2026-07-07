@@ -1,3 +1,4 @@
+#%%
 import numpy as np
 import nibabel as nib
 import os
@@ -68,3 +69,4 @@ nib.save(week3_img,  f'{save_path}/{group}_{prefix}_W24_lme.nii.gz')
 week4_arr = image_sum(group = group, weeks = week4, shape = img_shape)
 week4_img = nib.Nifti1Image(week4_arr, template_img.affine)
 nib.save(week4_img,  f'{save_path}/{group}_{prefix}_W52_lme.nii.gz')
+# %%
