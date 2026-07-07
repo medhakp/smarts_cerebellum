@@ -19,7 +19,7 @@ sys.path.append('/home/UWO/mporwal2/Documents/GitHub/smarts_cerebellum/')
 
 from image_processing import tissue_extractor as te
 import smarts_cerebellum.globals as gl
-from smarts_cerebellum import make_summarized_dataframe_weeks
+from smarts_cerebellum import make_summarized_dataframe_subj_weeks
 
 from pathlib import Path
 import os
@@ -145,7 +145,7 @@ def MNISym_coreg_normalized_summarized_df(segment):
     ]
     search_path = os.path.join(gl.baseDir, f'MNISym_{segment}')
 
-    weeks_df = make_summarized_dataframe_weeks.make_summarized_dataframe_weeks(p_df = p_df, search_path = search_path,
+    weeks_df = make_summarized_dataframe_subj_weeks.make_summarized_dataframe_weeks(p_df = p_df, search_path = search_path,
                                the_atlas = 'Diedrichsen_2009',
                                maps = 'atl-Anatom', # labels from anatomical atlas
                                space = 'MNISym',

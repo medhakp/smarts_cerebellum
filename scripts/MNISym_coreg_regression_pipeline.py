@@ -24,7 +24,7 @@ import pandas as pd
 import nibabel as nib
 
 import smarts_cerebellum.globals as gl
-from smarts_cerebellum import regression, mirror_lesion, template_overall_image, make_summarized_dataframe
+from smarts_cerebellum import regression, mirror_lesion, template_overall_image, make_summarized_dataframe_subj
 
 from pathlib import Path
 import os
@@ -154,7 +154,7 @@ def flip_left_lesion(path, left_lesion_df = left_lesion_df, space='MNISym', segm
 
 
 def MNISym_coreg_summarized_df(p_df = p_df, the_atlas = 'Diedrichsen_2009', maps = 'atl-Anatom'):
-    summarized_df = make_summarized_dataframe.make_summarized_dataframe(p_df = p_df,
+    summarized_df = make_summarized_dataframe_subj.make_summarized_dataframe(p_df = p_df,
                                search_path = f'{gl.baseDir}/Regression',
                                the_atlas = the_atlas,
                                maps = maps, # labels from anatomical atlas
