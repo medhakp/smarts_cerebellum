@@ -69,7 +69,7 @@ subj_path_dict_patient = lme.make_week_dicts(df = patients_df, ref_subj = ref_su
 subj_path_dict_patient = flip_left_lesion(subj_path_dict = subj_path_dict_patient, df = left_lesion_df, path = subpath, space = space, segment = segment)
 
 #%%
-betas, B, beta_images, binary_mask, mask_images, status_list = lme.main(subj_path_dict = subj_path_dict_patient, df = patients_df,
+B, S, status_list = lme.main(subj_path_dict = subj_path_dict_patient, df = patients_df,
                                                                         results_path = results_path, prefix = prefix)
 
 
@@ -92,7 +92,7 @@ prefix_controls = 'controls_MNISymC_T1'
 
 subj_path_dict_controls = lme.make_week_dicts(df = controls_df, ref_subj = ref_control, subdir = subdir, file_suffix = file_suffix)
 
-betas_c, B_c, beta_images_c, binary_mask_c, mask_images_c, status_list_c = lme.main(subj_path_dict = subj_path_dict_controls, df = controls_df,
+B_c, S_c, status_list_c = lme.main(subj_path_dict = subj_path_dict_controls, df = controls_df,
                                                                                     results_path = results_path, prefix = prefix_controls)
 
 # save convergence status to dataframe
