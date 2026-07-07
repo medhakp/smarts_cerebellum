@@ -286,6 +286,6 @@ def main(subj_path_dict, df,
         mask_images.append(mask_img)
 
         nib.save(beta_img, f'{results_path}/{prefix}_W{beta_week}_lme_beta.nii.gz')
-        nib.save(beta_img, f'{results_path}/{prefix}_W{beta_week}_lme_conv_mask.nii.gz')
+        nib.save(mask_img, f'{results_path}/{prefix}_W{beta_week}_lme_conv_mask.nii.gz')
     
-    return betas, B, beta_images, mask_images, status_list
+    return betas, B, beta_images, binary_mask, mask_images, status_list
