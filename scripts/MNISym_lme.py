@@ -9,8 +9,10 @@ from smarts_cerebellum import mirror_lesion
 import smarts_cerebellum.globals as gl
 from smarts_cerebellum.util import subj_week_loop
 
-
+# re-run controls without CUP_1001 (outlier)
 p_df = pd.read_csv(f'{gl.baseDir}/participants_anat.tsv', sep = '\t')
+p_df = p_df[p_df.subj_id != 'CUP_1001']
+
 patients_df = p_df[p_df.isPatient == 1]
 controls_df = p_df[p_df.isPatient == 0]
 left_lesion_df = patients_df[patients_df.LesionSide == 'left '] # patients with left lesion - need to flip their images
@@ -108,17 +110,16 @@ def controls_run_lme(segment):
 
 
 
-
 #%%
-# PATIENTS
-#patients_run_lme('T1')
-patients_run_lme('GM')
-patients_run_lme('WM')
-patients_run_lme('CSF')
+# # PATIENTS
+# #patients_run_lme('T1')
+# patients_run_lme('GM')
+# patients_run_lme('WM')
+# patients_run_lme('CSF')
 
 #%%
 # CONTROLS
-#controls_run_lme('T1')
+controls_run_lme('T1')
 controls_run_lme('GM')
 controls_run_lme('WM')
 controls_run_lme('CSF')
