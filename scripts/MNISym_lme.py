@@ -90,7 +90,7 @@ def controls_run_lme(segment):
 
     # for saving lme output files
     results_path = os.path.join(gl.baseDir, 'lme', f'{segment}')
-    prefix = f'patients_MNISymC_{segment}'
+    prefix = f'controls_MNISymC_{segment}'
 
 
     subj_path_dict_controls = lme.make_week_dicts(df = controls_df, ref_subj = ref_control, subdir = subdir, file_suffix = file_suffix)
@@ -116,8 +116,11 @@ patients_run_lme('GM')
 patients_run_lme('WM')
 patients_run_lme('CSF')
 
+#%%
 # CONTROLS
 #controls_run_lme('T1')
 controls_run_lme('GM')
 controls_run_lme('WM')
 controls_run_lme('CSF')
+
+# %%
