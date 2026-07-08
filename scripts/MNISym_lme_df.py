@@ -32,7 +32,7 @@ def _image_paths(group, prefix, suffix, suffix0, segment, weeks = all_weeks):
 
 def _summary_df(images, # image for each: group-param-segment
                 group, param, segment,
-                the_atlas = 'Diedrichsen_2009', maps = 'atl_Anatom', space = 'MNISym'):
+                the_atlas = 'Diedrichsen_2009', maps = 'atl-Anatom', space = 'MNISym'):
      suit.fetch_atlas(the_atlas)
 
      df = suit.summarize_data(images = images, atlas = the_atlas, maps = maps, space = space,
