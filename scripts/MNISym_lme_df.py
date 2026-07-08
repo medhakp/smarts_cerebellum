@@ -1,3 +1,4 @@
+#%%
 # make summarized dataframe using anatomical atlas Diedrichsen_2009
 import SUITPy as suit
 import os
@@ -15,10 +16,13 @@ segments = ['T1', 'GM', 'WM', 'CSF']
 
 
 # finds one file per week
-def _image_paths(group, prefix, suffix, segment, weeks = all_weeks):
+def _image_paths(group, prefix, suffix, suffix0, segment, weeks = all_weeks):
     images = []
     for week in weeks:
-        file = f'{lme_dir}/{segment}/{group}_{prefix}_{week}_{suffix}.nii.gz'
+        if not week == 'W0':
+            file = f'{lme_dir}/{segment}/{group}_{prefix}_{week}_{suffix}.nii.gz'
+        else: # week0 files are named differently...like with beta rather than lme
+            file = f'{lme_dir}/{segment}/{group}_{prefix}_{week}_{suffix0}.nii.gz'
         images.append(file)
     return images
 
@@ -46,18 +50,23 @@ def _summary_df(images, # image for each: group-param-segment
           # use next to go through list (iteration); sort in ascending order
           week_val = next((w for w in sorted(week_tokens) if w in img), None) # None if week_token not found
 
+          # img is a path; just want the file name
+          img_file = os.path.basename(img)
+
           # in image row, add its week
-          df[df.image_name == img]['Week'] = week_val
+          df.loc[df.image_name == img_file, 'Week'] = week_val
+          #df[df.image_name == img_file]['Week'] = week_val
 
      return df
 
 
 def make_summ_df(group, metric, segment):
     prefix = f'MNISymC_{segment}'
-    suffix = 'lme' if metric == 'bse' else 'lme_se'
+    suffix = 'lme' if metric == 'beta' else 'lme_se'
+    suffix0 = 'lme_beta' if metric == 'beta' else 'lme_bse'
 
     # find all image paths
-    images = _image_paths(group = group, prefix = prefix, suffix = suffix, segment = segment)
+    images = _image_paths(group = group, prefix = prefix, suffix = suffix, suffix0 = suffix0, segment = segment)
     
     # make summary df
     df = _summary_df(images = images, group = group, param = metric, segment = segment)
@@ -73,3 +82,5 @@ for gp in groups:
 
 summ_df = pd.concat(df_list, axis = 0, ignore_index = True)
 summ_df.to_csv(f'{lme_dir}/lme_summarized_df.tsv', sep = '\t', index = False)
+
+# %%
