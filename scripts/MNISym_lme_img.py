@@ -20,13 +20,13 @@ img_shape = template_img.shape
 def image_sum(group, weeks,
               prefix, suffix,
               segment,
-              shape = img_shape, lme_dir = lme_dir): # weeks is a subset of the images whose sum is being taken
+              shape = img_shape, directory = lme_dir): # weeks is a subset of the images whose sum is being taken
 
     week_image = np.zeros(shape)
 
     # load images
     for w in weeks:
-        img_path = f'{lme_dir}/{segment}/{group}_{prefix}_{w}_{suffix}.nii.gz'
+        img_path = f'{directory}/{segment}/{group}_{prefix}_{w}_{suffix}.nii.gz'
         img = nib.load(img_path)
         img_arr = img.get_fdata()
 
