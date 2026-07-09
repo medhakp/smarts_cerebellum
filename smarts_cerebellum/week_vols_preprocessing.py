@@ -1,3 +1,5 @@
+import pandas as pd
+
 def week_vols_preprocessing(df):
     df['hemisphere'] = df['regionname'].str[0]
 
