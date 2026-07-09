@@ -61,9 +61,9 @@ controls = 'controls'
 
 week0 = ['W0'] # week 0 image
 week1 = ['W0', 'W4'] # week 1 image = week 0 + week 1
-week2 = ['W0', 'W4', 'W12'] # week 2 image = week 0 + week 1 + week 2
-week3 = ['W0', 'W4', 'W12', 'W24'] # ...
-week4 = ['W0', 'W4', 'W12', 'W24', 'W52']
+week2 = ['W0', 'W12'] # week 2 image = week 0 + week 1 + week 2
+week3 = ['W0', 'W24'] # ...
+week4 = ['W0', 'W52']
 week_list = [week1, week2, week3, week4]
 
 segments = ['T1', 'GM', 'WM', 'CSF']
