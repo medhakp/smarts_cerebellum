@@ -39,6 +39,8 @@ summ_df.to_csv(f'{lme_dir}/lme_summarized_df.tsv', sep = '\t', index = False)
 
 # %%
 
+# JUST PATIENTS
+
 # new df: patients in model, controls with means (of normalized images, not model)
 
 
@@ -65,6 +67,8 @@ summ_df.to_csv(f'{lme_dir}/patients_lme_summarized_df.tsv', sep = '\t', index = 
 # for new df: with patients = model, controls = mean: make each separately, then concat (with col isModel -> bool)
 
 # %%
+
+# COMBINE PATIENTS = MODEL, CONTROLS = MEAN
 # excluded_controls = ['CUP_1001', 'UZP_1001', 'UZP_1002', ]
 df1 = pd.read_csv(f'{lme_dir}/patients_lme_summarized_df.tsv', sep = '\t')
 df2 = pd.read_csv(f'{lme_dir}/controls_mean_summarized_df.tsv', sep = '\t')
