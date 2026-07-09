@@ -9,11 +9,11 @@ def make_week_dicts(df,
                     ref_subj,
                     subdir,
                     file_suffix,
-                    time_points
+                    weeks
                     ):
 
     dictionaries = []
-    for week in time_points:
+    for week in weeks:
         ref_search_path = os.path.join(gl.baseDir, subdir, ref_subj, f'{ref_subj}_W{week}_{file_suffix}')
         paths, subjs = subj_path_search(ref_search_path, ref_subj, week, df)
         dictionaries.append(dict(zip(subjs, paths)))
@@ -38,6 +38,7 @@ def overall_img(image_paths, shape, metric):
     
     if metric == 'mean':
         week_image = week_image / counter
+        print('mean')
         return week_image
     else:
         return week_image
@@ -48,7 +49,7 @@ def overall_img(image_paths, shape, metric):
 
 # get file paths for each week (each dictionary in the list) and run image_sum
 
-def main(prefix, suffix, save_dir, subj_path_dict, weeks, template, metric):
+def week_images(prefix, suffix, save_dir, subj_path_dict, weeks, template, metric):
 
     for idx, w in enumerate(weeks):
         week_dict = subj_path_dict[idx]

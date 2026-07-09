@@ -18,8 +18,9 @@ import pandas as pd
 import os
 import nibabel as nib
 
-from smarts_cerebellum import make_summed_image
 import smarts_cerebellum.globals as gl
+from smarts_cerebellum import overall_img
+from smarts_cerebellum import make_summarized_dataframe_weeks as summ_df_weeks
 
 p_df = pd.read_csv(f'{gl.baseDir}/participants_anat.tsv', sep = '\t')
 controls_df = p_df[p_df.isPatient == 0]
@@ -39,47 +40,60 @@ sfx  = 'mean'
 template_img = '/home/UWO/mporwal2/Documents/GitHub/smarts_cerebellum/tpl-MNI152NLin2009cSymC_T1w.nii'
 template_img = nib.load(template_img)
 
+space = 'MNISym'
+
+# for dataframe
+all_weeks = ['W0', 'W4', 'W12', 'W24', 'W52']
+groups = ['controls']
+metrics = ['mean']
+segments = ['T1', 'GM', 'WM', 'CSF']
+suffix0 = 'None'
+
 
 # first: make week dicts for each segment
 
-def controls_average(segment, space = 'MNISym', 
-                     df = controls_df, ref_subj = ref_subj,
-                     weeks_int = weeks_int, time_points = time_points,
-                     save_dir = os.path.join(gl.baseDir, 'temporary'),
+def controls_average(segment, space = space, df = controls_df,
+                     ref_subj = ref_subj, weeks_int = weeks_int,
+
                      metric = 'mean', template = template_img,
                      pfx = pfx, sfx = sfx):
     
     subdir = os.path.join(gl.baseDir, f'{space}_{segment}')
     file_suffix = f'{space}_{segment}_coreg_reslice.nii.gz'
 
-    subj_week_paths = make_summed_image.make_week_dicts(df = df, ref_subj = ref_subj, 
+    subj_week_paths = overall_img.make_week_dicts(df = df, ref_subj = ref_subj, 
                                                         subdir = subdir, file_suffix = file_suffix,
-                                                         time_points = weeks_int)
-    
+                                                         weeks = weeks_int)
+
     # save images
     prefix = f'{pfx}_{segment}'
+    save_dir = os.path.join(gl.baseDir, 'MNISymC_control_means', f'{segment}')
 
-    make_summed_image.main(prefix = prefix, suffix = sfx, save_dir = save_dir,
+    overall_img.week_images(prefix = prefix, suffix = sfx, save_dir = save_dir,
                            subj_path_dict=subj_week_paths, weeks = time_points,
                            template = template, metric = metric)
     
 controls_average('T1')
+controls_average('GM')
+controls_average('WM')
+controls_average('CSF')
 
-# in temporary: (e.g.) W4 image average looks the exact same as the lme average image.
+#%%
+# then: put in dataframe
+lme_dir = os.path.join(gl.baseDir, 'lme')
+df_list = []
+for gp in groups:
+    for m in metrics:
+        for s in segments:
+            subdir = os.path.join(gl.baseDir,'MNISymC_control_means')
+            df_list.append(summ_df_weeks.make_summ_df(group = gp, metric = m, segment = s,
+                                                      suffix = 'mean', suffix0 = 'None',
+                                                      weeks = all_weeks,
+                                                      subdir = subdir
+                                                      ))
+summ_df = pd.concat(df_list, axis = 0, ignore_index = True)
+#summ_df.to_csv(f'{lme_dir}/lme_summarized_df.tsv', sep = '\t', index = False)
+summ_df['isModel'] = 0
+summ_df.to_csv(f'{lme_dir}/controls_mean_summarized_df.tsv', sep = '\t', index = False)
 
 # %%
-space = 'MNISym', 
-df = controls_df
-ref_subj = 'UZP_1001'
-weeks_int = [0, 4, 12, 24, 52]
-time_points = ['W0', 'W4', 'W12', 'W24', 'W52']
-space = 'MNISym'
-segment = 'T1'
-subdir = os.path.join(gl.baseDir, f'{space}_{segment}')
-file_suffix = f'{space}_{segment}_coreg_reslice.nii.gz'
-
-
-subj_week_paths = make_summed_image.make_week_dicts(df = df, ref_subj = ref_subj, 
-                                                        subdir = subdir, file_suffix = file_suffix,
-                                                         time_points = weeks_int)
-
