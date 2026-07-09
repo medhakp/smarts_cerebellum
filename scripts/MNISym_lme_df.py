@@ -64,7 +64,7 @@ summ_df.to_csv(f'{lme_dir}/patients_lme_summarized_df.tsv', sep = '\t', index = 
 # for new df: with patients = model, controls = mean: make each separately, then concat (with col isModel -> bool)
 
 # %%
-
+# excluded_controls = ['CUP_1001', 'UZP_1001', 'UZP_1002', ]
 df1 = pd.read_csv(f'{lme_dir}/patients_lme_summarized_df.tsv', sep = '\t')
 df2 = pd.read_csv(f'{lme_dir}/controls_mean_summarized_df.tsv', sep = '\t')
 

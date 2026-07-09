@@ -1,7 +1,7 @@
 #%%
 # model image looks so strange for controls. For for controls, try getting image without model - just as-is
 
-excluded_controls = ['CUP_1001']
+excluded_controls = ['CUP_1001', 'UZP_1001', 'UZP_1002', 'UZP_1004', 'UZP_1006']
 
 # for this summed image, we need to use the normalized images; so need a more general function.
 # path: smarts_cerebellum/MNISym_{segment}/{subj}/{subj}_{week}_MNISym_{segment}_coreg_reslice.nii.gz
@@ -25,12 +25,13 @@ from smarts_cerebellum import make_summarized_dataframe_weeks as summ_df_weeks
 p_df = pd.read_csv(f'{gl.baseDir}/participants_anat.tsv', sep = '\t')
 controls_df = p_df[p_df.isPatient == 0]
 
-# exclude CUP_1001
-controls_df = controls_df[controls_df.subj_id != 'CUP_1001']
+# exclude
+excluded_controls = ['CUP_1001', 'UZP_1001', 'UZP_1002', ]#'UZP_1004', 'UZP_1006']
 
+controls_df = controls_df[~controls_df.subj_id.isin(excluded_controls)]
 
 # MACROS
-ref_subj = 'UZP_1001'
+ref_subj = 'UZP_1005'
 weeks_int = [0, 4, 12, 24, 52] # for make_dicts
 time_points = ['W0', 'W4', 'W12', 'W24', 'W52']
 
