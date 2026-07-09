@@ -9,7 +9,6 @@ from smarts_cerebellum import mirror_lesion
 import smarts_cerebellum.globals as gl
 from smarts_cerebellum.util import subj_week_loop
 
-# re-run controls without CUP_1001 (outlier)
 p_df = pd.read_csv(f'{gl.baseDir}/participants_anat.tsv', sep = '\t')
 
 excluded = ['CUP_1001', 'UZP_1004', 'UZP_1001' , 'UZP_1006' ,]

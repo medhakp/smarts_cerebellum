@@ -105,3 +105,5 @@ for seg in segments:
         make_summed_img(group = controls, weeks = w, segment = seg, metric = 'bse')
         print(f'image done for {seg} {w} bse controls')
 
+
+# %%
