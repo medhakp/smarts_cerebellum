@@ -11,7 +11,11 @@ from smarts_cerebellum.util import subj_week_loop
 
 # re-run controls without CUP_1001 (outlier)
 p_df = pd.read_csv(f'{gl.baseDir}/participants_anat.tsv', sep = '\t')
-p_df = p_df[p_df.subj_id != 'CUP_1001']
+
+excluded = ['CUP_1001', 'UZP_1004', 'UZP_1001' , 'UZP_1006' ,]
+p_df = p_df[~p_df.subj_id.isin(excluded)]
+
+
 
 patients_df = p_df[p_df.isPatient == 1]
 controls_df = p_df[p_df.isPatient == 0]
@@ -84,7 +88,7 @@ def patients_run_lme(segment):
 
 
 def controls_run_lme(segment):
-    ref_control = 'UZP_1001'
+    ref_control = 'CUP_1002'
     subdir = f'MNISym_{segment}'
     file_suffix = f'MNISym_{segment}_coreg_reslice.nii.gz'
 
@@ -107,8 +111,6 @@ def controls_run_lme(segment):
     controls_status_df.to_csv(f'{results_path}/controls_voxel_status_{segment}.tsv', sep = '\t', index = False)
 
     print(f'controls {segment} done!')
-
-
 
 #%%
 # # PATIENTS
