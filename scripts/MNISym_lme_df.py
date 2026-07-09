@@ -10,8 +10,9 @@ from smarts_cerebellum import make_summarized_dataframe_weeks as summ_df_weeks
 lme_dir = os.path.join(gl.baseDir, 'lme')
 
 all_weeks = ['W0', 'W4', 'W12', 'W24', 'W52']
-#groups = ['patients', 'controls']
-groups = ['patients'] # from model - to be concatenated with patients from just
+groups = ['patients', 'controls']
+#groups = ['patients'] # from model - to be concatenated with patients from just
+#groups = ['controls']
 metrics = ['beta', 'bse']
 segments = ['T1', 'GM', 'WM', 'CSF']
 
