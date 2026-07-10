@@ -116,7 +116,7 @@ sims_df = pd.read_csv(f'{gl.baseDir}/simulations/participants_sim.tsv', sep = '\
 def simulations_run_lme():
     ref_sim = 'subj0'
     subdir = 'simulations'
-    file_suffix = 'simulations'
+    file_suffix = 'simulated.nii.gz'
 
     # saving output files
     results_path = os.path.join(gl.baseDir, 'simulations', 'lme_images')
@@ -146,11 +146,3 @@ def simulations_run_lme():
 # %%
 # SIMULATIONS
 simulations_run_lme()
-# %%
-ref_sim = 'subj0'
-subdir = 'simulations'
-file_suffix = 'simulated.nii.gz'
-
-sim_path_dicts = lme.make_week_dicts(df = sims_df, ref_subj = ref_sim, subdir = subdir, file_suffix = file_suffix)
-sim_path_dicts
-# %%
