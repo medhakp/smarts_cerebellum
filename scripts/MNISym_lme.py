@@ -111,6 +111,24 @@ def controls_run_lme(segment):
 
     print(f'controls {segment} done!')
 
+
+sims_df = pd.read_csv(f'{gl.baseDir}/simulations/participants_sim.tsv', sep = '\t')
+def simulations_run_lme():
+    ref_sim = 'subj0'
+    subdir = 'simulations'
+    file_suffix = 'simulations'
+
+    # saving output files
+    results_path = os.path.join(gl.baseDir, 'simulations', 'lme_images')
+    prefix = 'sims_lme'
+
+    sim_path_dicts = lme.make_week_dicts(df = sims_df, ref_subj = ref_sim, subdir = subdir, file_suffix = file_suffix)
+
+    B_s, S_s, status_list_s = lme.main(subj_path_dict = sim_path_dicts, df = sims_df, results_path = results_path, prefix = prefix)
+
+    print(f'sims done!')
+
+
 #%%
 # # PATIENTS
 # #patients_run_lme('T1')
@@ -120,9 +138,19 @@ def controls_run_lme(segment):
 
 #%%
 # CONTROLS
-controls_run_lme('T1')
-controls_run_lme('GM')
-controls_run_lme('WM')
-controls_run_lme('CSF')
+# controls_run_lme('T1')
+# controls_run_lme('GM')
+# controls_run_lme('WM')
+# controls_run_lme('CSF')
 
+# %%
+# SIMULATIONS
+simulations_run_lme()
+# %%
+ref_sim = 'subj0'
+subdir = 'simulations'
+file_suffix = 'simulated.nii.gz'
+
+sim_path_dicts = lme.make_week_dicts(df = sims_df, ref_subj = ref_sim, subdir = subdir, file_suffix = file_suffix)
+sim_path_dicts
 # %%

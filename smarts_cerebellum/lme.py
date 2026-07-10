@@ -39,6 +39,7 @@ def make_week_dicts(df,
                     ref_subj,
                     subdir,
                     file_suffix,
+                    time_points = [0, 4, 12, 24, 52]
                     ):
     """
     Make dictionaries for all weeks (time points)
