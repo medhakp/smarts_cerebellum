@@ -163,7 +163,7 @@ def clean_tensor(Y, thres = thres):
 
 
 # make a dataframe for each voxel
-def voxel_dataframe(Y, subjs, time_points, week_order = week_order):
+def voxel_dataframe(Y, subjs, time_points, week_order = time_points):
     """
     Makes a dataframe for each voxel, where cols are:
     subj, week, y = voxel
@@ -172,11 +172,12 @@ def voxel_dataframe(Y, subjs, time_points, week_order = week_order):
     """
     # for this function, pretend we have all the information we need
 
-    df = pd.DataFrame(data = Y, index = subjs,  columns = time_points)
+    df = pd.DataFrame(data = Y, index = subjs,  columns = time_points) # 0, 4, ...
     df.index.name = 'subj'
     df = df.reset_index()
     df = df.melt(id_vars = 'subj', value_vars = time_points, var_name = 'Week', value_name = 'y')
-    df['Week'] = pd.Categorical(df['Week'], categories = week_order, ordered = True) # correct categorical order for model params (model.summary() will be W4, W12, ... instead of W12, W24, W4, W52 now)
+
+    #df['Week'] = pd.Categorical(df['Week'], categories = week_order, ordered = True) # correct categorical order for model params (model.summary() will be W4, W12, ... instead of W12, W24, W4, W52 now)
 
     return df
 
@@ -213,7 +214,7 @@ def voxel_fit(v, Y, subjs):
     voxel_df.dropna(axis = 0, subset = ['y'], inplace = True, ignore_index = True)
 
     try:
-        model = smf.mixedlm('y~Week', data = voxel_df, groups = 'subj').fit(maxiter = 400)
+        model = smf.mixedlm('y~C(Week)', data = voxel_df, groups = 'subj').fit(maxiter = 400)
         return model.fe_params.to_numpy(), model.bse_fe.to_numpy(), {'voxel': v, 'converged': model.converged}
     except Exception as e:
         num_params = 5
