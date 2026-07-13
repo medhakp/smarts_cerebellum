@@ -35,12 +35,12 @@ def image_sum(group, weeks,
     
     return week_image
 
-def make_summed_img(group, weeks, segment, metric, shape = img_shape):
+def make_summed_img(group, weeks, segment, metric, shape = img_shape, space = 'MNISymC'):
     """
     metric = 'beta' or 'bse' ONLY
     """
 
-    the_prefix = f'MNISymC_{segment}'
+    the_prefix = f'{space}_{segment}'
     the_suffix = f'lme_{metric}'
 
     save_suffix = 'lme' if metric == 'beta' else 'lme_se'
@@ -58,6 +58,7 @@ def make_summed_img(group, weeks, segment, metric, shape = img_shape):
 # MACROS
 patients = 'patients'
 controls = 'controls'
+simulations = 'simulations'
 
 week0 = ['W0'] # week 0 image
 week1 = ['W0', 'W4'] # week 1 image = week 0 + week 1
@@ -107,3 +108,10 @@ for seg in segments:
 
 
 # %%
+# SIMULATIONS
+# beta
+segments = []
+for seg in segments:
+    for w in week_list:
+        make_summed_img(group = simulations, weeks = w, segmnet = seg, metric = 'beta')
+        print(f'image done for {seg} {w} beta controls')
