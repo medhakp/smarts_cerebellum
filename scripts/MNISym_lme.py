@@ -130,19 +130,19 @@ def simulations_run_lme():
 
 
 #%%
-# # PATIENTS
-# #patients_run_lme('T1')
-# patients_run_lme('GM')
-# patients_run_lme('WM')
-# patients_run_lme('CSF')
+# PATIENTS
+#patients_run_lme('T1')
+#patients_run_lme('GM')
+patients_run_lme('WM')
+patients_run_lme('CSF')
 
 #%%
 # CONTROLS
-# controls_run_lme('T1')
-# controls_run_lme('GM')
-# controls_run_lme('WM')
-# controls_run_lme('CSF')
+controls_run_lme('T1')
+controls_run_lme('GM')
+controls_run_lme('WM')
+controls_run_lme('CSF')
 
 # %%
 # SIMULATIONS
-simulations_run_lme()
+#simulations_run_lme()
