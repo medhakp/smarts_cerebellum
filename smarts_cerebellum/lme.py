@@ -31,6 +31,7 @@ template_img = '/home/UWO/mporwal2/Documents/GitHub/smarts_cerebellum/tpl-MNI152
 template_img = nib.load(template_img)
 
 time_points = [0, 4, 12, 24, 52]
+week_order = ['W0', 'W4', 'W12', 'W24', 'W52']
 
 thres = 1e-6
 
@@ -162,7 +163,7 @@ def clean_tensor(Y, thres = thres):
 
 
 # make a dataframe for each voxel
-def voxel_dataframe(Y, subjs, time_points):
+def voxel_dataframe(Y, subjs, time_points, week_order = week_order):
     """
     Makes a dataframe for each voxel, where cols are:
     subj, week, y = voxel
@@ -175,6 +176,7 @@ def voxel_dataframe(Y, subjs, time_points):
     df.index.name = 'subj'
     df = df.reset_index()
     df = df.melt(id_vars = 'subj', value_vars = time_points, var_name = 'Week', value_name = 'y')
+    df['Week'] = pd.Categorical(df['Week'], categories = week_order, ordered = True) # correct categorical order for model params (model.summary() will be W4, W12, ... instead of W12, W24, W4, W52 now)
 
     return df
 
