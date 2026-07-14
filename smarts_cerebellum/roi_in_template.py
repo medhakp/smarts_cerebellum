@@ -23,13 +23,16 @@ def roi_in_template(vals, save_name, roi_path, template_path):
 
     # if cerebellar template has zero value in a voxel, set tract value to zero as well
     cereb_tract_arr = np.where(template_arr!=0, tract_arr, 0)
-    cereb_tract_arr = np.round(cereb_tract_arr, 0) # rounding issues
+ 
 
     # there seem to be some rounding issues - this array has 13.9999...7 instead of 14, for example
+    # maybe bc dtype is float? Try rounding up to nearest int (ceil)
+    cereb_tract_arr = np.ceil(cereb_tract_arr).astype(int)
 
     # save image with template affine
     cereb_tract = nib.Nifti1Image(cereb_tract_arr, template.affine, template.header)
     nib.save(cereb_tract, f'{gl.baseDir}/ROI/{save_name}.nii')
+
 
 
 
@@ -41,3 +44,6 @@ cst_vals = [14, 15]
 save_name = 'CST.MNI'
 
 roi_in_template(vals = cst_vals, save_name = save_name, roi_path = roi_path, template_path = template_path)
+
+
+# %%
