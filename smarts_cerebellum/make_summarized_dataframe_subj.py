@@ -69,6 +69,8 @@ def make_summarized_dataframe(p_df,
                               suffixes,
                               flip,
                               flipped_suffixes = None,
+                              label_image = None,
+                              region_names = None,
                               #use_weeks = False, # if using subject weeks, set True                              
                               ):
     """
@@ -126,7 +128,9 @@ def make_summarized_dataframe(p_df,
                                  atlas = the_atlas,
                                  maps = maps,
                                  space = space,
-                                 stats = ['mean', 'median', 'nansum'])
+                                 stats = ['mean', 'median', 'nansum'],
+                                 label_image = label_image,
+                                 region_names = region_names)
         
         df['subj_id']= subj
 

@@ -1,3 +1,4 @@
+#%%
 """
 MNISym_coreg_regression pipeline
 
@@ -137,7 +138,7 @@ def flip_left_lesion(path, left_lesion_df = left_lesion_df, space='MNISym', segm
         nib.save(flipped, f'{path}/{subj}/{subj}_{space}_{segment}_coreg_reslice_{metric}_FlipLR.nii.gz')
 
 
-def MNISym_coreg_summarized_df(p_df = p_df, the_atlas = 'Diedrichsen_2009', maps = 'atl-Anatom'):
+def MNISym_coreg_summarized_df(p_df = p_df, the_atlas = 'Diedrichsen_2009', maps = 'atl-Anatom', label_image = None, region_names = None):
     summarized_df = make_summarized_dataframe_subj.make_summarized_dataframe(p_df = p_df,
                                search_path = f'{gl.baseDir}/Regression',
                                the_atlas = the_atlas,
@@ -145,7 +146,9 @@ def MNISym_coreg_summarized_df(p_df = p_df, the_atlas = 'Diedrichsen_2009', maps
                                space = 'MNISym',
                                suffixes = suffixes,
                                flipped_suffixes = flipped_suffixes,
-                               flip = 'left'
+                               flip = 'left',
+                               label_image = label_image,
+                               region_names = region_names
                                )
     return summarized_df
 
@@ -167,6 +170,10 @@ flipped_suffixes = [
     'MNISym_logJac_coreg_reslice_slope_FlipLR.nii.gz'
 ]
 
+label_img = nib.load(f'{gl.baseDir}/ROI/MNI.CST.nii')
+summarized_df = MNISym_coreg_summarized_df(the_atlas = None, maps = None, label_image = label_img, region_names = ['R', 'L'])
+save_df_path = f'{gl.baseDir}/Regression'
+summarized_df.to_csv(os.path.join(save_df_path, 'MNISym_CST_df.tsv'), sep='\t', index=False)
 
 """
 # lines to run each function for segments
@@ -236,3 +243,4 @@ save_df_path = f'{gl.baseDir}/Regression'
 summarized_df.to_csv(os.path.join(save_df_path, 'MNISym_coreg_slope_rightLesion_AtlasSUIT_summarized.tsv'), sep='\t', index=False)
 
 """
+# %%
