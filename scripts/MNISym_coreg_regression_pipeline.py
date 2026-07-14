@@ -99,14 +99,6 @@ def regression_MNISym_coreg(segment):
 # get MEAN slope images
 def MNISym_coreg_slope_mean_right(segment, group, df, save_suffix = ''):
 
-    """
-    local function for getting mean slope images
-
-    Inputs:
-        segment(str): T1, WM, GM, CSF, logJac
-        group (str): patients, controls
-        df (Pandas dataframe): dataframe for patients or controls
-    """
     suffix = f'MNISym_{segment}_coreg_reslice'
 
     # call mean function
@@ -120,14 +112,6 @@ def MNISym_coreg_slope_mean_right(segment, group, df, save_suffix = ''):
 # get MEDIAN slope images
 def MNISym_coreg_slope_median_right(segment, group, df, save_suffix = ''):
 
-    """
-    local function for getting median slope images
-
-    Inputs:
-        segment(str): T1, WM, GM, CSF, logJac
-        group (str): patients, controls
-        df (Pandas dataframe): dataframe for patients or controls
-    """
     suffix = f'MNISym_{segment}_coreg_reslice'
 
     # call mean function
@@ -164,6 +148,7 @@ def MNISym_coreg_summarized_df(p_df = p_df, the_atlas = 'Diedrichsen_2009', maps
                                flip = 'left'
                                )
     return summarized_df
+
 
 # use flipped images where necessary
 suffixes = [
