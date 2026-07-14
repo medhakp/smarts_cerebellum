@@ -53,12 +53,11 @@ def _get_files(subj, week, search_path, suffixes):
 # Make summarized dataframe
 def make_summarized_dataframe_weeks(p_df,
                               search_path,
-                              the_atlas, maps, space,
-
-                              suffixes,
-                            
-                             
-                              
+                              the_atlas=None, 
+                              maps=None, 
+                              space='MNISym',
+                              suffixes = None,
+ 
                               ):
     """
     Make full summarized dataframe that has: ROIs for each subject, along with descriptive information
@@ -97,8 +96,7 @@ def make_summarized_dataframe_weeks(p_df,
         # find their files - returns string list of files
 
         # if need to flip lesions, find the flipped files
-        file_list = _get_files(subj = subj, search_path = search_path, week = week,
-                                 suffixes = suffixes, )
+        file_list = _get_files(subj = subj, search_path = search_path, week = week, suffixes = suffixes, )
        
         
         if not file_list:
