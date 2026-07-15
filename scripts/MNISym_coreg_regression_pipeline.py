@@ -172,39 +172,11 @@ def MNISym_coreg_summarized_df(suffixes, flipped_suffixes, # files to search for
 
 
 #%%
-import SUITPy as suit
-import nibabel as nib
-import pandas as pd
-import smarts_cerebellum.globals as gl
-# summarized dataframe for each mean image using CST ROI in MNISymC
+# summarized dataframe but with custom labels (in CST ROI) for each subject image
 label_img = nib.load(f'{gl.baseDir}/ROI/CST.MNI.nii')
-
-# patients, controls in front of these names
-mean_suffixes = [
-            'patients_MNISym_T1_coreg_slope_mean.nii',
-            'patients_MNISym_GM_coreg_slope_mean.nii', 
-            'patients_MNISym_WM_coreg_slope_mean.nii',
-            'patients_MNISym_CSF_coreg_slope_mean.nii',
-            'patients_MNISym_logJac_coreg_slope_mean.nii',
-
-            'controls_MNISym_T1_coreg_slope_mean.nii',
-            'controls_MNISym_GM_coreg_slope_mean.nii', 
-            'controls_MNISym_WM_coreg_slope_mean.nii',
-            'controls_MNISym_CSF_coreg_slope_mean.nii',
-            'controls_MNISym_logJac_coreg_slope_mean.nii'
-            ]
-# search for the images
-mean_images = []
-for suffix in mean_suffixes:
-    mean_images.append(os.path.join(gl.baseDir, 'Regression', 'mean_images', suffix))
-
-    
-summarized_df = suit.summarize_data(images = mean_images, label_image = label_img) # left, right = 14, 15
-
-save_df_path = f'{gl.baseDir}/Regression/mean_images'
-summarized_df.to_csv(os.path.join(save_df_path, 'MNISymC_slope_mean_CST.tsv'), sep='\t', index=False)
-
-
+summary_df = MNISym_coreg_summarized_df(suffixes = suffixes, flipped_suffixes = flipped_suffixes, label_image = label_img)
+save_df_path = f'{gl.baseDir}/Regression'
+summary_df.to_csv(os.path.join(save_df_path, 'MNISymC_slope_CST_df.tsv'), sep='\t', index=False)
 
 #%%
 """
@@ -273,6 +245,34 @@ summarized_df.to_csv(os.path.join(save_df_path, 'MNISym_coreg_slope_rightLesion_
 summarized_df = MNISym_coreg_summarized_df()
 save_df_path = f'{gl.baseDir}/Regression'
 summarized_df.to_csv(os.path.join(save_df_path, 'MNISym_coreg_slope_rightLesion_AtlasSUIT_summarized.tsv'), sep='\t', index=False)
+
+
+
+# summarized dataframe for each mean image using CST ROI in MNISymC
+label_img = nib.load(f'{gl.baseDir}/ROI/CST.MNI.nii')
+mean_suffixes = [
+            'patients_MNISym_T1_coreg_slope_mean.nii',
+            'patients_MNISym_GM_coreg_slope_mean.nii', 
+            'patients_MNISym_WM_coreg_slope_mean.nii',
+            'patients_MNISym_CSF_coreg_slope_mean.nii',
+            'patients_MNISym_logJac_coreg_slope_mean.nii',
+
+            'controls_MNISym_T1_coreg_slope_mean.nii',
+            'controls_MNISym_GM_coreg_slope_mean.nii', 
+            'controls_MNISym_WM_coreg_slope_mean.nii',
+            'controls_MNISym_CSF_coreg_slope_mean.nii',
+            'controls_MNISym_logJac_coreg_slope_mean.nii'
+            ]
+# search for the images
+mean_images = []
+for suffix in mean_suffixes:
+    mean_images.append(os.path.join(gl.baseDir, 'Regression', 'mean_images', suffix))
+
+    
+summarized_df = suit.summarize_data(images = mean_images, label_image = label_img) # left, right = 14, 15
+summarized_df['group'] = summarized_df['image_name'].astype(str).str.split('_', n=1).str[0]
+save_df_path = f'{gl.baseDir}/Regression/mean_images'
+summarized_df.to_csv(os.path.join(save_df_path, 'MNISymC_slope_mean_CST.tsv'), sep='\t', index=False)
 
 """
 # %%
