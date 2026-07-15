@@ -2,7 +2,7 @@
 """
 MNISym_coreg_regression pipeline
 
-For files that have been (a) full-image coregistered, (b) normalized to MNI Symmetric template
+For files (subj-week) that have been (a) full-image coregistered, (b) normalized to MNI Symmetric template
 
 **pipeline**
     - voxel-wise regression
@@ -17,11 +17,8 @@ For files that have been (a) full-image coregistered, (b) normalized to MNI Symm
 # need path to root directory -> temporarily, init not seeming to work?
 import sys
 sys.path.append('/home/UWO/mporwal2/Documents/GitHub/smarts_cerebellum/')
-sys.path.append('/home/UWO/mporwal2/cerebellar_atlases')
 
-import numpy as np
 import pandas as pd
-
 import nibabel as nib
 
 import smarts_cerebellum.globals as gl
@@ -35,6 +32,7 @@ p_df = pd.read_csv(f'{gl.baseDir}/participants_anat.tsv', sep = '\t')
 
 
 #______________________________________________________________________
+# MACROS
 patients_df = p_df[p_df.isPatient == 1]
 controls_df = p_df[p_df.isPatient == 0]
 
@@ -52,6 +50,24 @@ reg_path = f'{gl.baseDir}/Regression'
 
 means_dir = f'{gl.baseDir}/Regression/mean_images'
 medians_dir = f'{gl.baseDir}/Regression/median_images'
+
+
+# use flipped images where necessary
+suffixes = [
+    'MNISym_T1_coreg_reslice_slope.nii.gz',
+    'MNISym_GM_coreg_reslice_slope.nii.gz',
+    'MNISym_WM_coreg_reslice_slope.nii.gz',
+    'MNISym_CSF_coreg_reslice_slope.nii.gz',
+    'MNISym_logJac_coreg_reslice_slope.nii.gz'
+]
+
+flipped_suffixes = [
+    'MNISym_T1_coreg_reslice_slope_FlipLR.nii.gz',
+    'MNISym_GM_coreg_reslice_slope_FlipLR.nii.gz',
+    'MNISym_WM_coreg_reslice_slope_FlipLR.nii.gz',
+    'MNISym_CSF_coreg_reslice_slope_FlipLR.nii.gz',
+    'MNISym_logJac_coreg_reslice_slope_FlipLR.nii.gz'
+]
 #______________________________________________________________________
 
 def regression_MNISym_coreg(segment):
@@ -138,7 +154,9 @@ def flip_left_lesion(path, left_lesion_df = left_lesion_df, space='MNISym', segm
         nib.save(flipped, f'{path}/{subj}/{subj}_{space}_{segment}_coreg_reslice_{metric}_FlipLR.nii.gz')
 
 
-def MNISym_coreg_summarized_df(p_df = p_df, the_atlas = 'Diedrichsen_2009', maps = 'atl-Anatom', label_image = None, region_names = None):
+def MNISym_coreg_summarized_df(suffixes, flipped_suffixes, # files to search for; need suffixes, flipped_suffixes can be set to None
+                               p_df = p_df, the_atlas = 'Diedrichsen_2009', maps = 'atl-Anatom', label_image = None, region_names = None):
+    
     summarized_df = make_summarized_dataframe_subj.make_summarized_dataframe(p_df = p_df,
                                search_path = f'{gl.baseDir}/Regression',
                                the_atlas = the_atlas,
@@ -153,28 +171,42 @@ def MNISym_coreg_summarized_df(p_df = p_df, the_atlas = 'Diedrichsen_2009', maps
     return summarized_df
 
 
-# use flipped images where necessary
-suffixes = [
-    'MNISym_T1_coreg_reslice_slope.nii.gz',
-    'MNISym_GM_coreg_reslice_slope.nii.gz',
-    'MNISym_WM_coreg_reslice_slope.nii.gz',
-    'MNISym_CSF_coreg_reslice_slope.nii.gz',
-    'MNISym_logJac_coreg_reslice_slope.nii.gz'
-]
+#%%
+import SUITPy as suit
+import nibabel as nib
+import pandas as pd
+import smarts_cerebellum.globals as gl
+# summarized dataframe for each mean image using CST ROI in MNISymC
+label_img = nib.load(f'{gl.baseDir}/ROI/CST.MNI.nii')
 
-flipped_suffixes = [
-    'MNISym_T1_coreg_reslice_slope_FlipLR.nii.gz',
-    'MNISym_GM_coreg_reslice_slope_FlipLR.nii.gz',
-    'MNISym_WM_coreg_reslice_slope_FlipLR.nii.gz',
-    'MNISym_CSF_coreg_reslice_slope_FlipLR.nii.gz',
-    'MNISym_logJac_coreg_reslice_slope_FlipLR.nii.gz'
-]
+# patients, controls in front of these names
+mean_suffixes = [
+            'patients_MNISym_T1_coreg_slope_mean.nii',
+            'patients_MNISym_GM_coreg_slope_mean.nii', 
+            'patients_MNISym_WM_coreg_slope_mean.nii',
+            'patients_MNISym_CSF_coreg_slope_mean.nii',
+            'patients_MNISym_logJac_coreg_slope_mean.nii',
 
-label_img = nib.load(f'{gl.baseDir}/ROI/MNI.CST.nii')
-summarized_df = MNISym_coreg_summarized_df(the_atlas = None, maps = None, label_image = label_img, region_names = ['R', 'L'])
-save_df_path = f'{gl.baseDir}/Regression'
-summarized_df.to_csv(os.path.join(save_df_path, 'MNISym_CST_df.tsv'), sep='\t', index=False)
+            'controls_MNISym_T1_coreg_slope_mean.nii',
+            'controls_MNISym_GM_coreg_slope_mean.nii', 
+            'controls_MNISym_WM_coreg_slope_mean.nii',
+            'controls_MNISym_CSF_coreg_slope_mean.nii',
+            'controls_MNISym_logJac_coreg_slope_mean.nii'
+            ]
+# search for the images
+mean_images = []
+for suffix in mean_suffixes:
+    mean_images.append(os.path.join(gl.baseDir, 'Regression', 'mean_images', suffix))
 
+    
+summarized_df = suit.summarize_data(images = mean_images, label_image = label_img) # left, right = 14, 15
+
+save_df_path = f'{gl.baseDir}/Regression/mean_images'
+summarized_df.to_csv(os.path.join(save_df_path, 'MNISymC_slope_mean_CST.tsv'), sep='\t', index=False)
+
+
+
+#%%
 """
 # lines to run each function for segments
 
