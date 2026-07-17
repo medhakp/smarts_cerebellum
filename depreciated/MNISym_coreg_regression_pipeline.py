@@ -14,21 +14,15 @@ For files (subj-week) that have been (a) full-image coregistered, (b) normalized
     - make a summarized dataframe for (mean, median, sum) volume in ROIs defined by atlas "Diedrichsen_2009"
 """
 
-# need path to root directory -> temporarily, init not seeming to work?
-import sys
-sys.path.append('/home/UWO/mporwal2/Documents/GitHub/smarts_cerebellum/')
-
 import pandas as pd
 import nibabel as nib
 
+from scripts import regression
 import smarts_cerebellum.globals as gl
-from smarts_cerebellum import regression, mirror_lesion, template_overall_image, make_summarized_dataframe_subj
+from smarts_cerebellum import mirror_lesion, template_overall_image, make_summarized_dataframe_subj
 
 from pathlib import Path
 import os
-
-
-p_df = pd.read_csv(f'{gl.baseDir}/participants_anat.tsv', sep = '\t')
 
 
 #______________________________________________________________________

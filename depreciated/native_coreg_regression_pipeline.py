@@ -8,7 +8,7 @@ import pandas as pd
 import nibabel as nib
 
 import smarts_cerebellum.globals as gl
-from smarts_cerebellum import regression
+from scripts import regression
 
 from pathlib import Path
 

@@ -1,13 +1,77 @@
 import numpy as np
 import nibabel as nib
 import pandas as pd
-
 import nitools as nt
+import os
+import re
+import smarts_cerebellum.globals as gl
+from pathlib import Path
 
-from smarts_cerebellum.util import week_path_search
+def find_weeks(SID):
 
-# NEED TO ADD CREDITS FOR CODE DESIGN
-# @Joern
+    # @Marco
+    
+    ### look into particpants.tsv and return weeks as numpy array of int e.g., (2, 4, )
+    
+    p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
+
+    # access only that subject's rows
+    df_subj = p_df[p_df.subj_id == SID]
+    weeks = []
+
+    for week in df_subj['week']:
+        weeks.append(week)
+
+    return weeks
+
+
+def week_path_search(reference_file, subj_id):
+    """
+    Finds files from other weeks that match the structure of reference file.
+
+    Inputs:
+        reference_file (str): path to a file whose path will be used as reference.
+            That is, this file's path should have the structure that all other files from that week should have.
+        weeks: weeks in filepath
+    
+    Outputs:
+        week_paths (list[str]): paths to all files (including reference) that exist for weeks
+        week_available (list[str]): weeks whose files exist
+    """
+
+    ref_path = str(reference_file)
+
+    # find all places in path str with the week
+    match = re.search(r'W(\d+)', ref_path)
+    if not match:
+        print(f'could not find week token in reference path for {ref_path}')
+        return None
+    
+    ref_week_token = match.group(1) # return entire text that ws matched.
+
+    weeks_paths = []
+    weeks_available = []
+
+    weeks = find_weeks(subj_id)
+
+    for week in weeks:
+        # search for every week's file
+
+        # replace the week token(s) in reference image path with other tokens for new week path
+        #week_path = ref_path.replace(ref_week_token, f'W{week}')
+
+        week_path = re.sub(rf'W{ref_week_token}(?!\d)', f'W{week}', ref_path)
+
+        # this should be dead code
+        if not Path(week_path).exists():
+            print(f'skipping W{week}')
+            continue
+
+        weeks_paths.append(week_path)
+        weeks_available.append(week) # add weeks as integers
+
+    return weeks_paths, weeks_available
+
 
 def week_response_matrix(img0,
                     x, y, z, 
@@ -34,6 +98,7 @@ def week_response_matrix(img0,
                                         ).flatten() # store each (resampled) voxel array as a row vector for each week
     return Y
 
+
 def week_design_matrix(p_weeks):
     """
     Function to build the design matrix for week-regression.
@@ -45,12 +110,6 @@ def week_design_matrix(p_weeks):
     return X
 
 
-
-# should pass to regression_week function the paths for each subject - this will be found using our function.
-
-# so this is the general regression function, and then we will call this general function in another function that: finds the weeks available, runs the regression, spits out slope and intercept images.
-
-# we can acquire p_weeks, p_paths from our week_path_searcher function.
 def regression_week(reference_img, p_paths, p_weeks):
     """
     Voxel-wise MLR over multiple weeks.
@@ -72,7 +131,6 @@ def regression_week(reference_img, p_paths, p_weeks):
 
     # calculate estimator B_hat (coefficients matrix), where B_hat = [B_0 B_1].T
     B_hat = np.linalg.pinv(X) @ Y
-
 
     # get slope and intercept matrices
     slope = np.zeros(img0.shape) # tensor with shape of reference img
@@ -122,31 +180,34 @@ def perform_regression_week(reference_img, subj_id):
     return regression_week(reference_img, p_paths, p_weeks)
 
 
-
-# @Marco
-"""
-# so the general regression function will work for 
-
-def regression_week(paths):
-
-    # take week from util.find_week and run the regression
-
-    for w in week:
-        pass
-        # load vol and make it a vector and make Y
-
-    # run the regression
-
-    # spit slope and intercetp
-
-    # this function will return slope and intercept
-
-    pass
-
-def regression_week(datatpye="WM, GM..."):
-
-
-
-    pass
+def run_regression(p_df,
+                   space   = 'MNISym',
+                   segment = None,
+                   ):
     
-"""
+    p_df = p_df.sort_values("week").groupby("subj_id", as_index=False).first()
+    
+    subj_ids = p_df.subj_id
+
+    for subj in subj_ids:
+
+        refT1   = (p_df.loc[(p_df['subj_id']==subj), 'RefT1'].iloc[0]).strip()
+        ref_img = f'{gl.baseDir}/{space}_{segment}/{subj}/{subj}_{refT1}_{space}_{segment}_coreg_reslice.nii.gz'
+
+        p_paths, p_weeks = week_path_search(refT1, subj)
+
+        if len(p_weeks)<2:
+            continue
+
+        intercept_img, slope_img = regression_week(ref_img, p_paths, p_weeks)
+
+        nib.save(intercept_img, f'{gl.baseDir}/regression/{subj}_{space}_{segment}_coreg_reslice_intercept.nii.gz')
+        nib.save(slope_img, f'{gl.baseDir}/regression/{subj}_{space}_{segment}_coreg_reslice_slope.nii.gz')
+
+
+
+if __name__=='__main__':
+    p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'))
+    segments = ['T1', 'WM', 'GM', 'CSF']
+    for segment in segments:
+        run_regression(p_df, segment=segment)
