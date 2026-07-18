@@ -181,7 +181,7 @@ def perform_regression_week(reference_img, subj_id):
 
 
 def run_regression(p_df,
-                   space   = 'MNISym',
+                   space   = 'MNISymC',
                    segment = None,
                    ):
     
@@ -192,7 +192,7 @@ def run_regression(p_df,
     for subj in subj_ids:
 
         refT1   = (p_df.loc[(p_df['subj_id']==subj), 'RefT1'].iloc[0]).strip()
-        ref_img = f'{gl.baseDir}/{space}_{segment}/{subj}/{subj}_{refT1}_{space}_{segment}_coreg_reslice.nii.gz'
+        ref_img = f'{gl.baseDir}/{space}_{segment}/{subj}/{subj}_{refT1}_{space}_{segment}.nii.gz'
 
         p_paths, p_weeks = week_path_search(refT1, subj)
 

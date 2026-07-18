@@ -6,8 +6,6 @@ import os
 
 def _add_demographics(df, p_df, subj):
     """
-    Creates a descriptive dataframe
-    UNIQUE SUBJECT IMAGE, NOT WEEKS! --> weeks under construction!
 
     Inputs:
         atlas_df (Pandas dataframe): dataframe from atlas summary
@@ -74,7 +72,7 @@ def make_dataframe_atlas_space(
                                 the_atlas    = None,
                                 maps         = None,
                                 folder       = None,
-                                space        = 'MNISym',
+                                space        = 'MNISymC',
                                 segment      = 'T1',
                                 param        = 'slope',
                                 label_image  = None,
