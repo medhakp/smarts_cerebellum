@@ -201,8 +201,8 @@ def run_regression(p_df,
 
         intercept_img, slope_img = regression_week(ref_img, p_paths, p_weeks)
 
-        nib.save(intercept_img, f'{gl.baseDir}/regression/{subj}_{space}_{segment}_coreg_reslice_intercept.nii.gz')
-        nib.save(slope_img, f'{gl.baseDir}/regression/{subj}_{space}_{segment}_coreg_reslice_slope.nii.gz')
+        nib.save(intercept_img, f'{gl.baseDir}/regression/{subj}_{space}_{segment}_intercept.nii.gz')
+        nib.save(slope_img, f'{gl.baseDir}/regression/{subj}_{space}_{segment}_slope.nii.gz')
 
 
 

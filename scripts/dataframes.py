@@ -50,17 +50,17 @@ def _load_img_list(p_df, folder, subj, space, segment, param):
         for _week in weeks:
             week = _week.astype(str).strip()
             if LesionSide == 'left ':
-                fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}_coreg_reslice_{param}_FlipLR.nii.gz')
+                fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}_{param}_FlipLR.nii.gz')
             else:
-                fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}_coreg_reslice_{param}.nii.gz')
+                fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}_{param}.nii.gz')
             
             if os.path.isfile(fname):
                 imgs.append(nb.load(fname))
     else:
         if LesionSide == 'left ':
-            fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}_coreg_reslice_{param}_FlipLR.nii.gz')
+            fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}_{param}_FlipLR.nii.gz')
         else:
-            fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}_coreg_reslice_{param}.nii.gz')
+            fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}_{param}.nii.gz')
         
         if os.path.isfile(fname):
             imgs.append(nb.load(fname))
