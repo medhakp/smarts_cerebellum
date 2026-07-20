@@ -68,7 +68,9 @@ def transformation_files(df,
             print(f'mask path does not exist for {subj} in week {week}')
             continue
 
-        results_folder.mkdir(parents = True, exist_ok = True) # makes folder if it doesn't exist
+        save_folder = os.path.join(results_folder, subj, week)
+        save_folder = Path(save_folder)
+        save_folder.mkdir(parents = True, exist_ok = True) # makes folder if it doesn't exist
 
         suit.normalize(
             source_file = t1_path,
@@ -83,7 +85,7 @@ def transformation_files(df,
             write_jacobian_determinant=write_jacobian_determinant,
             write_log_jacobian_determinant=write_log_jacobian_determinant,
 
-            result_folder = results_folder,
+            result_folder = save_folder,
             verbose = verbose
             )
         
@@ -96,6 +98,7 @@ def reslice(
             deformation,
             norm_save_path,
             space,
+            anat_dir
             ):
     """
     forward deformation: normalize images to space from transformation file
@@ -132,6 +135,7 @@ def reslice(
                                           )
         
         subj_save_path = os.path.join(norm_save_path, subj)
+        subj_save_path = Path(subj_save_path)
         subj_save_path.mkdir(parents = True, exist_ok = True)
         nib.save(resliced_img, os.path.join(subj_save_path, f'{subj}_{week}_{space}_{segment}.nii.gz'))
 
@@ -145,11 +149,11 @@ if __name__ == '__main__':
     trans_folder = os.path.join(gl.baseDir, 'MNISymC_trans') # folder to which transformation files are saved
 
     fwd_deformation = 'T1_to-MNI152NLin2009cSymC_mode-image_xfm.nii.gz'
-    segments = ['']
+    segments = ['T1', 'GM', 'WM', 'CSF']
     space_folder = 'MNISymC'
     
-    isolate(p_df, anat_dir) # binary cerebellar isolation masks
-    transformation_files(p_df, anat_dir, trans_folder, template_space) # subj-week transformation files
+    #isolate(p_df, anat_dir) # binary cerebellar isolation masks
+    #transformation_files(p_df, anat_dir, trans_folder, template_space) # subj-week transformation files
     
     for segment in segments:
         segment_save_path = os.path.join(gl.baseDir, f'{space_folder}_{segment}')
@@ -158,5 +162,7 @@ if __name__ == '__main__':
                 trans_path = trans_folder,
                 deformation = fwd_deformation,
                 norm_save_path = segment_save_path,
-                space = space_folder
+                space = space_folder,
+                anat_dir = anat_dir
                 )
+   
