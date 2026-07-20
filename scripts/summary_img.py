@@ -10,7 +10,7 @@ def mean_image_right(group,
                      group_df, 
                      left_lesion_df,
                      template_img,
-                     search_dir = 'Regression',
+                     search_dir = 'regression',
                      segment = 'T1',
                      space = 'MNISymC',
                      metric = 'slope',
@@ -54,7 +54,7 @@ def median_image_right( group,
                         group_df, 
                         left_lesion_df,
                         template_img,
-                        search_dir = 'Regression',
+                        search_dir = 'regression',
                         segment = 'T1',
                         space = 'MNISymC',
                         metric = 'slope',
@@ -109,12 +109,12 @@ if __name__=='__main__':
     for segment in segments:
         # patients: mean, median
         mean_image_right(group = 'patients', group_df = patients_df, left_lesion_df = left_lesion_df, template_img = template_img,
-                         search_dir = 'Regression', segment = segment, space = 'MNISymC', metric = 'slope')
+                         search_dir = 'regression', segment = segment, space = 'MNISymC', metric = 'slope')
         median_image_right(group = 'patients', group_df = patients_df, left_lesion_df = left_lesion_df, template_img = template_img,
-                         search_dir = 'Regression', segment = segment, space = 'MNISymC', metric = 'slope')
+                         search_dir = 'regression', segment = segment, space = 'MNISymC', metric = 'slope')
         
         # control: mean, median
         mean_image_right(group = 'controls', group_df = controls_df, left_lesion_df = left_lesion_df, template_img = template_img,
-                         search_dir = 'Regression', segment = segment, space = 'MNISymC', metric = 'slope')
+                         search_dir = 'regression', segment = segment, space = 'MNISymC', metric = 'slope')
         median_image_right(group = 'controls', group_df = controls_df, left_lesion_df = left_lesion_df, template_img = template_img,
-                         search_dir = 'Regression', segment = segment, space = 'MNISymC', metric = 'slope')
+                         search_dir = 'regression', segment = segment, space = 'MNISymC', metric = 'slope')

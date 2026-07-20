@@ -45,9 +45,9 @@ def flip_left_lesion(path,
         nib.save(flipped, f'{path}/{subj}/{subj}_{space}_{segment}_{metric}_FlipLR.nii.gz')
 
 if __name__=='__main__':
-    p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'))
+    p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
     left_lesion_df = p_df[p_df.LesionSide == 'left ']
-    path = os.path.join(gl.baseDir, 'Regression')
+    path = os.path.join(gl.baseDir, 'regression')
 
     segments = ['T1', 'WM', 'GM', 'CSF']
     for segment in segments:
