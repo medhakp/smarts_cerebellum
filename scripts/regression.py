@@ -47,7 +47,7 @@ def week_path_search(reference_file, subj_id):
         print(f'could not find week token in reference path for {ref_path}')
         return None
     
-    ref_week_token = match.group(1) # return entire text that ws matched.
+    ref_week_token = match.group(1)
 
     weeks_paths = []
     weeks_available = []
@@ -55,10 +55,6 @@ def week_path_search(reference_file, subj_id):
     weeks = find_weeks(subj_id)
 
     for week in weeks:
-        # search for every week's file
-
-        # replace the week token(s) in reference image path with other tokens for new week path
-        #week_path = ref_path.replace(ref_week_token, f'W{week}')
 
         week_path = re.sub(rf'W{ref_week_token}(?!\d)', f'W{week}', ref_path)
 
@@ -88,8 +84,6 @@ def week_response_matrix(img0,
     for row_idx, week_path in enumerate(p_paths): # enumerate through actual week and store the index of that week
 
         week_img = nib.load(week_path)
-
-        #week_img.get_fdata()
 
         # populate response matrix
         Y[row_idx, :] = nt.sample_image(week_img, 
@@ -194,20 +188,23 @@ def run_regression(p_df,
         refT1   = (p_df.loc[(p_df['subj_id']==subj), 'RefT1'].iloc[0]).strip()
         ref_img = f'{gl.baseDir}/{space}_{segment}/{subj}/{subj}_{refT1}_{space}_{segment}.nii.gz'
 
-        p_paths, p_weeks = week_path_search(refT1, subj)
+        p_paths, p_weeks = week_path_search(ref_img, subj)
 
         if len(p_weeks)<2:
             continue
 
         intercept_img, slope_img = regression_week(ref_img, p_paths, p_weeks)
 
-        nib.save(intercept_img, f'{gl.baseDir}/regression/{subj}_{space}_{segment}_intercept.nii.gz')
-        nib.save(slope_img, f'{gl.baseDir}/regression/{subj}_{space}_{segment}_slope.nii.gz')
+        subj_save_dir = Path(f'{gl.baseDir}/regression/{subj}')
+        subj_save_dir.mkdir(parents=True, exist_ok=True)
+
+        nib.save(intercept_img, f'{subj_save_dir}/{subj}_{space}_{segment}_intercept.nii.gz')
+        nib.save(slope_img, f'{subj_save_dir}/{subj}_{space}_{segment}_slope.nii.gz')
 
 
 
 if __name__=='__main__':
-    p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'))
+    p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
     segments = ['T1', 'WM', 'GM', 'CSF']
     for segment in segments:
         run_regression(p_df, segment=segment)
