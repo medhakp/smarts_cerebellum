@@ -42,7 +42,7 @@ def isolate(df, anat_dir):
 def transformation_files(df,
                          anat_dir,
                          results_folder,
-                         space,
+                         template_space,
                          write_ants_transform=False,
                          write_normalized=True,
                          write_deformation=True,
@@ -73,7 +73,7 @@ def transformation_files(df,
         suit.normalize(
             source_file = t1_path,
             mask_file = str(mask_path),
-            space = space,
+            space = template_space,
 
             # optional files
             write_normalized= write_normalized,
