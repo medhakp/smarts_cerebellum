@@ -1,5 +1,6 @@
 import pandas as pd
 import nibabel as nib
+from pathlib import Path
 import os
 import smarts_cerebellum.globals as gl
 
@@ -19,7 +20,12 @@ def modulate_volume(df,
                     ):
     for subj, week in _subj_week_loop(df):
         # tissue probability image
-        tissue_img = nib.load(f'{gl.baseDir}/{space}_{tissue}/{subj}/{subj}_{week}_{space}_{tissue}.nii.gz')
+        tissue_path = f'{gl.baseDir}/{space}_{tissue}/{subj}/{subj}_{week}_{space}_{tissue}.nii.gz'
+        
+        if not Path(tissue_path).is_file():
+            continue
+
+        tissue_img = nib.load(tissue_path)
         tissue_arr = tissue_img.get_fdata()
 
         # Jacobian determinant
@@ -32,6 +38,8 @@ def modulate_volume(df,
         # save image
         mod_vol_img = nib.Nifti1Image(mod_vol_arr, tissue_img.affine, tissue_img.header)
         nib.save(mod_vol_img, f'{gl.baseDir}/{space}_{tissue}/{subj}/{subj}_{week}_{space}_{tissue}_mod.nii.gz')
+
+        print(f'{tissue} volume for {subj}, {week} modulated!')
 
 if __name__ == '__main__':
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')

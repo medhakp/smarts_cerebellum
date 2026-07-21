@@ -118,7 +118,7 @@ if __name__=='__main__':
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep='\t')
     p_df_w0 = p_df.sort_values("Week").groupby("subj_id", as_index=False).first()
     label_image=os.path.join(gl.baseDir, 'ROI', 'MNISymC.CST.nii')
-    segments = ['T1', 'WM', 'GM', 'CSF']
+    segments = ['T1', 'WM_mod', 'GM_mod', 'CSF_mod']
     for segment in segments:
         make_dataframe_atlas_space(
             p_df=p_df_w0,

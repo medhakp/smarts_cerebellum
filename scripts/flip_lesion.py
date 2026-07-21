@@ -49,6 +49,6 @@ if __name__=='__main__':
     left_lesion_df = p_df[p_df.LesionSide == 'left ']
     path = os.path.join(gl.baseDir, 'regression')
 
-    segments = ['T1', 'WM', 'GM', 'CSF']
+    segments = ['T1', 'WM_mod', 'GM_mod', 'CSF_mod'] # ran regression on modulated tissue volumes
     for segment in segments:
         flip_left_lesion(path, left_lesion_df, segment = segment, metric = 'slope')

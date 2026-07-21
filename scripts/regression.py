@@ -177,6 +177,7 @@ def perform_regression_week(reference_img, subj_id):
 def run_regression(p_df,
                    space   = 'MNISymC',
                    segment = None,
+                   suffix = ''
                    ):
     
     p_df = p_df.sort_values("week").groupby("subj_id", as_index=False).first()
@@ -186,7 +187,9 @@ def run_regression(p_df,
     for subj in subj_ids:
 
         refT1   = (p_df.loc[(p_df['subj_id']==subj), 'RefT1'].iloc[0]).strip()
-        ref_img = f'{gl.baseDir}/{space}_{segment}/{subj}/{subj}_{refT1}_{space}_{segment}.nii.gz'
+
+        # for tissues, use modulated volume
+        ref_img = f'{gl.baseDir}/{space}_{segment}/{subj}/{subj}_{refT1}_{space}_{segment}{suffix}.nii.gz'
 
         p_paths, p_weeks = week_path_search(ref_img, subj)
 
@@ -198,13 +201,23 @@ def run_regression(p_df,
         subj_save_dir = Path(f'{gl.baseDir}/regression/{subj}')
         subj_save_dir.mkdir(parents=True, exist_ok=True)
 
-        nib.save(intercept_img, f'{subj_save_dir}/{subj}_{space}_{segment}_intercept.nii.gz')
-        nib.save(slope_img, f'{subj_save_dir}/{subj}_{space}_{segment}_slope.nii.gz')
+        nib.save(intercept_img, f'{subj_save_dir}/{subj}_{space}_{segment}{suffix}_intercept.nii.gz')
+        nib.save(slope_img, f'{subj_save_dir}/{subj}_{space}_{segment}{suffix}_slope.nii.gz')
 
 
 
 if __name__=='__main__':
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
-    segments = ['T1', 'WM', 'GM', 'CSF']
+
+    segments = ['WM', 'GM', 'CSF']
     for segment in segments:
-        run_regression(p_df, segment=segment)
+        run_regression(p_df, segment = segment, suffix = '_mod')
+    
+    # run on T1
+    #run_regression(p_df, segment = 'T1')
+
+    
+    # this runs on probabilities
+    # segments = ['T1', 'WM', 'GM', 'CSF']
+    # for segment in segments:
+    #     run_regression(p_df, segment=segment)

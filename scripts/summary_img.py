@@ -105,7 +105,7 @@ if __name__=='__main__':
     patients_df = p_df[p_df.isPatient == 1]
     controls_df = p_df[p_df.isPatient == 0]
 
-    segments = ['T1', 'WM', 'GM', 'CSF']
+    segments = ['T1', 'WM_mod', 'GM_mod', 'CSF_mod']
     for segment in segments:
         # patients: mean, median
         mean_image_right(group = 'patients', group_df = patients_df, left_lesion_df = left_lesion_df, template_img = template_img,
