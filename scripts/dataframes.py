@@ -122,7 +122,7 @@ if __name__=='__main__':
     for segment in segments:
         make_dataframe_atlas_space(
             p_df=p_df_w0,
-            folder = 'Regression',
+            folder = 'regression',
             segment = segment,
             param = 'slope',
             label_image=label_image,
