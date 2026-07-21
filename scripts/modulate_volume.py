@@ -35,9 +35,6 @@ def modulate_volume(df,
 
 if __name__ == '__main__':
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
-    
-    # for testing purposes: only use one subj
-    p_df = p_df[p_df.subj_id == 'CU_2310']
 
     tissues = ['WM', 'GM', 'CSF']
     for tissue in tissues:
