@@ -53,7 +53,7 @@ def _load_img_list(p_df, folder, subj, space, segment, param):
                 fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}_{param}.nii.gz')
             
             if os.path.isfile(fname):
-                imgs.append(nb.load(fname))
+                imgs.append(fname)
     else:
         if LesionSide == 'left ':
             fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}_{param}_FlipLR.nii.gz')
@@ -61,7 +61,7 @@ def _load_img_list(p_df, folder, subj, space, segment, param):
             fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}_{param}.nii.gz')
         
         if os.path.isfile(fname):
-            imgs.append(nb.load(fname))
+            imgs.append(fname)
 
     return imgs
 
@@ -72,7 +72,7 @@ def make_dataframe_atlas_space(
                                 the_atlas    = None,
                                 maps         = None,
                                 folder       = None,
-                                space        = 'MNISymC',
+                                space        = 'MNISymC', # IF CALLING FOR ATLAS, USE SPACE = 'MNISym'
                                 segment      = 'T1',
                                 param        = 'slope',
                                 label_image  = None,
@@ -82,7 +82,7 @@ def make_dataframe_atlas_space(
 
     dfs = []
 
-    subj_ids = p_df.subj_id
+    subj_ids = p_df.subj_id.unique()
 
     # loop through all subjects - perform each operation on each subject
     for subj in subj_ids:
@@ -114,13 +114,11 @@ def make_dataframe_atlas_space(
 
     df.to_csv(os.path.join(gl.baseDir, folder, f'summary_{space}_{rois}_{segment}_{param}.tsv'), sep='\t', index=False)
 
-# need to make this main part more adjustable to different atlas names; re-run CST with the new naming thing
-
 if __name__=='__main__':
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep='\t')
     p_df_w0 = p_df.sort_values("Week").groupby("subj_id", as_index=False).first()
 
-    roi_tract = 'CST'
+    roi_tract = 'MCP'
     label_image=os.path.join(gl.baseDir, 'ROI', f'MNISymC.{roi_tract}.nii')
     segments = ['T1', 'WM_mod', 'GM_mod', 'CSF_mod']
     for segment in segments:
@@ -130,6 +128,6 @@ if __name__=='__main__':
             segment = segment,
             param = 'slope',
             label_image=label_image,
-            region_names=[''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}'], # adjust label as needed; indexing starts from 1
+            region_names=[''] * 2 + [f'left_{roi_tract}', f'right_{roi_tract}'], # adjust label as needed; indexing starts from 1
             rois = roi_tract
         )
