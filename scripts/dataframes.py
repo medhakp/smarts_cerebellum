@@ -77,6 +77,7 @@ def make_dataframe_atlas_space(
                                 param        = 'slope',
                                 label_image  = None,
                                 region_names = None,
+                                rois = None
                               ):
 
     dfs = []
@@ -111,13 +112,16 @@ def make_dataframe_atlas_space(
     df = pd.concat(dfs, ignore_index = True)
     df = df[~df.subj_id.isin(gl.bad)]
 
-    df.to_csv(os.path.join(gl.baseDir, folder, f'summary_{space}_{segment}_{param}.tsv'), sep='\t', index=False)
+    df.to_csv(os.path.join(gl.baseDir, folder, f'summary_{space}_{rois}_{segment}_{param}.tsv'), sep='\t', index=False)
 
+# need to make this main part more adjustable to different atlas names; re-run CST with the new naming thing
 
 if __name__=='__main__':
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep='\t')
     p_df_w0 = p_df.sort_values("Week").groupby("subj_id", as_index=False).first()
-    label_image=os.path.join(gl.baseDir, 'ROI', 'MNISymC.CST.nii')
+
+    roi_tract = 'CST'
+    label_image=os.path.join(gl.baseDir, 'ROI', f'MNISymC.{roi_tract}.nii')
     segments = ['T1', 'WM_mod', 'GM_mod', 'CSF_mod']
     for segment in segments:
         make_dataframe_atlas_space(
@@ -126,5 +130,6 @@ if __name__=='__main__':
             segment = segment,
             param = 'slope',
             label_image=label_image,
-            region_names=[''] * 13 + ['left_CST', 'right_CST']
+            region_names=[''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}'], # adjust label as needed; indexing starts from 1
+            rois = roi_tract
         )
