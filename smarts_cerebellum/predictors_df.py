@@ -1,0 +1,81 @@
+import pandas as pd
+import nibabel as nib
+import os
+import SUITPy as suit
+from smarts_cerebellum.util import subj_path_search
+import smarts_cerebellum.globals as gl
+
+"""
+To make predictors dataframe:
+
+- find images
+- load images
+
+ROI means
+- for each image: calculate mean voxel --> how can we do this? We can summarize in dataframe and then get the mean - so we just do summarize_df, but we don't save that df.
+     - or, we *can* save the df, so that we can use it for other things later?
+     - so we're doing this for each subj-week; the first thing then would be to make a dataframe: for each roi, summarize files for each subj-week
+- store that value in df with cols subj, week, roi
+"""
+
+
+
+def _load_img_list(p_df, folder, subj, space, segment):
+
+    p_df_s = p_df[p_df.subj_id==subj]
+
+    LesionSide = p_df_s.LesionSide.unique()
+        
+    imgs = []
+    if p_df_s.shape[0] > 1:
+        weeks = p_df_s.Week.unique()
+        for _week in weeks:
+            week = _week.astype(str).strip()
+            if LesionSide == 'left ':
+                fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}_FlipLR.nii.gz')
+            else:
+                fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}.nii.gz')
+            
+            if os.path.isfile(fname):
+                imgs.append(nib.load(fname))
+    else:
+        if LesionSide == 'left ':
+            fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}_FlipLR.nii.gz')
+        else:
+            fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}.nii.gz')
+        
+        if os.path.isfile(fname):
+            imgs.append(nib.load(fname))
+
+    return imgs
+
+def make_response_df(p_df,
+                     folder = None,
+                     space = 'MNISymC',
+                     segment = 'T1',
+                     stats = ['mean'],
+                     label_image = None,
+                     region_names = None
+                     ):
+    dfs = []
+
+    subj_ids = p_df.subj_id
+
+    # find subj-week images - _load_img_list does this
+    for subj in subj_ids:
+        imgs = _load_img_list(p_df, folder, subj, space, segment)
+        if len(imgs) == 0:
+            continue
+
+        df_subj = suit.summarize_data(images = imgs,
+                                      space = space,
+                                      stats = stats,
+                                      label_image = label_image,
+                                      region_names = region_names)
+        dfs.append(df_subj)
+    
+    df = pd.concat(dfs, ignore_index = True)
+    df = df[~df.subj_id.isin(gl.bad)]
+
+    # save or return df? For now, we can just return it - we don't need to save it for now
+    # so this is a general module; for our roi means, we can call it in the script, and pass this dataframe to our lme run
