@@ -83,6 +83,16 @@ def lme_results(group,
 
         result = pd.concat(dfs, ignore_index = True)
         result = week_betas(result) # calculate beta for each week (sum week beta value with intercept)
+
+        lme_x_dict = {
+            'Intercept': 0,
+            'Week[T.4]': 4,
+            'Week[T.12]': 12,
+            'Week[T.24]': 24,
+            'Week[T.52]': 52
+        }
+
+        result['Week'] = result['week'].map(lme_x_dict)
         result.to_csv(os.path.join(gl.baseDir, 'lme', f'{group}_{space}_{segment}_{roi_tract}_lme.tsv'), sep = '\t')
 
 
@@ -94,8 +104,8 @@ if __name__ == '__main__':
 
     # ran with: WM_mod; T1
 
-    segment = 'T1'
-    folder = f'{space}_T1'
+    segment = 'WM_mod'
+    folder = f'{space}_WM'
 
 
     lme_results(group = 'patients', p_df = patients_df, segment = segment, folder = folder)
