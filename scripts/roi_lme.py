@@ -61,6 +61,7 @@ def lme_results(group,
                 label_image = label_image,
                 region_names = region_names,
                 regions = regions,
+                roi_tract = roi_tract,
                 space = space):
         
         dfs = []
@@ -71,7 +72,7 @@ def lme_results(group,
             dfs.append(df)
 
         result = pd.concat(dfs, ignore_index = True)
-        result.to_csv(os.path.join(gl.baseDir, 'lme', f'{group}_{space}_{segment}_{region}_lme.tsv'), sep = '\t')
+        result.to_csv(os.path.join(gl.baseDir, 'lme', f'{group}_{space}_{segment}_{roi_tract}_lme.tsv'), sep = '\t')
 
 
 
