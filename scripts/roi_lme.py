@@ -15,6 +15,8 @@ region_names = [''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
 
 regions = [f'left_{roi_tract}', f'right_{roi_tract}']
 
+weeks = ['Week[T.4]', 'Week[T.12]', 'Week[T.24]', 'Week[T.52]']
+
 
 
 def _results_df(model):
@@ -52,7 +54,17 @@ def run_lme(y_df, region):
 
     return results
 
+def week_betas(df, regionnames = regions, weeks = weeks):
+    for regionname in regionnames:
+        intercept_beta = df[(df.week == 'Intercept') & (df.regionname == regionname)]['beta'].iloc[0]
+        df.loc[(df.week == 'Intercept') & (df.regionname == regionname), 'week_beta'] = intercept_beta
 
+        for week in weeks:
+            week_beta = df[(df.week == f'{week}') & (df.regionname == regionname)]['beta'].iloc[0]
+
+            summed_beta = intercept_beta + week_beta
+            df.loc[(df.week == week) & (df.regionname == regionname), 'week_beta'] = summed_beta
+    return df
 
 def lme_results(group,
                 p_df,
@@ -72,6 +84,7 @@ def lme_results(group,
             dfs.append(df)
 
         result = pd.concat(dfs, ignore_index = True)
+        result = week_betas(result) # calculate beta for each week (sum week beta value with intercept)
         result.to_csv(os.path.join(gl.baseDir, 'lme', f'{group}_{space}_{segment}_{roi_tract}_lme.tsv'), sep = '\t')
 
 
@@ -84,3 +97,4 @@ if __name__ == '__main__':
 
     lme_results(group = 'patients', p_df = patients_df)
     lme_results(group = 'controls', p_df = controls_df)
+
