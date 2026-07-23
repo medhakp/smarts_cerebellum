@@ -13,14 +13,16 @@ def mean_image_right(group,
                      search_dir = 'regression',
                      segment = 'T1',
                      space = 'MNISymC',
-                     metric = 'slope',
+                     metric = '_slope',
+                     week = None
                      ):
     """
     @Authors: Marco,
 
     Calculates mean image (where all lesions are on RH).
     """
-    
+    subj_paths = []
+
     counter = 0
 
     mean_arr = np.zeros((template_img.get_fdata()).shape)
@@ -29,12 +31,18 @@ def mean_image_right(group,
         subj_dir = os.path.join(gl.baseDir, search_dir, subj)
 
         if subj in left_lesion_df.subj_id.unique():
-            subj_path = f'{subj_dir}/{subj}_{space}_{segment}_{metric}_FlipLR.nii.gz'
+            if week is not None:
+                subj_path = f'{subj_dir}/{subj}_{week}_{space}_{segment}{metric}_FlipLR.nii.gz'
+            else:
+                subj_path = f'{subj_dir}/{subj}_{space}_{segment}{metric}_FlipLR.nii.gz'
         else:
-            subj_path = f'{subj_dir}/{subj}_{space}_{segment}_{metric}.nii.gz'
-
+            if week is not None:
+                subj_path = f'{subj_dir}/{subj}_{week}_{space}_{segment}{metric}.nii.gz'
+            else:
+                subj_path = f'{subj_dir}/{subj}_{space}_{segment}{metric}.nii.gz'
         if not Path(subj_path).exists():
             continue
+        subj_paths.append(subj_path)
 
         subj_img = nib.load(subj_path)
 
@@ -47,7 +55,12 @@ def mean_image_right(group,
     mean_arr = mean_arr/counter
     mean_img = nib.Nifti1Image(mean_arr, template_img.affine)
     means_dir = os.path.join(gl.baseDir, search_dir, 'means')
-    nib.save(mean_img, f'{means_dir}/{group}_{space}_{segment}_{metric}_mean.nii')
+    
+    if week is not None:
+        nib.save(mean_img, f'{means_dir}/{group}_{week}_{space}_{segment}{metric}_mean.nii')
+    else:
+        nib.save(mean_img, f'{means_dir}/{group}_{space}_{segment}{metric}_mean.nii')
+    return subj_paths
 
 
 def median_image_right( group,
@@ -57,7 +70,7 @@ def median_image_right( group,
                         search_dir = 'regression',
                         segment = 'T1',
                         space = 'MNISymC',
-                        metric = 'slope',
+                        metric = '_slope',
                        ):
     """
     @Authors: Marco,
@@ -73,9 +86,9 @@ def median_image_right( group,
         subj_dir = os.path.join(gl.baseDir, search_dir, subj)
 
         if subj in left_lesion_df.subj_id.unique():
-            subj_path = f'{subj_dir}/{subj}_{space}_{segment}_{metric}_FlipLR.nii.gz'
+            subj_path = f'{subj_dir}/{subj}_{space}_{segment}{metric}_FlipLR.nii.gz'
         else:
-            subj_path = f'{subj_dir}/{subj}_{space}_{segment}_{metric}.nii.gz'
+            subj_path = f'{subj_dir}/{subj}_{space}_{segment}{metric}.nii.gz'
 
         if not Path(subj_path).exists():
             continue
@@ -89,32 +102,5 @@ def median_image_right( group,
 
     median_img = nib.Nifti1Image(median_arr, template_img.affine)
     medians_dir = os.path.join(gl.baseDir, search_dir, 'medians')
-    nib.save(median_img, f'{medians_dir}/{group}_{space}_{segment}_{metric}_median.nii')
+    nib.save(median_img, f'{medians_dir}/{group}_{space}_{segment}{metric}_median.nii')
 
-
-
-
-
-if __name__=='__main__':
-    # MACROS
-    template_path = os.path.join(gl.baseDir, 'ROI', 'tpl-MNI152NLin2009cSymC_T1w.nii')
-    template_img = nib.load(template_path)
-
-    p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
-    left_lesion_df = p_df[p_df.LesionSide == 'left ']
-    patients_df = p_df[p_df.isPatient == 1]
-    controls_df = p_df[p_df.isPatient == 0]
-
-    segments = ['T1', 'WM_mod', 'GM_mod', 'CSF_mod']
-    for segment in segments:
-        # patients: mean, median
-        mean_image_right(group = 'patients', group_df = patients_df, left_lesion_df = left_lesion_df, template_img = template_img,
-                         search_dir = 'regression', segment = segment, space = 'MNISymC', metric = 'slope')
-        median_image_right(group = 'patients', group_df = patients_df, left_lesion_df = left_lesion_df, template_img = template_img,
-                         search_dir = 'regression', segment = segment, space = 'MNISymC', metric = 'slope')
-        
-        # control: mean, median
-        mean_image_right(group = 'controls', group_df = controls_df, left_lesion_df = left_lesion_df, template_img = template_img,
-                         search_dir = 'regression', segment = segment, space = 'MNISymC', metric = 'slope')
-        median_image_right(group = 'controls', group_df = controls_df, left_lesion_df = left_lesion_df, template_img = template_img,
-                         search_dir = 'regression', segment = segment, space = 'MNISymC', metric = 'slope')
