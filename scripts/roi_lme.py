@@ -7,9 +7,7 @@ from smarts_cerebellum import predictors_df as pred_df
 
 
 space = 'MNISymC'
-segment = 'WM_mod' # modulated volumes
 roi_tract = 'CST'
-folder = f'{space}_WM'
 label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{roi_tract}.nii')
 region_names = [''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
 
@@ -68,8 +66,8 @@ def week_betas(df, regionnames = regions, weeks = weeks):
 
 def lme_results(group,
                 p_df,
-                folder = folder,
-                segment = segment,
+                folder,
+                segment,
                 label_image = label_image,
                 region_names = region_names,
                 regions = regions,
@@ -94,7 +92,12 @@ if __name__ == '__main__':
     patients_df = p_df[p_df.isPatient == 1]
     controls_df = p_df[p_df.isPatient == 0]
 
+    # ran with: WM_mod; T1
 
-    lme_results(group = 'patients', p_df = patients_df)
-    lme_results(group = 'controls', p_df = controls_df)
+    segment = 'T1'
+    folder = f'{space}_T1'
+
+
+    lme_results(group = 'patients', p_df = patients_df, segment = segment, folder = folder)
+    lme_results(group = 'controls', p_df = controls_df, segment = segment, folder = folder)
 

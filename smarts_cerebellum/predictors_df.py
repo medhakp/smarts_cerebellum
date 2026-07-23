@@ -5,18 +5,6 @@ import re
 import SUITPy as suit
 import smarts_cerebellum.globals as gl
 
-"""
-To make predictors dataframe:
-
-- find images
-- load images
-
-ROI means
-- for each image: calculate mean voxel --> how can we do this? We can summarize in dataframe and then get the mean - so we just do summarize_df, but we don't save that df.
-     - or, we *can* save the df, so that we can use it for other things later?
-     - so we're doing this for each subj-week; the first thing then would be to make a dataframe: for each roi, summarize files for each subj-week
-- store that value in df with cols subj, week, roi
-"""
 
 def _week_token(image_name):
     match = re.search(r'W(\d+)', image_name)
