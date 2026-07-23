@@ -34,8 +34,7 @@ def _load_img_list(p_df, folder, subj, space, segment):
     for _week in weeks:
         week = _week.strip()
         if LesionSide == 'left ':
-            #fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}_FlipLR.nii.gz')
-            fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}.nii.gz')
+            fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}_FlipLR.nii.gz')
 
         else:
             fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}.nii.gz')

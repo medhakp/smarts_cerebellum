@@ -3,6 +3,18 @@ import nibabel as nib
 import os
 import statsmodels.formula.api as smf
 import smarts_cerebellum.globals as gl
+from smarts_cerebellum import predictors_df as pred_df
+
+
+space = 'MNISymC'
+segment = 'WM_mod' # modulated volumes
+roi_tract = 'CST'
+folder = f'{space}_WM'
+label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{roi_tract}.nii')
+region_names = [''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
+
+regions = [f'left_{roi_tract}', f'right_{roi_tract}']
+
 
 
 def _results_df(model):
@@ -26,15 +38,48 @@ def _results_df(model):
 
 
 # run lme in rois
-def run_lme(y_df, region_name):
+def run_lme(y_df, region):
 
     y_df.rename(columns = {'mean': 'y'},inplace = True)
     y_df = y_df[['subj_id', 'Week', 'regionname', 'y']]
-    y_df = y_df[y_df.regionname == region_name]
+    y_df = y_df[y_df.regionname == region]
     y_df = y_df.reset_index(drop = True)
 
     model = smf.mixedlm('y~Week', data = y_df, groups = 'subj_id').fit(maxiter = 400)
 
     results = _results_df(model)
-    results['regionname'] = region_name
+    results['regionname'] = region
+
     return results
+
+
+
+def lme_results(group,
+                p_df,
+                folder = folder,
+                segment = segment,
+                label_image = label_image,
+                region_names = region_names,
+                regions = regions,
+                space = space):
+        
+        dfs = []
+        y_df = pred_df.response_df(p_df = p_df, folder = folder,segment = segment,
+                            label_image = label_image, region_names = region_names)
+        for region in regions:
+            df = run_lme(y_df, region = region)
+            dfs.append(df)
+
+        result = pd.concat(dfs, ignore_index = True)
+        result.to_csv(os.path.join(gl.baseDir, 'lme', f'{group}_{space}_{segment}_{region}_lme.tsv'), sep = '\t')
+
+
+
+if __name__ == '__main__':
+    p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
+    patients_df = p_df[p_df.isPatient == 1]
+    controls_df = p_df[p_df.isPatient == 0]
+
+
+    lme_results(group = 'patients', p_df = patients_df)
+    lme_results(group = 'controls', p_df = controls_df)
