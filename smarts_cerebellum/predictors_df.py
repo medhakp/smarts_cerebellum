@@ -1,6 +1,7 @@
 import pandas as pd
 import nibabel as nib
 import os
+import re
 import SUITPy as suit
 import smarts_cerebellum.globals as gl
 
@@ -17,7 +18,10 @@ ROI means
 - store that value in df with cols subj, week, roi
 """
 
-
+def _week_token(image_name):
+    match = re.search(r'W(\d+)', image_name)
+    week_val = match.group(1)
+    return week_val
 
 def _load_img_list(p_df, folder, subj, space, segment):
 
@@ -26,25 +30,15 @@ def _load_img_list(p_df, folder, subj, space, segment):
     LesionSide = p_df_s.LesionSide.unique()
         
     imgs = []
-    if p_df_s.shape[0] > 1:
-        weeks = p_df_s.Week.unique()
-        for _week in weeks:
-            week = _week.strip()
-            if LesionSide == 'left ':
-                #fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}_FlipLR.nii.gz')
-                fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}.nii.gz')
-
-            else:
-                fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}.nii.gz')
-            
-            if os.path.isfile(fname):
-                imgs.append(fname)
-    else:
+    weeks = p_df_s.Week.unique()
+    for _week in weeks:
+        week = _week.strip()
         if LesionSide == 'left ':
-            #fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}_FlipLR.nii.gz')
-            fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}.nii.gz')
+            #fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}_FlipLR.nii.gz')
+            fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}.nii.gz')
+
         else:
-            fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}.nii.gz')
+            fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}.nii.gz')
         
         if os.path.isfile(fname):
             imgs.append(fname)
@@ -78,6 +72,7 @@ def response_df(p_df,
     
     df = pd.concat(dfs, ignore_index = True)
     df = df[~df.subj_id.isin(gl.bad)]
+    df['Week'] = df['image_name'].apply(_week_token) # weeks in image name
     
     return df
 
