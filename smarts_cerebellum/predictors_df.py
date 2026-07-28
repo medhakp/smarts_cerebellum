@@ -35,7 +35,7 @@ def _load_img_list(p_df, folder, subj, space, segment):
 def response_df(p_df,
                      folder = None,
                      space = 'MNISymC',
-                     atlas_space = 'MNISymC', # if using atlas and maps, set MNISym, etc.
+                     atlas_space = 'MNISymC', # if using atlas and maps, set MNISym, etc. Otherwise, default is same as space (MNISymC)
                      segment = 'T1',
                      stats = ['mean'],
                      label_image = None,

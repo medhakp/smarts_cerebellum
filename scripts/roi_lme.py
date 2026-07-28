@@ -63,15 +63,19 @@ def lme_results(group,
                 p_df,
                 folder,
                 segment,
+                atlas_space = None,
+                atlas = None,
+                maps = None,
                 label_image = None,
                 region_names = None,
                 regions = None,
-                roi_tract = None,
+                rois = None,
                 space = space):
         
         dfs = []
         y_df = pred_df.response_df(p_df = p_df, folder = folder,segment = segment,
-                            label_image = label_image, region_names = region_names)
+                            label_image = label_image, region_names = region_names,
+                            atlas_space = atlas_space, atlas = atlas, maps = maps)
         regions = y_df.regionname.unique()
         for region in regions:
             df = run_lme(y_df, region = region)
@@ -89,30 +93,53 @@ def lme_results(group,
         }
 
         result['Week'] = result['week'].map(lme_x_dict)
-        result.to_csv(os.path.join(gl.baseDir, 'lme', f'{group}_{space}_{segment}_{roi_tract}_lme.tsv'), sep = '\t')
+        result.to_csv(os.path.join(gl.baseDir, 'lme', f'{group}_{space}_{segment}_{rois}_lme.tsv'), sep = '\t')
 
-
-# run for custom ROI (e.g. CST)
+# run for cerebellar atlas (e.g. Diedrichsen_2009 anatomical map)
 if __name__ == '__main__':
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
     patients_df = p_df[p_df.isPatient == 1]
     controls_df = p_df[p_df.isPatient == 0]
 
-    # custom ROI
-    roi_tract = 'CST'
-    label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{roi_tract}.nii')
-    region_names = [''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
-    regions = [f'left_{roi_tract}', f'right_{roi_tract}']
+    # cerebellar atlas
+    atlas_space = 'MNISym'
+    atlas = 'Diedrichsen_2009'
+    maps = 'atl-Anatom'
 
+    # run with: T1, GM_mod
 
-    # ran with: WM_mod; T1
-
-    segment = 'T1'
-    folder = f'{space}_T1'
+    segment = 'GM_mod'
+    folder = f'{space}_GM'
 
 
     lme_results(group = 'patients', p_df = patients_df, segment = segment, folder = folder, 
-                label_image = label_image, region_names = region_names, roi_tract = roi_tract)
+                atlas_space = atlas_space, atlas = atlas, maps = maps, rois = atlas)
     lme_results(group = 'controls', p_df = controls_df, segment = segment, folder = folder,
-                label_image = label_image, region_names = region_names, roi_tract = roi_tract)
+                atlas_space = atlas_space, atlas = atlas, maps = maps, rois = atlas)
+
+
+
+# # run for custom ROI (e.g. CST)
+# if __name__ == '__main__':
+#     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
+#     patients_df = p_df[p_df.isPatient == 1]
+#     controls_df = p_df[p_df.isPatient == 0]
+
+#     # custom ROI
+#     roi_tract = 'CST'
+#     label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{roi_tract}.nii')
+#     region_names = [''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
+#     regions = [f'left_{roi_tract}', f'right_{roi_tract}']
+
+
+#     # ran with: WM_mod; T1
+
+#     segment = 'T1'
+#     folder = f'{space}_T1'
+
+
+#     lme_results(group = 'patients', p_df = patients_df, segment = segment, folder = folder, 
+#                 label_image = label_image, region_names = region_names, rois = roi_tract)
+#     lme_results(group = 'controls', p_df = controls_df, segment = segment, folder = folder,
+#                 label_image = label_image, region_names = region_names, rois = roi_tract)
 
