@@ -23,9 +23,6 @@ space = 'MNISymC'
 segments = ['WM', 'GM', 'CSF']
 weeks = ['W0', 'W4', 'W12', 'W24', 'W52']
 
-roi_tract = 'CST'
-label_image=os.path.join(gl.baseDir, 'ROI', f'MNISymC.{roi_tract}.nii')
-region_names=[''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
 
 # only need to run this once for each segment - just the (mean/median) image for each week
 
@@ -113,9 +110,17 @@ def summarize_weeks(weeks = weeks,
     df['segment'] = segment
     df['Week'] = df['image_name'].apply(_week_token)
     df.to_csv(os.path.join(gl.baseDir, search_dir, f'summary_{group}_{space}_{rois}_{segment}_{param}.tsv'), sep='\t', index=False)
-    
+
+# custom map
+roi_tract = 'CST'
+label_image=os.path.join(gl.baseDir, 'ROI', f'MNISymC.{roi_tract}.nii')
+region_names=[''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
+
+# cerebellar atlas available from SUIT
 atlas = 'Diedrichsen_2009'
 maps = 'atl-Anatom'
+
+
 for segment in segments:
     search_dir = f'MNISymC_{segment}/means'
     summarize_weeks(group = 'patients', segment = f'{segment}_mod', search_dir = search_dir, atlas_space = 'MNISym', atlas = atlas, maps = maps, rois = atlas)
