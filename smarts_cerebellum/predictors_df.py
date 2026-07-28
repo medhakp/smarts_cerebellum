@@ -35,10 +35,13 @@ def _load_img_list(p_df, folder, subj, space, segment):
 def response_df(p_df,
                      folder = None,
                      space = 'MNISymC',
+                     atlas_space = 'MNISymC', # if using atlas and maps, set MNISym, etc.
                      segment = 'T1',
                      stats = ['mean'],
                      label_image = None,
-                     region_names = None
+                     region_names = None,
+                     atlas = None,
+                     maps = None,
                      ):
     dfs = []
 
@@ -48,10 +51,13 @@ def response_df(p_df,
         imgs = _load_img_list(p_df, folder, subj, space, segment)
         if len(imgs) == 0:
             continue
-
+        if not atlas == None:
+            suit.fetch_atlas(atlas)
         df_subj = suit.summarize_data(images = imgs,
-                                      space = space,
+                                      space = atlas_space,
                                       stats = stats,
+                                      atlas = atlas,
+                                      maps = maps,
                                       label_image = label_image,
                                       region_names = region_names)
         df_subj['subj_id'] = subj

@@ -7,11 +7,6 @@ from smarts_cerebellum import predictors_df as pred_df
 
 
 space = 'MNISymC'
-roi_tract = 'CST'
-label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{roi_tract}.nii')
-region_names = [''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
-
-regions = [f'left_{roi_tract}', f'right_{roi_tract}']
 
 weeks = ['Week[T.4]', 'Week[T.12]', 'Week[T.24]', 'Week[T.52]']
 
@@ -52,7 +47,7 @@ def run_lme(y_df, region):
 
     return results
 
-def week_betas(df, regionnames = regions, weeks = weeks):
+def week_betas(df, regionnames, weeks = weeks):
     for regionname in regionnames:
         intercept_beta = df[(df.week == 'Intercept') & (df.regionname == regionname)]['beta'].iloc[0]
         df.loc[(df.week == 'Intercept') & (df.regionname == regionname), 'week_beta'] = intercept_beta
@@ -68,21 +63,22 @@ def lme_results(group,
                 p_df,
                 folder,
                 segment,
-                label_image = label_image,
-                region_names = region_names,
-                regions = regions,
-                roi_tract = roi_tract,
+                label_image = None,
+                region_names = None,
+                regions = None,
+                roi_tract = None,
                 space = space):
         
         dfs = []
         y_df = pred_df.response_df(p_df = p_df, folder = folder,segment = segment,
                             label_image = label_image, region_names = region_names)
+        regions = y_df.regionname.unique()
         for region in regions:
             df = run_lme(y_df, region = region)
             dfs.append(df)
 
         result = pd.concat(dfs, ignore_index = True)
-        result = week_betas(result) # calculate beta for each week (sum week beta value with intercept)
+        result = week_betas(result, regions) # calculate beta for each week (sum week beta value with intercept)
 
         lme_x_dict = {
             'Intercept': 0,
@@ -96,18 +92,27 @@ def lme_results(group,
         result.to_csv(os.path.join(gl.baseDir, 'lme', f'{group}_{space}_{segment}_{roi_tract}_lme.tsv'), sep = '\t')
 
 
-
+# run for custom ROI (e.g. CST)
 if __name__ == '__main__':
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
     patients_df = p_df[p_df.isPatient == 1]
     controls_df = p_df[p_df.isPatient == 0]
 
+    # custom ROI
+    roi_tract = 'CST'
+    label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{roi_tract}.nii')
+    region_names = [''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
+    regions = [f'left_{roi_tract}', f'right_{roi_tract}']
+
+
     # ran with: WM_mod; T1
 
-    segment = 'WM_mod'
-    folder = f'{space}_WM'
+    segment = 'T1'
+    folder = f'{space}_T1'
 
 
-    lme_results(group = 'patients', p_df = patients_df, segment = segment, folder = folder)
-    lme_results(group = 'controls', p_df = controls_df, segment = segment, folder = folder)
+    lme_results(group = 'patients', p_df = patients_df, segment = segment, folder = folder, 
+                label_image = label_image, region_names = region_names, roi_tract = roi_tract)
+    lme_results(group = 'controls', p_df = controls_df, segment = segment, folder = folder,
+                label_image = label_image, region_names = region_names, roi_tract = roi_tract)
 
