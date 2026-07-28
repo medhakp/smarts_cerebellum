@@ -27,6 +27,7 @@ roi_tract = 'CST'
 label_image=os.path.join(gl.baseDir, 'ROI', f'MNISymC.{roi_tract}.nii')
 region_names=[''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
 
+# only need to run this once for each segment - just the (mean/median) image for each week
 
 # for segment in segments:
 #     seg_dir = f'{space}_{segment}'
@@ -88,6 +89,9 @@ def summarize_weeks(weeks = weeks,
                     label_image = None,
                     region_names = None,
                     rois = None,
+                    atlas_space = 'MNISymC',
+                    atlas = None,
+                    maps = None,
                     param = 'mean'
                     ):
     
@@ -97,22 +101,27 @@ def summarize_weeks(weeks = weeks,
         week_path = os.path.join(gl.baseDir, search_dir, fname)
         segment_images.append(week_path)
 
+    if not atlas == None:
+        suit.fetch_atlas(atlas)
     df = suit.summarize_data(images = segment_images,
-                                     space = space,
+                                     space = atlas_space,
                                      stats = stats,
+                                     atlas = atlas,
+                                     maps = maps,
                                      label_image = label_image,
                                      region_names = region_names)
     df['segment'] = segment
     df['Week'] = df['image_name'].apply(_week_token)
     df.to_csv(os.path.join(gl.baseDir, search_dir, f'summary_{group}_{space}_{rois}_{segment}_{param}.tsv'), sep='\t', index=False)
     
-
+atlas = 'Diedrichsen_2009'
+maps = 'atl-Anatom'
 for segment in segments:
     search_dir = f'MNISymC_{segment}/means'
-    summarize_weeks(group = 'patients', segment = f'{segment}_mod', search_dir = search_dir, label_image = label_image, region_names = region_names, rois = roi_tract)
-    summarize_weeks(group = 'controls', segment = f'{segment}_mod', search_dir = search_dir, label_image = label_image, region_names = region_names, rois = roi_tract)
+    summarize_weeks(group = 'patients', segment = f'{segment}_mod', search_dir = search_dir, atlas_space = 'MNISym', atlas = atlas, maps = maps, rois = atlas)
+    summarize_weeks(group = 'controls', segment = f'{segment}_mod', search_dir = search_dir, atlas_space = 'MNISym', atlas = atlas, maps = maps, rois = atlas)
 
     
 
-summarize_weeks(group = 'patients', search_dir = 'MNISymC_T1/means', label_image=label_image, region_names = region_names, rois = roi_tract)
-summarize_weeks(group = 'controls', search_dir = 'MNISymC_T1/means', label_image=label_image, region_names = region_names, rois = roi_tract)
+summarize_weeks(group = 'patients', search_dir = 'MNISymC_T1/means', atlas_space = 'MNISym', atlas = atlas, maps = maps, rois = atlas)
+summarize_weeks(group = 'controls', search_dir = 'MNISymC_T1/means', atlas_space = 'MNISym', atlas = atlas, maps = maps, rois = atlas)
