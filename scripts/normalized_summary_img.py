@@ -117,8 +117,8 @@ label_image=os.path.join(gl.baseDir, 'ROI', f'MNISymC.{roi_tract}.nii')
 region_names=[''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
 
 # cerebellar atlas available from SUIT
-atlas = 'Diedrichsen_2009'
-maps = 'atl-Anatom'
+atlas = 'Nettekoven_2024'
+maps = 'atl-NettekovenSym32'
 
 
 for segment in segments:

@@ -103,13 +103,13 @@ if __name__ == '__main__':
 
     # cerebellar atlas
     atlas_space = 'MNISym'
-    atlas = 'Diedrichsen_2009'
-    maps = 'atl-Anatom'
+    atlas = 'Nettekoven_2024'
+    maps = 'atl-NettekovenSym32'
 
     # run with: T1, GM_mod
 
-    segment = 'GM_mod'
-    folder = f'{space}_GM'
+    segment = 'T1'
+    folder = f'{space}_T1'
 
 
     lme_results(group = 'patients', p_df = patients_df, segment = segment, folder = folder, 
