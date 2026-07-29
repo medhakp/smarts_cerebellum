@@ -1,5 +1,5 @@
 import pandas as pd
-import nibabel as nib
+import numpy as np
 import os
 import statsmodels.formula.api as smf
 import smarts_cerebellum.globals as gl
@@ -10,23 +10,43 @@ space = 'MNISymC'
 
 weeks = ['Week[T.4]', 'Week[T.12]', 'Week[T.24]', 'Week[T.52]']
 
+def _se_vals(model):
+    weeks = model.fe_params.index
+    cov = model.cov_params()
+    var_int = cov.loc['Intercept', 'Intercept']
+
+    se_weeks = []
+    for week in weeks:
+        var_week = cov.loc[week, week]
+        cov_int_week = cov.loc['Intercept', week]
+        se_week = np.sqrt(var_int + var_week + (2*cov_int_week))
+        se_weeks.append(se_week)
+
+    se_vals = np.zeros(5,)
+    se_vals[0] = np.sqrt(var_int)
+    se_vals[1:] = se_weeks[1:]
+
+    return se_vals
+
 
 
 def _results_df(model):
 
     fe = model.fe_params
     ci = model.conf_int().loc[fe.index]
+    se_vals = _se_vals(model)
 
     results = pd.DataFrame({
         'week': model.fe_params.index, # use re string search to get week num later
         'beta': model.fe_params.to_numpy(),
-        'se': model.bse_fe.to_numpy(),
+        'bse': model.bse_fe.to_numpy(),
         'converged': model.converged,
         't-val': model.tvalues.loc[fe.index].to_numpy(),
         'p-val': model.pvalues.loc[fe.index].to_numpy(),
         'ci_lower': ci[0].to_numpy(),
         'ci_upper': ci[1].to_numpy(),
-        'log_likelihood': model.llf
+        'log_likelihood': model.llf,
+        'se': se_vals
     })
 
     return results
@@ -122,7 +142,7 @@ def lme_results(group,
 # # run for custom ROI (e.g. CST)
 if __name__ == '__main__':
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
-    #patients_df = p_df[p_df.isPatient == 1]
+    patients_df = p_df[p_df.isPatient == 1]
     controls_df = p_df[p_df.isPatient == 0]
 
     # custom ROI
@@ -134,12 +154,12 @@ if __name__ == '__main__':
 
     # ran with: WM_mod; T1
 
-    segment = 'WM_mod'
-    folder = f'{space}_WM'
+    segment = 'WM_mod' # T1, WM_mod
+    folder = f'{space}_WM' # T1, WM
 
 
-    # lme_results(group = 'patients', p_df = patients_df, segment = segment, folder = folder, 
-    #             label_image = label_image, region_names = region_names, rois = roi_tract)
+    lme_results(group = 'patients', p_df = patients_df, segment = segment, folder = folder, 
+                label_image = label_image, region_names = region_names, rois = roi_tract)
     lme_results(group = 'controls', p_df = controls_df, segment = segment, folder = folder,
                 label_image = label_image, region_names = region_names, rois = roi_tract)
 
