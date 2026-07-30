@@ -19,7 +19,8 @@ y_df = y_df[['subj_id', 'Week', 'regionname', 'y']]
 def y_sim(N_p = 20,
              sim_weeks = [0,4,12,24,52],
              sc = 12,
-             seed = 13):
+             seed = 13,
+             region = 'region1'):
 
     N_t = len(sim_weeks)
     y0 = np.zeros((N_p, N_t)) + np.array(sim_weeks)
@@ -29,7 +30,7 @@ def y_sim(N_p = 20,
     df_add = pd.DataFrame(data=y_add, columns=sim_weeks)
     df_add['subj_id'] = np.arange(N_p) + 100
     df_add = pd.melt(df_add, id_vars='subj_id', value_vars=sim_weeks, var_name='Week', value_name='mean')
-    df_add['regionname'] = 'region1'
+    df_add['regionname'] = region
     return df_add
 
 # option to remove some data at random
