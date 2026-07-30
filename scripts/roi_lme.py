@@ -89,7 +89,6 @@ def lme_results(group,
                 maps = None,
                 label_image = None,
                 region_names = None,
-                regions = None,
                 rois = None,
                 space = space):
         
@@ -150,7 +149,6 @@ if __name__ == '__main__':
 #     roi_tract = 'CST'
 #     label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{roi_tract}.nii')
 #     region_names = [''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
-#     regions = [f'left_{roi_tract}', f'right_{roi_tract}']
 
 
 #     # ran with: WM_mod; T1
