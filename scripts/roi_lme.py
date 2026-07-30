@@ -51,6 +51,17 @@ def _results_df(model):
 
     return results
 
+def week_betas(df, regionnames, weeks = weeks):
+    for regionname in regionnames:
+        intercept_beta = df[(df.week == 'Intercept') & (df.regionname == regionname)]['beta'].iloc[0]
+        df.loc[(df.week == 'Intercept') & (df.regionname == regionname), 'week_beta'] = intercept_beta
+
+        for week in weeks:
+            week_beta = df[(df.week == f'{week}') & (df.regionname == regionname)]['beta'].iloc[0]
+
+            summed_beta = intercept_beta + week_beta
+            df.loc[(df.week == week) & (df.regionname == regionname), 'week_beta'] = summed_beta
+    return df
 
 # run lme in rois
 def run_lme(y_df, region):
@@ -67,17 +78,7 @@ def run_lme(y_df, region):
 
     return results
 
-def week_betas(df, regionnames, weeks = weeks):
-    for regionname in regionnames:
-        intercept_beta = df[(df.week == 'Intercept') & (df.regionname == regionname)]['beta'].iloc[0]
-        df.loc[(df.week == 'Intercept') & (df.regionname == regionname), 'week_beta'] = intercept_beta
 
-        for week in weeks:
-            week_beta = df[(df.week == f'{week}') & (df.regionname == regionname)]['beta'].iloc[0]
-
-            summed_beta = intercept_beta + week_beta
-            df.loc[(df.week == week) & (df.regionname == regionname), 'week_beta'] = summed_beta
-    return df
 
 def lme_results(group,
                 p_df,
