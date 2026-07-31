@@ -126,39 +126,26 @@ if __name__ == '__main__':
     atlas = 'Diedrichsen_2009'
     maps = 'atl-Anatom'
 
-    # run with: T1, GM_mod
-
-    segment = 'T1' # GM_mod, T1
-    folder = f'{space}_T1'
-
-
-    lme_results(group = 'patients', p_df = patients_df, segment = segment, folder = folder, 
-                atlas_space = atlas_space, atlas = atlas, maps = maps, rois = atlas)
-    lme_results(group = 'controls', p_df = controls_df, segment = segment, folder = folder,
-                atlas_space = atlas_space, atlas = atlas, maps = maps, rois = atlas)
+    # custom ROI
+    roi_tract = 'CST'
+    label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{roi_tract}.nii')
+    region_names = [''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
 
 
+    cereb_segments = ['T1', 'GM_mod']
+    cereb_folders = [f'{space}_T1', f'{space}_GM']
 
-# # run for custom ROI (e.g. CST)
-# if __name__ == '__main__':
-#     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
-#     patients_df = p_df[p_df.isPatient == 1]
-#     controls_df = p_df[p_df.isPatient == 0]
-
-#     # custom ROI
-#     roi_tract = 'CST'
-#     label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{roi_tract}.nii')
-#     region_names = [''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
-
-
-#     # ran with: WM_mod; T1
-
-#     segment = 'WM_mod' # T1, WM_mod
-#     folder = f'{space}_WM' # T1, WM
-
-
-#     lme_results(group = 'patients', p_df = patients_df, segment = segment, folder = folder, 
-#                 label_image = label_image, region_names = region_names, rois = roi_tract)
-#     lme_results(group = 'controls', p_df = controls_df, segment = segment, folder = folder,
-#                 label_image = label_image, region_names = region_names, rois = roi_tract)
-
+    for c_segment, c_folder in zip(cereb_segments, cereb_folders):
+        lme_results(group = 'patients', p_df = patients_df, segment = c_segment, folder = c_folder, 
+                    atlas_space = atlas_space, atlas = atlas, maps = maps, rois = atlas)
+        lme_results(group = 'controls', p_df = controls_df, segment = c_segment, folder = c_folder,
+                    atlas_space = atlas_space, atlas = atlas, maps = maps, rois = atlas)
+        
+    
+    tract_segments = ['T1', 'WM_mod']
+    tract_folders = [f'{space}_T1', f'{space}_WM']
+    for t_segment, t_folder in zip(tract_segments, tract_folders):
+        lme_results(group = 'patients', p_df = patients_df, segment = t_segment, folder = t_folder, 
+            label_image = label_image, region_names = region_names, rois = roi_tract)
+        lme_results(group = 'controls', p_df = controls_df, segment = t_segment, folder = t_folder,
+                    label_image = label_image, region_names = region_names, rois = roi_tract)
