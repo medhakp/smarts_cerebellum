@@ -135,7 +135,7 @@ if __name__=='__main__':
     # custom label image
     roi_tract = 'CST'
     label_image=os.path.join(gl.baseDir, 'ROI', f'MNISymC.{roi_tract}.nii')
-    region_names=[''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}'], # adjust label as needed; indexing starts from 1
+    region_names = [''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
 
     # atlas
     the_atlas = 'Nettekoven_2024'
