@@ -1,8 +1,13 @@
 import pandas as pd
 import SUITPy as suit
 import smarts_cerebellum.globals as gl
-import nibabel as nb
 import os
+import re
+
+def _week_token(image_name):
+    match = re.search(r'W(\d+)', image_name)
+    week_val = match.group(1)
+    return week_val
 
 def _add_demographics(df, p_df, subj):
     """
@@ -36,45 +41,45 @@ def _add_demographics(df, p_df, subj):
     return df
 
 
-def _load_img_list(p_df, folder, subj, space, segment, param):
+def _load_img_list(p_df, folder, subj, space, segment, param, use_weeks):
 
     p_df_s = p_df[p_df.subj_id==subj]
 
     LesionSide = p_df_s.LesionSide.unique()
         
     imgs = []
-    if p_df_s.shape[0] > 1:
+    if use_weeks:
         weeks = p_df_s.Week.unique()
         for _week in weeks:
-            week = _week.astype(str).strip()
+            week = _week.strip()
             if LesionSide == 'left ':
-                fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}_{param}_FlipLR.nii.gz')
+                fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}{param}_FlipLR.nii.gz')
             else:
-                fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}_{param}.nii.gz')
+                fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}{param}.nii.gz')
             
             if os.path.isfile(fname):
                 imgs.append(fname)
     else:
         if LesionSide == 'left ':
-            fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}_{param}_FlipLR.nii.gz')
+            fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}{param}_FlipLR.nii.gz')
         else:
-            fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}_{param}.nii.gz')
+            fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}{param}.nii.gz')
         
         if os.path.isfile(fname):
             imgs.append(fname)
-
     return imgs
-
 
 # Make summarized dataframe 
 def make_dataframe_atlas_space(
                                 p_df         = None,
+                                use_weeks = False,
                                 the_atlas    = None,
                                 maps         = None,
                                 folder       = None,
-                                space        = 'MNISymC', # IF CALLING FOR ATLAS, USE SPACE = 'MNISym'
+                                space        = 'MNISymC',
+                                atlas_space = 'MNISym',
                                 segment      = 'T1',
-                                param        = 'slope',
+                                param        = '_slope',
                                 label_image  = None,
                                 region_names = None,
                                 rois = None
@@ -87,7 +92,7 @@ def make_dataframe_atlas_space(
     # loop through all subjects - perform each operation on each subject
     for subj in subj_ids:
         
-        imgs = _load_img_list(p_df, folder, subj, space, segment, param)
+        imgs = _load_img_list(p_df, folder, subj, space, segment, param, use_weeks)
         if len(imgs)==0:
             continue
         
@@ -96,7 +101,7 @@ def make_dataframe_atlas_space(
         df_subj = suit.summarize_data(images = imgs,
                                         atlas = the_atlas,
                                         maps = maps,
-                                        space = space,
+                                        space = atlas_space,
                                         stats = ['mean'],
                                         label_image = label_image,
                                         region_names = region_names)
@@ -112,22 +117,67 @@ def make_dataframe_atlas_space(
     df = pd.concat(dfs, ignore_index = True)
     df = df[~df.subj_id.isin(gl.bad)]
 
-    df.to_csv(os.path.join(gl.baseDir, folder, f'summary_{space}_{rois}_{segment}_{param}.tsv'), sep='\t', index=False)
+    if use_weeks:
+        df['Week'] = df['image_name'].apply(_week_token)
+
+    df.to_csv(os.path.join(gl.baseDir, folder, f'summary_{space}_{rois}_{segment}{param}.tsv'), sep='\t', index=False)
 
 if __name__=='__main__':
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep='\t')
-    p_df_w0 = p_df.sort_values("Week").groupby("subj_id", as_index=False).first()
+    #p_df_w0 = p_df.sort_values("Week").groupby("subj_id", as_index=False).first()
 
-    roi_tract = 'MCP'
-    label_image=os.path.join(gl.baseDir, 'ROI', f'MNISymC.{roi_tract}.nii')
+    space = 'MNISymC'
     segments = ['T1', 'WM_mod', 'GM_mod', 'CSF_mod']
-    for segment in segments:
+    folders = [f'{space}_T1', f'{space}_WM', f'{space}_GM', f'{space}_CSF']
+
+
+    # NORMALIZED (MOD TISSUE) IMAGES
+    # custom label image
+    roi_tract = 'CST'
+    label_image=os.path.join(gl.baseDir, 'ROI', f'MNISymC.{roi_tract}.nii')
+    region_names=[''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}'], # adjust label as needed; indexing starts from 1
+
+    # atlas
+    the_atlas = 'Nettekoven_2024'
+    maps = 'atl-NettekovenSym32'
+
+
+    for segment, folder in zip(segments, folders):
         make_dataframe_atlas_space(
-            p_df=p_df_w0,
-            folder = 'regression',
+            p_df=p_df,
+            use_weeks = True,
+            folder = folder,
             segment = segment,
-            param = 'slope',
+            param = '',
             label_image=label_image,
-            region_names=[''] * 2 + [f'left_{roi_tract}', f'right_{roi_tract}'], # adjust label as needed; indexing starts from 1
+            region_names = region_names,
             rois = roi_tract
         )
+
+    for segment, folder in zip(segments, folders):
+        make_dataframe_atlas_space(
+            p_df=p_df,
+            use_weeks = True,
+            folder = folder,
+            segment = segment,
+            param = '',
+            the_atlas = the_atlas,
+            maps = maps,
+            rois = the_atlas
+        )
+
+
+    # REGRESSION SLOPE DATAFRAMES
+    # roi_tract = 'MCP'
+    # label_image=os.path.join(gl.baseDir, 'ROI', f'MNISymC.{roi_tract}.nii')
+    # segments = ['T1', 'WM_mod', 'GM_mod', 'CSF_mod']
+    # for segment in segments:
+    #     make_dataframe_atlas_space(
+    #         p_df=p_df_w0,
+    #         folder = 'regression',
+    #         segment = segment,
+    #         param = '_slope',
+    #         label_image=label_image,
+    #         region_names=[''] * 2 + [f'left_{roi_tract}', f'right_{roi_tract}'], # adjust label as needed; indexing starts from 1
+    #         rois = roi_tract
+    #     )
