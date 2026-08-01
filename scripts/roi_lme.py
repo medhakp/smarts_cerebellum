@@ -10,31 +10,11 @@ space = 'MNISymC'
 
 weeks = ['Week[T.4]', 'Week[T.12]', 'Week[T.24]', 'Week[T.52]']
 
-def _se_vals(model):
-    weeks = model.fe_params.index
-    cov = model.cov_params()
-    var_int = cov.loc['Intercept', 'Intercept']
 
-    se_weeks = []
-    for week in weeks:
-        var_week = cov.loc[week, week]
-        cov_int_week = cov.loc['Intercept', week]
-        se_week = np.sqrt(var_int + var_week + (2*cov_int_week))
-        se_weeks.append(se_week)
-
-    se_vals = np.zeros(5,)
-    se_vals[0] = np.sqrt(var_int)
-    se_vals[1:] = se_weeks[1:]
-
-    return se_vals
-
-
-
-def _results_df(model):
+def _fe_results_df(model):
 
     fe = model.fe_params
     ci = model.conf_int().loc[fe.index]
-    se_vals = _se_vals(model)
 
     results = pd.DataFrame({
         'week': model.fe_params.index, # use re string search to get week num later
@@ -46,22 +26,32 @@ def _results_df(model):
         'ci_lower': ci[0].to_numpy(),
         'ci_upper': ci[1].to_numpy(),
         'log_likelihood': model.llf,
-        'se': se_vals
     })
 
     return results
 
-def week_betas(df, regionnames, weeks = weeks):
-    for regionname in regionnames:
-        intercept_beta = df[(df.week == 'Intercept') & (df.regionname == regionname)]['beta'].iloc[0]
-        df.loc[(df.week == 'Intercept') & (df.regionname == regionname), 'week_beta'] = intercept_beta
+def _re_results_df(model):
+    re_results = pd.DataFrame(model.random_effects).T
+    #re_results.index.name = 'subj_id'
+    re_results = re_results.reset_index()
+    re_results = re_results.rename(columns = {"index": "subj_id", "subj_id": "random_intercept"})
+    return re_results
 
-        for week in weeks:
-            week_beta = df[(df.week == f'{week}') & (df.regionname == regionname)]['beta'].iloc[0]
+# fixed and random effects - subj-week
+def _results_df(model):
+    fe_df = _fe_results_df(model) # fixed effects
+    re_df = _re_results_df(model) # random effects
 
-            summed_beta = intercept_beta + week_beta
-            df.loc[(df.week == week) & (df.regionname == regionname), 'week_beta'] = summed_beta
-    return df
+    fe_df = fe_df.copy()
+    re_df = re_df.copy()
+
+    # temp key to join the dataframes
+    fe_df['_key'] = 1
+    re_df['_key'] = 1
+    
+    results_df = fe_df.merge(re_df, on = '_key').drop(columns = '_key')
+    return results_df, fe_df # temp return fe_df for the notebooks that we already have
+
 
 # run lme in rois
 def run_lme(y_df, region):
@@ -73,10 +63,11 @@ def run_lme(y_df, region):
 
     model = smf.mixedlm('y~Week', data = y_df, groups = 'subj_id').fit(maxiter = 400)
 
-    results = _results_df(model)
+    results, fe_df = _results_df(model)
     results['regionname'] = region
+    fe_df['regionname'] = region
 
-    return results
+    return results, fe_df
 
 
 
@@ -92,17 +83,20 @@ def lme_results(group,
                 rois = None,
                 space = space):
         
-        dfs = []
+        results = []
+        fe_dfs = []
         y_df = pred_df.response_df(p_df = p_df, folder = folder,segment = segment,
                             label_image = label_image, region_names = region_names,
                             atlas_space = atlas_space, atlas = atlas, maps = maps)
         regions = y_df.regionname.unique()
-        for region in regions:
-            df = run_lme(y_df, region = region)
-            dfs.append(df)
 
-        result = pd.concat(dfs, ignore_index = True)
-        result = week_betas(result, regions) # calculate beta for each week (sum week beta value with intercept)
+        for region in regions:
+            result_df, fe_df = run_lme(y_df, region = region)
+            results.append(result_df)
+            fe_dfs.append(fe_df)
+
+        result = pd.concat(results, ignore_index = True)
+        fe_result = pd.concat(fe_dfs, ignore_index = True)
 
         lme_x_dict = {
             'Intercept': 0,
@@ -113,7 +107,11 @@ def lme_results(group,
         }
 
         result['Week'] = result['week'].map(lme_x_dict)
-        result.to_csv(os.path.join(gl.baseDir, 'lme', f'{group}_{space}_{segment}_{rois}_lme.tsv'), sep = '\t')
+        result.to_csv(os.path.join(gl.baseDir, 'lme/results', f'{group}_{space}_{segment}_{rois}_lme.tsv'), sep = '\t')
+
+        # TEMP SAVE FE DF SEPARATELY
+        fe_result['Week'] = fe_result['week'].map(lme_x_dict)
+        fe_result.to_csv(os.path.join(gl.baseDir, 'lme', f'{group}_{space}_{segment}_{rois}_lme.tsv'), sep = '\t') # temp; for what we alr have
 
 # run for cerebellar atlas (e.g. Diedrichsen_2009 anatomical map)
 if __name__ == '__main__':
