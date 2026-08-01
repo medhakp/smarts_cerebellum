@@ -19,7 +19,7 @@ def _fe_results_df(model):
     results = pd.DataFrame({
         'week': model.fe_params.index, # use re string search to get week num later
         'beta': model.fe_params.to_numpy(),
-        'bse': model.bse_fe.to_numpy(),
+        'se': model.bse_fe.to_numpy(), # with y~0 + Week, bse is the se (beta value is the beta mean)
         'converged': model.converged,
         't-val': model.tvalues.loc[fe.index].to_numpy(),
         'p-val': model.pvalues.loc[fe.index].to_numpy(),
@@ -61,7 +61,7 @@ def run_lme(y_df, region):
     y_df = y_df[y_df.regionname == region]
     y_df = y_df.reset_index(drop = True)
 
-    model = smf.mixedlm('y~Week', data = y_df, groups = 'subj_id').fit(maxiter = 400)
+    model = smf.mixedlm('y~0 + Week', data = y_df, groups = 'subj_id').fit(maxiter = 400)
 
     results, fe_df = _results_df(model)
     results['regionname'] = region
@@ -99,11 +99,11 @@ def lme_results(group,
         fe_result = pd.concat(fe_dfs, ignore_index = True)
 
         lme_x_dict = {
-            'Intercept': 0,
-            'Week[T.4]': 4,
-            'Week[T.12]': 12,
-            'Week[T.24]': 24,
-            'Week[T.52]': 52
+            'Week[0]': 0,
+            'Week[4]': 4,
+            'Week[12]': 12,
+            'Week[24]': 24,
+            'Week[52]': 52
         }
 
         result['Week'] = result['week'].map(lme_x_dict)
@@ -121,8 +121,10 @@ if __name__ == '__main__':
 
     # cerebellar atlas
     atlas_space = 'MNISym'
-    atlas = 'Diedrichsen_2009'
-    maps = 'atl-Anatom'
+    atlas = 'Nettekoven_2024'
+    maps = 'atl-NettekovenSym32'
+    # atlas = 'Diedrichsen_2009'
+    # maps = 'atl-Anatom'
 
     # custom ROI
     roi_tract = 'CST'
@@ -140,10 +142,10 @@ if __name__ == '__main__':
                     atlas_space = atlas_space, atlas = atlas, maps = maps, rois = atlas)
         
     
-    tract_segments = ['T1', 'WM_mod']
-    tract_folders = [f'{space}_T1', f'{space}_WM']
-    for t_segment, t_folder in zip(tract_segments, tract_folders):
-        lme_results(group = 'patients', p_df = patients_df, segment = t_segment, folder = t_folder, 
-            label_image = label_image, region_names = region_names, rois = roi_tract)
-        lme_results(group = 'controls', p_df = controls_df, segment = t_segment, folder = t_folder,
-                    label_image = label_image, region_names = region_names, rois = roi_tract)
+    # tract_segments = ['T1', 'WM_mod']
+    # tract_folders = [f'{space}_T1', f'{space}_WM']
+    # for t_segment, t_folder in zip(tract_segments, tract_folders):
+    #     lme_results(group = 'patients', p_df = patients_df, segment = t_segment, folder = t_folder, 
+    #         label_image = label_image, region_names = region_names, rois = roi_tract)
+    #     lme_results(group = 'controls', p_df = controls_df, segment = t_segment, folder = t_folder,
+    #                 label_image = label_image, region_names = region_names, rois = roi_tract)
