@@ -41,7 +41,7 @@ def _add_demographics(df, p_df, subj):
     return df
 
 
-def _load_img_list(p_df, folder, subj, space, segment, param, use_weeks):
+def _load_img_list(p_df, folder, subj, space, segment, param, use_weeks, use_flipped = True):
 
     p_df_s = p_df[p_df.subj_id==subj]
 
@@ -52,7 +52,7 @@ def _load_img_list(p_df, folder, subj, space, segment, param, use_weeks):
         weeks = p_df_s.Week.unique()
         for _week in weeks:
             week = _week.strip()
-            if LesionSide == 'left ':
+            if LesionSide == 'left ' & use_flipped == True:
                 fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}{param}_FlipLR.nii.gz')
             else:
                 fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}{param}.nii.gz')
@@ -60,7 +60,7 @@ def _load_img_list(p_df, folder, subj, space, segment, param, use_weeks):
             if os.path.isfile(fname):
                 imgs.append(fname)
     else:
-        if LesionSide == 'left ':
+        if LesionSide == 'left ' & use_flipped == True:
             fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}{param}_FlipLR.nii.gz')
         else:
             fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}{param}.nii.gz')
@@ -69,25 +69,19 @@ def _load_img_list(p_df, folder, subj, space, segment, param, use_weeks):
             imgs.append(fname)
     return imgs
 
-# Make summarized dataframe 
-def make_dataframe_atlas_space(
-                                p_df         = None,
-                                use_weeks = False,
-                                the_atlas    = None,
-                                maps         = None,
-                                folder       = None,
-                                space        = 'MNISymC',
-                                atlas_space = 'MNISym',
-                                segment      = 'T1',
-                                param        = '_slope',
-                                label_image  = None,
-                                region_names = None,
-                                rois = None
-                              ):
-
+def _atlas_loop(subj_ids,
+                p_df,
+                folder,
+                space,
+                atlas_space,
+                the_atlas,
+                maps,
+                label_image,
+                region_names,
+                segment,
+                param,
+                use_weeks):
     dfs = []
-
-    subj_ids = p_df.subj_id.unique()
 
     # loop through all subjects - perform each operation on each subject
     for subj in subj_ids:
@@ -112,6 +106,106 @@ def make_dataframe_atlas_space(
 
         # add all dataframes to the list
         dfs.append(df_subj)
+    return dfs
+    
+def _subj_week_atlas_loop(subj_ids,
+                            p_df,
+                            folder,
+                            space,
+                            atlas_space,
+                            maps,
+                            segment,
+                            param):
+    dfs = []
+    # also find subj-week atlases
+    for subj in subj_ids:
+        
+        # get subj-week atlas
+        atlas_imgs = _load_img_list(p_df, folder, subj, space = f'{maps}_space-{atlas_space}', segment = segment, param = 'dseg', use_weeks=True, use_flipped = False)
+                # function looks for name: {subj}_{week}_{space}_{segment}{param}.nii.gz
+                # atlas names: atl-NettekovenSym32_space-MNISym_dseg.nii
+                # our files will be named: {subj}_{week}_{space = {maps}_space-{atlas_space}}_{param = dseg}.nii.gz} # (must add .dseg)
+                # so space = {maps}_space-{space}; param = dseg
+        if len(atlas_imgs) == 0:
+            continue
+
+        # get subj-week images
+        imgs = _load_img_list(p_df, folder, subj, space, segment, param, use_weeks = True)
+        if len(imgs)==0:
+            continue
+        
+
+
+        # summarize with custom label image - regionnames from lut - need to do this for each subj-week
+        # so zip through subj-week atlases and subj-week images
+        # lut: atl-NettekovenSym32.lut
+
+        for atlas_img, img in zip(atlas_imgs, imgs):
+
+            # make sure atlas_img, img are same week___
+            atlas_week = _week_token(atlas_img)
+            img_week = _week_token(img)
+            if not atlas_week == img_week:
+                print(f"week mismatch in {subj}: atlas = {atlas_week}, img = {img_week}")
+                continue
+            #______________
+
+            df_subj_week = suit.summarize_data(images = img,
+                                               space = atlas_space,
+                                               stats = ['mean'],
+                                               label_img = atlas_img,
+                                               lut = f'{atlas_space}.lut')
+            
+            df_subj_week = _add_demographics(df_subj_week, p_df, subj)
+
+            # add all dataframes to the list
+            dfs.append(df_subj_week)
+        
+        return dfs
+
+# Make summarized dataframe 
+def make_dataframe_atlas_space(
+                                p_df         = None,
+                                use_weeks = None,
+                                subj_week_atlas = False, # native space ROIs; 
+                                the_atlas    = None,
+                                maps         = None,
+                                folder       = None,
+                                space        = 'MNISymC',
+                                atlas_space = 'MNISym',
+                                segment      = 'T1',
+                                param        = '_slope',
+                                label_image  = None,
+                                region_names = None,
+                                rois = None
+                              ):
+
+    subj_ids = p_df.subj_id.unique()
+
+    if subj_week_atlas == False:
+        dfs = _atlas_loop(subj_ids,
+                p_df,
+                folder,
+                space,
+                atlas_space,
+                the_atlas,
+                maps,
+                label_image,
+                region_names,
+                segment,
+                param,
+                use_weeks)
+    else: # use subj-week specific atlases with specified atlas name (name = subj_week_ATLAS.nii.gz)
+        dfs = _subj_week_atlas_loop(subj_ids,
+                            p_df,
+                            folder,
+                            space,
+                            atlas_space,
+                            maps,
+                            segment,
+                            param)
+        
+
 
     # combine all of them
     df = pd.concat(dfs, ignore_index = True)
