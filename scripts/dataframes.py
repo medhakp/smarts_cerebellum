@@ -63,6 +63,7 @@ def _load_img_list(p_df, folder, subj, space, segment, param, use_weeks, use_fli
                 imgs.append(fname)
             elif os.path.isfile(fname_else):
                 imgs.append(fname_else)
+                print(fname_else)
     else:
         if LesionSide == 'left ' and use_flipped:
             fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}{param}_FlipLR.nii.gz')
@@ -125,7 +126,7 @@ def _subj_week_atlas_loop(subj_ids,
     for subj in subj_ids:
         
         # get subj-week atlas
-        atlas_imgs = _load_img_list(p_df, folder, subj, space = f'{maps}_space-{atlas_space}', segment = segment, param = 'dseg', use_weeks=True, use_flipped = False)
+        atlas_imgs = _load_img_list(p_df, folder, subj, space = f'{maps}', segment = f'space-{atlas_space}', param = '_dseg', use_weeks=True, use_flipped = False)
                 # function looks for name: {subj}_{week}_{space}_{segment}{param}.nii.gz
                 # atlas names: atl-NettekovenSym32_space-MNISym_dseg.nii
                 # our files will be named: {subj}_{week}_{space = {maps}_space-{atlas_space}}_{param = dseg}.nii.gz} # (must add .dseg)
@@ -225,7 +226,7 @@ if __name__=='__main__':
     #p_df_w0 = p_df.sort_values("Week").groupby("subj_id", as_index=False).first()
 
     space = ''
-    segments = ['T1', 'WM', 'GM', 'CSF']
+    #segments = ['T1', 'WM', 'GM', 'CSF']
     folder = 'anatomicals'
     make_dataframe_atlas_space(
         p_df = p_df,
@@ -236,7 +237,8 @@ if __name__=='__main__':
         folder = folder,
         param = '_T1',
         atlas_space = 'MNISym',
-        segment = 'T1'
+        segment = 'T1',
+        space = ''
         
     )
 
