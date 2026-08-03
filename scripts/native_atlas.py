@@ -1,15 +1,3 @@
-# bring group atlas to native space (reslice)
-
-# inverse deformations: {subj}_{week}_T1_from-MNI152NLin2009cSymC_mode-image_xfm.nii.gz
-# atlas_name = 'atl-NettekovenSym32_space-MNISym_dseg'
-
-"""
-# reslice the Buckner atlas from SUIT space to individual space using the inverse deformation.
-buckner_img = suit.reslice_image('Buckner_17Networks.nii',
-                   deformation = results['inv_deformation'],
-                   interp=0)
-"""
-
 import pandas as pd
 import nibabel as nib
 import SUITPy as suit
@@ -30,6 +18,7 @@ def _subj_week_loop(df):
 def reslice_atlas(
             df = None,
             atlas_name = None,
+            atlas = None,
             trans_path = None,
             inverse_deformation = 'T1_from-MNI152NLin2009cSymC_mode-image_xfm.nii.gz',
             save_atlas_path = None, # save to same place as native anatomicals? so gl.baseDir/anatomicals (= save_atlas_path)
@@ -39,7 +28,7 @@ def reslice_atlas(
     inverse deformation
     """
 
-    atlas_path = f'{gl.baseDir}/ROI/{atlas_name}.nii'
+    atlas_path = f'{gl.baseDir}/ROI/cerebellar_atlases/{atlas}/{atlas_name}.nii'
     if not Path(atlas_path).is_file():
         print(f'{atlas_path} not found')
         return None
@@ -50,7 +39,7 @@ def reslice_atlas(
         deformation_path = f'{trans_path}/{subj}/{week}/{subj}_{week}_{inverse_deformation}'
 
         if not Path(deformation_path).is_file():
-            print(f'fwd def path does not exist for {subj} in week {week}')
+            print(f'inv def path does not exist for {subj} in week {week}')
             continue
      
         resliced_atlas = suit.reslice_image(source_image = atlas_path,
@@ -66,45 +55,19 @@ def reslice_atlas(
 
 
 if __name__ == '__main__':
-    p_df = pd.read_csv(os.path.join(gl.baeDir, 'participants.tsv'), sep = '\t')
+    p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
 
     atlas_names = ['atl-NettekovenSym32_space-MNISym_dseg', 'atl-Anatom_space-MNISym_dseg'] # Nettekoven_2024 (sym, 32 region), Diedrichsen_2009 (anatomical)
+    atlases = ['Nettekoven_2024', 'Diedrichsen_2009']
+
     trans_folder = os.path.join(gl.baseDir, 'MNISymC_trans')
     save_atlas_path = os.path.join(gl.baseDir, 'anatomicals') # save subj-week atlas to same place as subj-week anatomicals
 
-    for atlas in atlas_names:
+    for atlas_name, atlas in zip(atlas_names, atlases):
         reslice_atlas(
-                p_df,
-                atlas,
-                trans_path,
-                save_atlas_path
-                )
-
-
-
-
-if __name__ == '__main__':
-    p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
-    anat_dir = os.path.join(gl.baseDir, 'anatomicals')
-
-    template_space = 'MNI152NLin2009cSymC'
-    trans_folder = os.path.join(gl.baseDir, 'MNISymC_trans') # folder to which transformation files are saved
-
-    fwd_deformation = 'T1_to-MNI152NLin2009cSymC_mode-image_xfm.nii.gz'
-    segments = ['T1', 'GM', 'WM', 'CSF']
-    space_folder = 'MNISymC'
-    
-    #isolate(p_df, anat_dir) # binary cerebellar isolation masks
-    #transformation_files(p_df, anat_dir, trans_folder, template_space) # subj-week transformation files
-    
-    for segment in segments:
-        segment_save_path = os.path.join(gl.baseDir, f'{space_folder}_{segment}')
-        reslice(p_df,
-                segment,
+                df = p_df,
+                atlas_name = atlas_name,
+                atlas = atlas,
                 trans_path = trans_folder,
-                deformation = fwd_deformation,
-                norm_save_path = segment_save_path,
-                space = space_folder,
-                anat_dir = anat_dir
+                save_atlas_path = save_atlas_path
                 )
-   
