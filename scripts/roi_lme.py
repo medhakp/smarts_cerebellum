@@ -107,7 +107,7 @@ def lme_results(group,
         }
 
         result['Week'] = result['week'].map(lme_x_dict)
-        result.to_csv(os.path.join(gl.baseDir, 'lme/results', f'{group}_{space}_{segment}_{rois}_lme.tsv'), sep = '\t')
+        result.to_csv(os.path.join(gl.baseDir, 'lme/results_fe_re', f'{group}_{space}_{segment}_{rois}_lme.tsv'), sep = '\t')
 
         # TEMP SAVE FE DF SEPARATELY
         fe_result['Week'] = fe_result['week'].map(lme_x_dict)
@@ -121,10 +121,10 @@ if __name__ == '__main__':
 
     # cerebellar atlas
     atlas_space = 'MNISym'
-    atlas = 'Nettekoven_2024'
-    maps = 'atl-NettekovenSym32'
-    # atlas = 'Diedrichsen_2009'
-    # maps = 'atl-Anatom'
+    # atlas = 'Nettekoven_2024'
+    # maps = 'atl-NettekovenSym32'
+    atlas = 'Diedrichsen_2009'
+    maps = 'atl-Anatom'
 
     # custom ROI
     roi_tract = 'CST'
