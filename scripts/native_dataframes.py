@@ -165,8 +165,6 @@ def make_dataframe_atlas_space(
 
 if __name__=='__main__':
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep='\t')
-    p_df = p_df[p_df.subj_id == 'CU_2310']
-    #p_df_w0 = p_df.sort_values("Week").groupby("subj_id", as_index=False).first()
 
     space = ''
     #segments = ['T1', 'WM', 'GM', 'CSF']
@@ -174,8 +172,8 @@ if __name__=='__main__':
     the_atlas = 'Diedrichsen_2009'
     maps = 'atl-Anatom'
     lut_file = os.path.join(gl.baseDir, 'ROI', 'cerebellar_atlases', the_atlas, f'{maps}.lut') 
+    segment = 'GM'
     
-    # shouldn't this be using label_image and region_names?? for now, make this a new .py file, so is getting too messy
     make_dataframe_atlas_space(
         p_df = p_df,
         use_weeks = True,
@@ -184,7 +182,7 @@ if __name__=='__main__':
         maps = maps,
         folder = folder,
         atlas_space = 'MNISym',
-        segment = 'T1',
+        segment = segment,
         space = '',
         param = '',
         rois = the_atlas,
