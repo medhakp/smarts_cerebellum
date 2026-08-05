@@ -166,18 +166,3 @@ if __name__=='__main__':
             rois = the_atlas
         )
 
-
-    # REGRESSION SLOPE DATAFRAMES
-    # roi_tract = 'MCP'
-    # label_image=os.path.join(gl.baseDir, 'ROI', f'MNISymC.{roi_tract}.nii')
-    # segments = ['T1', 'WM_mod', 'GM_mod', 'CSF_mod']
-    # for segment in segments:
-    #     make_dataframe_atlas_space(
-    #         p_df=p_df_w0,
-    #         folder = 'regression',
-    #         segment = segment,
-    #         param = '_slope',
-    #         label_image=label_image,
-    #         region_names=[''] * 2 + [f'left_{roi_tract}', f'right_{roi_tract}'], # adjust label as needed; indexing starts from 1
-    #         rois = roi_tract
-    #     )
