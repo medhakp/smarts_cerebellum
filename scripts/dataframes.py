@@ -123,46 +123,25 @@ def make_dataframe_atlas_space(
     df.to_csv(os.path.join(gl.baseDir, folder, f'summary_{space}_{rois}_{segment}{param}.tsv'), sep='\t', index=False)
 
 if __name__=='__main__':
+    #REGRESSION SLOPE DATAFRAMES
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep='\t')
-    #p_df_w0 = p_df.sort_values("Week").groupby("subj_id", as_index=False).first()
-
+    p_df_w0 = p_df.sort_values("Week").groupby("subj_id", as_index=False).first()
+    
     space = 'MNISymC'
     segments = ['T1', 'WM_mod', 'GM_mod', 'CSF_mod']
     folders = [f'{space}_T1', f'{space}_WM', f'{space}_GM', f'{space}_CSF']
-
-
-    # NORMALIZED (MOD TISSUE) IMAGES
-    # custom label image
-    roi_tract = 'CST'
-    label_image=os.path.join(gl.baseDir, 'ROI', f'MNISymC.{roi_tract}.nii')
-    region_names = [''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
 
     # atlas
     the_atlas = 'Nettekoven_2024'
     maps = 'atl-NettekovenSym32'
 
-
     for segment, folder in zip(segments, folders):
         make_dataframe_atlas_space(
-            p_df=p_df,
-            use_weeks = True,
-            folder = folder,
+            p_df=p_df_w0,
+            folder = 'regression',
             segment = segment,
-            param = '',
-            label_image=label_image,
-            region_names = region_names,
-            rois = roi_tract
-        )
-
-    for segment, folder in zip(segments, folders):
-        make_dataframe_atlas_space(
-            p_df=p_df,
-            use_weeks = True,
-            folder = folder,
-            segment = segment,
-            param = '',
+            param = '_slope',
             the_atlas = the_atlas,
             maps = maps,
             rois = the_atlas
         )
-

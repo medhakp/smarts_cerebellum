@@ -121,10 +121,10 @@ if __name__ == '__main__':
 
     # cerebellar atlas
     atlas_space = 'MNISym'
-    # atlas = 'Nettekoven_2024'
-    # maps = 'atl-NettekovenSym32'
-    atlas = 'Diedrichsen_2009'
-    maps = 'atl-Anatom'
+    atlas = 'Nettekoven_2024'
+    maps = 'atl-NettekovenSym32'
+    # atlas = 'Diedrichsen_2009'
+    # maps = 'atl-Anatom'
 
     # custom ROI
     roi_tract = 'CST'
