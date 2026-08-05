@@ -6,7 +6,7 @@ import nibabel as nib
 import smarts_cerebellum.globals as gl
 
 
-def tract_df(df, tract = 'CST'):
+def preprocess_tract_df(df, tract = 'CST'):
     # cut dataframe: patients left, right; controls bilateral tract (e.g. CST)
     patients = df[df.isPatient == 1]
     controls = df[df.isPatient == 0]
