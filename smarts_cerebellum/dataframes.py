@@ -82,7 +82,6 @@ def make_dataframe_atlas_space(
                                 param        = '_slope',
                                 label_image  = None,
                                 region_names = None,
-                                rois = None
                               ):
 
     dfs = []
@@ -120,28 +119,4 @@ def make_dataframe_atlas_space(
     if use_weeks:
         df['Week'] = df['image_name'].apply(_week_token)
 
-    df.to_csv(os.path.join(gl.baseDir, folder, f'summary_{space}_{rois}_{segment}{param}.tsv'), sep='\t', index=False)
-
-if __name__=='__main__':
-    #REGRESSION SLOPE DATAFRAMES
-    p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep='\t')
-    p_df_w0 = p_df.sort_values("Week").groupby("subj_id", as_index=False).first()
-    
-    space = 'MNISymC'
-    segments = ['T1', 'WM_mod', 'GM_mod', 'CSF_mod']
-    folders = [f'{space}_T1', f'{space}_WM', f'{space}_GM', f'{space}_CSF']
-
-    # atlas
-    the_atlas = 'Nettekoven_2024'
-    maps = 'atl-NettekovenSym32'
-
-    for segment, folder in zip(segments, folders):
-        make_dataframe_atlas_space(
-            p_df=p_df_w0,
-            folder = 'regression',
-            segment = segment,
-            param = '_slope',
-            the_atlas = the_atlas,
-            maps = maps,
-            rois = the_atlas
-        )
+    return df
