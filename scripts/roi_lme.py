@@ -50,8 +50,7 @@ def _results_df(model):
     re_df['_key'] = 1
     
     results_df = fe_df.merge(re_df, on = '_key').drop(columns = '_key')
-    return results_df, fe_df # temp return fe_df for the notebooks that we already have
-
+    return results_df
 
 # run lme in rois
 def run_lme(y_df, region):
@@ -63,11 +62,10 @@ def run_lme(y_df, region):
 
     model = smf.mixedlm('y~0 + Week', data = y_df, groups = 'subj_id').fit(maxiter = 400)
 
-    results, fe_df = _results_df(model)
+    results = _results_df(model)
     results['regionname'] = region
-    fe_df['regionname'] = region
 
-    return results, fe_df
+    return results
 
 
 
@@ -84,19 +82,16 @@ def lme_results(group,
                 space = space):
         
         results = []
-        fe_dfs = []
         y_df = pred_df.response_df(p_df = p_df, folder = folder,segment = segment,
                             label_image = label_image, region_names = region_names,
                             atlas_space = atlas_space, atlas = atlas, maps = maps)
         regions = y_df.regionname.unique()
 
         for region in regions:
-            result_df, fe_df = run_lme(y_df, region = region)
+            result_df = run_lme(y_df, region = region)
             results.append(result_df)
-            fe_dfs.append(fe_df)
 
         result = pd.concat(results, ignore_index = True)
-        fe_result = pd.concat(fe_dfs, ignore_index = True)
 
         lme_x_dict = {
             'Week[0]': 0,
@@ -107,11 +102,8 @@ def lme_results(group,
         }
 
         result['Week'] = result['week'].map(lme_x_dict)
-        result.to_csv(os.path.join(gl.baseDir, 'lme/results_fe_re', f'{group}_{space}_{segment}_{rois}_lme.tsv'), sep = '\t')
+        result.to_csv(os.path.join(gl.baseDir, 'lme', f'{group}_{space}_{segment}_{rois}_lme.tsv'), sep = '\t')
 
-        # TEMP SAVE FE DF SEPARATELY
-        fe_result['Week'] = fe_result['week'].map(lme_x_dict)
-        fe_result.to_csv(os.path.join(gl.baseDir, 'lme', f'{group}_{space}_{segment}_{rois}_lme.tsv'), sep = '\t') # temp; for what we alr have
 
 # run for cerebellar atlas (e.g. Diedrichsen_2009 anatomical map)
 if __name__ == '__main__':
@@ -123,8 +115,6 @@ if __name__ == '__main__':
     atlas_space = 'MNISym'
     atlas = 'Nettekoven_2024'
     maps = 'atl-NettekovenSym32'
-    # atlas = 'Diedrichsen_2009'
-    # maps = 'atl-Anatom'
 
     # custom ROI
     roi_tract = 'CST'
@@ -142,10 +132,10 @@ if __name__ == '__main__':
                     atlas_space = atlas_space, atlas = atlas, maps = maps, rois = atlas)
         
     
-    # tract_segments = ['T1', 'WM_mod']
-    # tract_folders = [f'{space}_T1', f'{space}_WM']
-    # for t_segment, t_folder in zip(tract_segments, tract_folders):
-    #     lme_results(group = 'patients', p_df = patients_df, segment = t_segment, folder = t_folder, 
-    #         label_image = label_image, region_names = region_names, rois = roi_tract)
-    #     lme_results(group = 'controls', p_df = controls_df, segment = t_segment, folder = t_folder,
-    #                 label_image = label_image, region_names = region_names, rois = roi_tract)
+    tract_segments = ['T1', 'WM_mod']
+    tract_folders = [f'{space}_T1', f'{space}_WM']
+    for t_segment, t_folder in zip(tract_segments, tract_folders):
+        lme_results(group = 'patients', p_df = patients_df, segment = t_segment, folder = t_folder, 
+            label_image = label_image, region_names = region_names, rois = roi_tract)
+        lme_results(group = 'controls', p_df = controls_df, segment = t_segment, folder = t_folder,
+                    label_image = label_image, region_names = region_names, rois = roi_tract)
