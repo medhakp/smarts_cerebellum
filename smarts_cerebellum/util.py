@@ -9,12 +9,14 @@ import smarts_cerebellum.globals as gl
 def preprocess_tract_df(df, tract = 'CST'):
     # cut dataframe: patients left, right; controls bilateral tract (e.g. CST)
     patients = df[df.isPatient == 1]
-    controls = df[df.isPatient == 0]
+    controls = df[df.isPatient == 0].copy()
 
     r_patients = np.array(df[(df.isPatient == 1) & (df.regionname == f'right_{tract}')]['mean'])
     l_patients = np.array(df[(df.isPatient == 1) & (df.regionname == f'left_{tract}')]['mean'])
     
-    controls_bilat = controls.groupby('subj_id').agg({'mean': 'mean'}).reset_index()
+
+    controls['region_bilat'] = controls.regionname.str[0]
+    controls_bilat = controls.groupby(['subj_id', 'region_bilat']).agg({'mean': 'mean'}).reset_index()
     controls_bilat['regionname'] = f'bilat_{tract}'
     controls_bilat['isPatient'] = 0
     
