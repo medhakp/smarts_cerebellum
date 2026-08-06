@@ -42,6 +42,7 @@ def mean_image_right(group,
                 subj_path = f'{subj_dir}/{subj}_{space}_{segment}{metric}.nii.gz'
         if not Path(subj_path).exists():
             continue
+        
         subj_paths.append(subj_path)
 
         subj_img = nib.load(subj_path)
