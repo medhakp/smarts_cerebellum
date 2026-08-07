@@ -7,6 +7,8 @@ import re
 import smarts_cerebellum.globals as gl
 from pathlib import Path
 
+# @Authors: Joern, Marco
+
 def find_weeks(SID):
 
     # @Marco
