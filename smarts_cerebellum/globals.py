@@ -15,3 +15,15 @@ rois = {'Nettekoven2024': ['M1', 'M2', 'M3', 'M4',
                            'A1', 'A2', 'A3', 
                            'D1', 'D2', 'D3', 'D4', 
                            'S1', 'S2', 'S3', 'S4', 'S5']}
+
+# consistent font sizes
+import matplotlib.pyplot as plt
+figure_settings = {
+    'axes.titlesize': 11,
+    'axes.labelsize': 9,
+    'xtick.labelsize': 8,
+    'ytick.labelsize': 8,
+    'legend.fontsize': 9,
+    'figure.titlesize': 12
+}
+plt.rcParams.update(figure_settings)
