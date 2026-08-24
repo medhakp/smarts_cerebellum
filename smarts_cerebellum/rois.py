@@ -54,32 +54,69 @@ def left_right_roi(tract_path, og_label, lr_labels):
     lr_tract = nib.Nifti1Image(tract_arr, tract.affine, tract.header)
     return lr_tract
 
+def cut_roi(roi_path, z_start, z_end):
+    """
+    cuts ROI based on z-coordinates
+    Usage: cutting CST tract into midbrain, pons, medulla
+    """
+    roi = nib.load(roi_path)
 
-# macros
-roi_path = f'{gl.baseDir}/ROI/xtract-tract-atlases-maxprob5-1mm.nii.gz'
-template_path = f'{gl.baseDir}/ROI/tpl-MNI152NLin2009cSymC_T1w.nii'
+    # world coordinates
+    i, j, k = np.indices(roi.shape)
+    x,y,z = nt.affine_transform(i, j, k, roi.affine)
+    roi_arr = nt.sample_image(roi, x, y,z, interpolation = 0) # use nearest-neighbour for discrete values
 
-#____________________
-# make cerebellum CST ROI in MNISym (MNISymC.CST)
-# cst_vals = [14, 15]
-# save_name = 'MNISymC.CST'
+    cut_arr = np.zeros(roi_arr.shape)
+    cut_arr[:,:, z_start:z_end+1] = roi_arr[:,:, z_start:z_end+1]
 
-# cereb_tract = roi_in_template(cst_vals, roi_path, template_path)
+    # avoid rounding/floating points in tract labels: round up and save array vals as int
+    cut_arr = np.ceil(cut_arr).astype(int)
+
+    cut_img = nib.Nifti1Image(cut_arr, affine = roi.affine, header = roi.header)
+    return cut_img
+
+
+# # perhaps these can be moved to scripts?
+
+# # macros
+# roi_path = f'{gl.baseDir}/ROI/xtract-tract-atlases-maxprob5-1mm.nii.gz'
+# template_path = f'{gl.baseDir}/ROI/tpl-MNI152NLin2009cSymC_T1w.nii'
+
+# #____________________
+# # make cerebellum CST ROI in MNISym (MNISymC.CST)
+# # cst_vals = [14, 15]
+# # save_name = 'MNISymC.CST'
+
+# # cereb_tract = roi_in_template(cst_vals, roi_path, template_path)
+# # nib.save(cereb_tract, f'{gl.baseDir}/ROI/{save_name}.nii')
+
+
+# #____________________
+# # make cerebellar CST for middle cerebellar peduncle
+# mcp_vals = [26]
+# save_name = 'MNISymC.MCP'
+
+# cereb_tract = roi_in_template(mcp_vals, roi_path, template_path)
 # nib.save(cereb_tract, f'{gl.baseDir}/ROI/{save_name}.nii')
 
+# #______________
+# # get left, right MCP tract separately
+# tract_path = f'{gl.baseDir}/ROI/MNISymC.MCP.nii'
+# og_label = 26 # label of tract - assumed one value
+# lr_labels = [4,3] # right = 4, left = 3
+# lr_tract = left_right_roi(tract_path, og_label, lr_labels)
+# nib.save(lr_tract, tract_path)
 
-#____________________
-# make cerebellar CST for middle cerebellar peduncle
-mcp_vals = [26]
-save_name = 'MNISymC.MCP'
+import os
+# cut CST ROIs
+    # midbrain: 78-50; pons: 49-20; medulla: 19-0
+cst_roi = os.path.join(gl.baseDir, 'ROI', 'MNISymC.CST.nii')
 
-cereb_tract = roi_in_template(mcp_vals, roi_path, template_path)
-nib.save(cereb_tract, f'{gl.baseDir}/ROI/{save_name}.nii')
+midbrain_img = cut_roi(cst_roi, 50, 77)
+nib.save(midbrain_img, f'{gl.baseDir}/ROI/MNISymC.CST.midbrain.nii')
 
-#______________
-# get left, right MCP tract separately
-tract_path = f'{gl.baseDir}/ROI/MNISymC.MCP.nii'
-og_label = 26 # label of tract - assumed one value
-lr_labels = [4,3] # right = 4, left = 3
-lr_tract = left_right_roi(tract_path, og_label, lr_labels)
-nib.save(lr_tract, tract_path)
+pons_img = cut_roi(cst_roi, 20, 49)
+nib.save(pons_img, f'{gl.baseDir}/ROI/MNISymC.CST.pons.nii')
+
+medulla_img = cut_roi(cst_roi, 0, 19)
+nib.save(medulla_img, f'{gl.baseDir}/ROI/MNISymC.CST.medulla.nii')
