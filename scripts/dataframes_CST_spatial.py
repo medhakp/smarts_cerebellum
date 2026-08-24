@@ -16,8 +16,8 @@ if __name__=='__main__':
     #param = '_slope'
     param = '' # for just normalized images
 
-    # if summarizing normalized images: param = '', [fcn_call] use_weeks = True, folder = folder
-    # if summarizing slope images: param = '_slope', [fcn call] use_weeks = False (or leave out), folder = 'regression'
+    # if summarizing normalized images: param = '', [fcn_call] use_weeks = True, folder = folder, p_df = p_df (when use_weeks = True)
+    # if summarizing slope images: param = '_slope', [fcn call] use_weeks = False (or leave out), folder = 'regression', p_df = p_df_w0 (when use_weeks = False)
     
     levels = ['midbrain', 'pons', 'medulla']
 
@@ -28,7 +28,8 @@ if __name__=='__main__':
         for segment, folder in zip(segments, folders):
             #folder = 'regression'
             df = make_dataframe_atlas_space(
-                p_df=p_df_w0,
+                #p_df=p_df_w0,
+                p_df = p_df,
                 #folder = 'regression',
                 folder = folder,
                 region_names= region_names,
