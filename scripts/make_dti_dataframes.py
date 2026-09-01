@@ -35,6 +35,7 @@ def subj_dti_df(subj_id, week):
     df['metric'] = df['Image'].str.extract(r'\\([^\\]+)\.dat$') # get metric (from image name, using re method)
     df['subj_id'] = subj_id
     df['week'] = week
+    df['week_num'] = df['week'].str.extract(r'(\d+)') # get numeric values
 
     return df
 
@@ -51,5 +52,5 @@ if __name__ == '__main__':
             dfs.append(df)
 
         all_df = pd.concat(dfs, ignore_index = True)
-        
+
     all_df.to_csv(os.path.join(gl.baseDir, 'DTI', 'JHU_MNI_DTI.tsv'), sep = '\t', index = False)
