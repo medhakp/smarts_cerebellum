@@ -108,7 +108,7 @@ def week_design_matrix(p_weeks):
 
 def regression_week(reference_img, p_paths, p_weeks):
     """
-    Voxel-wise MLR over multiple weeks.
+    Voxel-wise regression over multiple weeks.
     """
 
     # load reference image.

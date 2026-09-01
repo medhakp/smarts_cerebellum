@@ -17,7 +17,7 @@ For files (subj-week) that have been (a) full-image coregistered, (b) normalized
 import pandas as pd
 import nibabel as nib
 
-from scripts import regression
+from scripts import voxelwise_regression
 import smarts_cerebellum.globals as gl
 from smarts_cerebellum import mirror_lesion, template_overall_image, make_summarized_dataframe_subj
 
@@ -88,7 +88,7 @@ def regression_MNISym_coreg(segment):
 
         print(f"Regression on {subj} with {segment} \n")
 
-        intercept_img, slope_img = regression.perform_regression_week(subj_id = subj,
+        intercept_img, slope_img = voxelwise_regression.perform_regression_week(subj_id = subj,
                             reference_img = ref_img
                             )
         

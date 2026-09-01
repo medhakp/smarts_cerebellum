@@ -8,7 +8,7 @@ import pandas as pd
 import nibabel as nib
 
 import smarts_cerebellum.globals as gl
-from scripts import regression
+from scripts import voxelwise_regression
 
 from pathlib import Path
 
@@ -34,7 +34,7 @@ def regression_native_coreg(segment):
 
         print(f"Regression (native coreg) on {subj} with {segment} \n")
 
-        intercept_img, slope_img = regression.perform_regression_week(subj_id = subj,
+        intercept_img, slope_img = voxelwise_regression.perform_regression_week(subj_id = subj,
                             reference_img = ref_img
                             )
         
