@@ -44,4 +44,5 @@ if __name__ == '__main__':
             if result is not None:
                 results.append(result)
     all_results = pd.concat(results, ignore_index = True)
-    all_results.to_csv(os.path.join(gl.baseDir, 'DTI', 'regression_DTI.tsv'), sep = '\t')
+    all_results['hemisphere'] = all_results['tract'].str[-1]
+    all_results.to_csv(os.path.join(gl.baseDir, 'DTI', 'regression_DTI.tsv'), sep = '\t', index = False)
