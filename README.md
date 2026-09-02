@@ -47,4 +47,17 @@ A pipeline for processing anatomicals, using mainly SUITPy and SPM12
   **4. Volume modulation**
 
   Images of the segments normalised to a template will have voxel values denoting the probability of that segment in a given voxel. Modulated volume images can be used to analyse volume in template space.
-  
+
+<img width="2928" height="8192" alt="image_processing" src="https://github.com/user-attachments/assets/bbb5b508-302f-480c-98da-4951e75c7f27" />
+
+
+## Regression analysis of anatomicals
+
+We performed a voxel-wise linear regression to see the average change over a year within individuals, and used a linear mixed effects (LME) model to see the time course. These regressions are performed on the T1-intensity (normalised to MNISymC), and on the segmentations fro WM, GM, and CSF (modulated volumes).
+
+**Voxel-wise linear regression**: average change over time in an individual; run with `voxelwise_regression.py`. Produces two images per subject: an intercept image, and a slope image (showing the average change). Must have images from at least two weeks. These images can then be summarized into a mean or median slope image within each group (patients, controls) using `slope_summary_img.py`. We can also look at the mean slope in a given ROI (e.g. cerebellar ROIs or the CST): use `dataframes_cerebellum.py` for cerebellar ROIs and `dataframes_CST.py` for the CST (or other WM tracts).
+
+**lme**: time course for change; run wtih `roi_lme.py`. Model is fit separately for patients and controls to the mean T1 intensity (normalised T1) or segment volume (modulated WM, GM) for a given ROI.
+
+<img width="4918" height="3548" alt="regression" src="https://github.com/user-attachments/assets/d938cbb1-a149-4b42-9321-dde401d3999b" />
+
