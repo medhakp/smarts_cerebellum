@@ -48,7 +48,7 @@ A pipeline for processing anatomicals, using mainly SUITPy and SPM12
 
   Images of the segments normalised to a template will have voxel values denoting the probability of that segment in a given voxel. Modulated volume images can be used to analyse volume in template space.
 
-<img width="2928" height="8192" alt="image_processing" src="https://github.com/user-attachments/assets/bbb5b508-302f-480c-98da-4951e75c7f27" />
+<img width="2876" height="8192" alt="image_processing" src="https://github.com/user-attachments/assets/f07115dd-f554-469f-a8cf-7274a0721ae5" />
 
 
 ## Regression analysis of anatomicals
@@ -59,5 +59,5 @@ We performed a voxel-wise linear regression to see the average change over a yea
 
 **lme**: time course for change; run wtih `roi_lme.py`. Model is fit separately for patients and controls to the mean T1 intensity (normalised T1) or segment volume (modulated WM, GM) for a given ROI.
 
-<img width="4918" height="3548" alt="regression" src="https://github.com/user-attachments/assets/d938cbb1-a149-4b42-9321-dde401d3999b" />
+<img width="4918" height="3548" alt="regression" src="https://github.com/user-attachments/assets/9e23007a-5d55-474c-a5fe-d333e497956f" />
 
