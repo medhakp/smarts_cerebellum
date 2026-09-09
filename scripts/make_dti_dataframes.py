@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import smarts_cerebellum.globals as gl
 
+p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t') # find LesionSide
 
 def _subj_week_loop(df):
     for i in range(0, df.shape[0]):
@@ -16,8 +17,8 @@ def _subj_week_loop(df):
         yield subj_id, week
 
 
+
 def subj_dti_df(subj_id, week):
-    # Claude helped
     path = os.path.join(gl.baseDir, 'DTI', subj_id, week)
     file = 'JHU_MNI_SS_WMPM_TypeII_ver2.1_dti.txt'
     file_path = os.path.join(path, file)
@@ -36,6 +37,14 @@ def subj_dti_df(subj_id, week):
     df['subj_id'] = subj_id
     df['week'] = week
     df['week_num'] = df['week'].str.extract(r'(\d+)') # get numeric values
+    
+    # add lesion side - note that some patients with DTI are not in the anatomical p_df
+    left_patients = p_df[p_df.LesionSide == 'left ']['subj_id'].unique()
+    right_patients = p_df[p_df.LesionSide == 'right']['subj_id'].unique()
+    controls = p_df[p_df.LesionSide == 'none ']['subj_id'].unique()
+    df.loc[df.subj_id.isin(left_patients), 'LesionSide'] = 'left '
+    df.loc[df.subj_id.isin(right_patients), 'LesionSide'] = 'right'
+    df.loc[df.subj_id.isin(controls), 'LesionSide'] = 'none '
 
     return df
 
