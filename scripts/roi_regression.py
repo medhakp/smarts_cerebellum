@@ -45,4 +45,13 @@ if __name__ == '__main__':
                 results.append(result)
     all_results = pd.concat(results, ignore_index = True)
     all_results['hemisphere'] = all_results['tract'].str[-1]
+
+    left_patients = pred_df[pred_df.LesionSide == 'left ']['subj_id'].unique()
+    right_patients = pred_df[pred_df.LesionSide == 'right']['subj_id'].unique()
+    controls = pred_df[pred_df.LesionSide == 'none']['subj_id'].unique()
+
+    all_results.loc[all_results.subj_id.isin(left_patients), 'LesionSide'] = 'left '
+    all_results.loc[all_results.subj_id.isin(right_patients), 'LesionSide'] = 'right'
+    all_results.loc[all_results.subj_id.isin(controls), 'LesionSide'] = 'none'
+
     all_results.to_csv(os.path.join(gl.baseDir, 'DTI', 'regression_DTI.tsv'), sep = '\t', index = False)
