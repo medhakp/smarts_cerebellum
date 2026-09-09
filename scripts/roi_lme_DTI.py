@@ -31,3 +31,27 @@ right_y_df = y_df[y_df.LesionSide == 'right']
 
 lme_roi(group = 'patients_left', y_df = left_y_df, rois = tracts)
 lme_roi(group = 'patients_right', y_df = right_y_df, rois = tracts)
+
+
+# assign sides, etc.
+left = pd.read_csv(os.path.join(gl.baseDir, 'DTI', 'patients_left_lme_DTI.tsv'), sep = '\t')
+left['Week'] = left['week'].str.extract(r'(\d+)') # get numeric values
+left['region_bilat'] = left['regionname'].str[:3]
+left['LesionSide'] = 'left '
+
+left.loc[(left.LesionSide == 'left ') & (left.regionname.str[-1] == 'L'), 'side'] = 'ipsilesional'
+left.loc[(left.LesionSide == 'left ') & (left.regionname.str[-1] == 'R'), 'side'] = 'contralesional'
+
+left.to_csv(os.path.join(gl.baseDir, 'DTI', f'patients_left_lme_DTI.tsv'), sep = '\t', index = False)
+
+
+right = pd.read_csv(os.path.join(gl.baseDir, 'DTI', 'patients_right_lme_DTI.tsv'), sep = '\t')
+right['Week'] = right['week'].str.extract(r'(\d+)') # get numeric values
+right['region_bilat'] = right['regionname'].str[:3]
+right['LesionSide'] = 'right'
+
+right.loc[(right.LesionSide == 'right') & (right.regionname.str[-1] == 'L'), 'side'] = 'contralesional'
+right.loc[(right.LesionSide == 'right') & (right.regionname.str[-1] == 'R'), 'side'] = 'ipsilesional'
+
+right.to_csv(os.path.join(gl.baseDir, 'DTI', f'patients_right_lme_DTI.tsv'), sep = '\t', index = False)
+
