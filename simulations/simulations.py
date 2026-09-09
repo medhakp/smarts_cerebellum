@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from scripts.roi_lme import run_lme, week_betas
+from smarts_cerebellum.roi_lme import run_lme, week_betas
 
 regions = ['region1']
 weeks = ['Week[T.4]', 'Week[T.12]', 'Week[T.24]', 'Week[T.52]']

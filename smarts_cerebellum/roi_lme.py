@@ -6,11 +6,6 @@ import smarts_cerebellum.globals as gl
 from smarts_cerebellum import predictors_df as pred_df
 
 
-space = 'MNISymC'
-
-weeks = ['Week[T.4]', 'Week[T.12]', 'Week[T.24]', 'Week[T.52]']
-
-
 def _fe_results_df(model):
 
     fe = model.fe_params
@@ -79,7 +74,9 @@ def lme_anat(group,
                 label_image = None,
                 region_names = None,
                 rois = None,
-                space = space):
+                space = None):
+        
+        # makes predictors dataframe
         
         results = []
         y_df = pred_df.response_df(p_df = p_df, folder = folder,segment = segment,
@@ -121,72 +118,3 @@ def lme_roi(group, y_df, rois, metric = 'FaMap'):
         }
     result['Week'] = result['week'].map(lme_x_dict)
     result.to_csv(os.path.join(gl.baseDir, 'DTI', f'{group}_lme_DTI.tsv'), sep = '\t')
-
-
-# run for cerebellar atlas (e.g. Diedrichsen_2009 anatomical map)
-if __name__ == '__main__':
-
-    # DTI
-    y_df = pd.read_csv(os.path.join(gl.baseDir, 'DTI', 'JHU_MNI_DTI.tsv'), sep = '\t', low_memory = False) # warning: 2 diff dtypes
-    controls = ['CUP_1001', 'CUP_1002', 'JHP_1001', 'JHP_1002', 'JHP_1004']
-    y_df = y_df[~y_df.subj_id.isin(controls)]
-
-    # some minor changes to make it match column names of anat
-    y_df.rename(columns = {'Object': 'regionname', 'week': 'Week', 'Mean': 'mean'}, inplace = True)
-    
-    y_df = y_df[y_df.metric == 'FaMap']
-    y_df = y_df.copy()
-
-    tracts = ['CST_L', 'CST_R', 'SCP_L', 'SCP_R','MCP_L', 'MCP_R', 'ICP_L', 'ICP_R']
-    metric = 'FaMap'
-    lme_roi(group = 'patients', y_df = y_df, rois = tracts)
-
-    # anatomicals
-    # p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
-    # patients_df = p_df[p_df.isPatient == 1]
-    # controls_df = p_df[p_df.isPatient == 0]
-
-    # # cerebellar atlas
-    # atlas_space = 'MNISym'
-    # atlas = 'Nettekoven_2024'
-    # maps = 'atl-NettekovenSym32'
-
-    # # custom ROI
-    # roi_tract = 'CST'
-    # label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{roi_tract}.nii')
-    # region_names = [''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
-
-
-    # cereb_segments = ['T1', 'GM_mod']
-    # cereb_folders = [f'{space}_T1', f'{space}_GM']
-
-    # for c_segment, c_folder in zip(cereb_segments, cereb_folders):
-    #     lme_anat(group = 'patients', p_df = patients_df, segment = c_segment, folder = c_folder, 
-    #                 atlas_space = atlas_space, atlas = atlas, maps = maps, rois = atlas)
-    #     lme_anat(group = 'controls', p_df = controls_df, segment = c_segment, folder = c_folder,
-    #                 atlas_space = atlas_space, atlas = atlas, maps = maps, rois = atlas)
-        
-    
-    # tract_segments = ['T1', 'WM_mod']
-    # tract_folders = [f'{space}_T1', f'{space}_WM']
-    # for t_segment, t_folder in zip(tract_segments, tract_folders):
-    #     lme_anat(group = 'patients', p_df = patients_df, segment = t_segment, folder = t_folder, 
-    #         label_image = label_image, region_names = region_names, rois = roi_tract)
-    #     lme_anat(group = 'controls', p_df = controls_df, segment = t_segment, folder = t_folder,
-    #                 label_image = label_image, region_names = region_names, rois = roi_tract)
-
-    # custom ROI
-    # roi_tract = 'CST'
-    # levels = ['midbrain', 'pons', 'medulla']
-
-    # tract_segments = ['WM_mod']
-    # tract_folders = [f'{space}_WM']
-
-    # for level in levels:
-    #     label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{roi_tract}.{level}.nii')
-    #     region_names = [''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
-
-    #     for t_segment, t_folder in zip(tract_segments, tract_folders):
-    #         lme_anat(group = 'patients', p_df = patients_df, segment = t_segment, folder = t_folder, label_image = label_image, region_names = region_names, rois = f'{roi_tract}_{level}')
-    #         lme_anat(group = 'controls', p_df = controls_df, segment = t_segment, folder = t_folder, label_image = label_image, region_names = region_names, rois = f'{roi_tract}_{level}')
-
