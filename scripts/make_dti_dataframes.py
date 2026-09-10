@@ -49,6 +49,31 @@ def subj_dti_df(subj_id, week):
     return df
 
 
+def flip_lesion_dti(df):
+    """
+    All lesions should be on the right side. So, finds those with left lesion, and "flips" the lesion by assigning left ROIs to right ROIs, and right ROIs to left ROIs.
+    Analogous to image flipping done before.
+    """
+    dfs = []
+    for subj in df.subj_id.unique():
+        subj_df = df[df.subj_id == subj].copy()
+        if subj_df.LesionSide.values[0] == 'left ':
+            
+            subj_df['Object'] = subj_df['Object'].str.replace(r'L$', 'T', regex = True) # need to add "regex = True"
+            subj_df['Object'] = subj_df['Object'].str.replace(r'R$', 'L', regex = True)
+            subj_df['Object'] = subj_df['Object'].str.replace(r'T$', 'R', regex = True)
+            subj_df['is_flipped'] = 1 # lesion flipped
+        else:
+            subj_df['is_flipped'] = 0 # lesion not flipped
+        
+        dfs.append(subj_df)
+
+    all_dfs = pd.concat(dfs, ignore_index = True)
+    
+    return all_dfs
+
+
+
    
 if __name__ == '__main__':
     p_dti = pd.read_excel(os.path.join(gl.baseDir, 'DTI', 'patient_list.xlsx'), usecols = range(5)) # only need the first 5 cols
@@ -61,5 +86,7 @@ if __name__ == '__main__':
             dfs.append(df)
 
         all_df = pd.concat(dfs, ignore_index = True)
+        all_df_flip = flip_lesion_dti(all_df)
 
-    all_df.to_csv(os.path.join(gl.baseDir, 'DTI', 'JHU_MNI_DTI.tsv'), sep = '\t', index = False)
+    all_df_flip.to_csv(os.path.join(gl.baseDir, 'DTI', 'JHU_MNI_DTI_flip.tsv'), sep = '\t', index = False)
+    # if unflipped dataframes: commend out "all_df_flip = flip_lesion_dti(all_df)",and save with "all_df" to_csv
