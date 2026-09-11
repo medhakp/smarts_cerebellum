@@ -88,5 +88,8 @@ if __name__ == '__main__':
         all_df = pd.concat(dfs, ignore_index = True)
         all_df_flip = flip_lesion_dti(all_df)
 
+        # exclude subjs without LesionSide
+        all_df_flip = all_df_flip[~all_df_flip.subj_id.isin(gl.bad_dti)]
+
     all_df_flip.to_csv(os.path.join(gl.baseDir, 'DTI', 'JHU_MNI_DTI_flip.tsv'), sep = '\t', index = False)
     # if unflipped dataframes: commend out "all_df_flip = flip_lesion_dti(all_df)",and save with "all_df" to_csv

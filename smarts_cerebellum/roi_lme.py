@@ -101,7 +101,7 @@ def lme_anat(group,
         result['Week'] = result['week'].map(lme_x_dict)
         result.to_csv(os.path.join(gl.baseDir, 'lme', f'{group}_{space}_{segment}_{rois}_lme.tsv'), sep = '\t')
 
-def lme_roi(group, y_df, rois, metric = 'FaMap'):
+def lme_roi(group, y_df, rois, imaging = 'DTI', metric = 'FaMap'):
     results = []
     y_df = y_df[y_df.regionname.isin(rois)]
     y_df = y_df[y_df.metric == metric]
@@ -117,4 +117,4 @@ def lme_roi(group, y_df, rois, metric = 'FaMap'):
             'Week[52]': 52
         }
     result['Week'] = result['week'].map(lme_x_dict)
-    result.to_csv(os.path.join(gl.baseDir, 'DTI', f'{group}_lme_DTI.tsv'), sep = '\t')
+    result.to_csv(os.path.join(gl.baseDir, imaging, f'{group}_lme_{imaging}.tsv'), sep = '\t')

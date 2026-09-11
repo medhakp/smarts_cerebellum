@@ -32,20 +32,22 @@ def roi_regression(pred_df, subj_id, tract='CST_R', metric = 'FaMap'):
 
 
 if __name__ == '__main__':
-    pred_df = pd.read_csv(os.path.join(gl.baseDir, 'DTI', 'JHU_MNI_DTI.tsv'), sep = '\t', low_memory = False) # warning: 2 diff dtypes
+    pred_df = pd.read_csv(os.path.join(gl.baseDir, 'DTI', 'JHU_MNI_DTI_flip.tsv'), sep = '\t', low_memory = False) # warning: 2 diff dtypes
 
     tracts = ['CST_L', 'CST_R', 'SCP_L', 'SCP_R','MCP_L', 'MCP_R', 'ICP_L', 'ICP_R']
-    metric = 'FaMap'
+    metrics = ['FaMap']
 
     results = []
     for tract in tracts:
-        for subj in pred_df.subj_id.unique():
-            result = roi_regression(pred_df, subj_id = subj, tract = tract, metric = metric)
-            if result is not None:
-                results.append(result)
+        for metric in metrics:
+            for subj in pred_df.subj_id.unique():
+                result = roi_regression(pred_df, subj_id = subj, tract = tract, metric = metric)
+                if result is not None:
+                    results.append(result)
     all_results = pd.concat(results, ignore_index = True)
     all_results['hemisphere'] = all_results['tract'].str[-1]
 
+    # add LesionSide to regression results (to those who have LesionSide available)_____
     left_patients = pred_df[pred_df.LesionSide == 'left ']['subj_id'].unique()
     right_patients = pred_df[pred_df.LesionSide == 'right']['subj_id'].unique()
     controls = pred_df[pred_df.LesionSide == 'none']['subj_id'].unique()
@@ -53,5 +55,6 @@ if __name__ == '__main__':
     all_results.loc[all_results.subj_id.isin(left_patients), 'LesionSide'] = 'left '
     all_results.loc[all_results.subj_id.isin(right_patients), 'LesionSide'] = 'right'
     all_results.loc[all_results.subj_id.isin(controls), 'LesionSide'] = 'none'
+    #___________________
 
     all_results.to_csv(os.path.join(gl.baseDir, 'DTI', 'regression_DTI.tsv'), sep = '\t', index = False)
