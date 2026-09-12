@@ -38,10 +38,21 @@ def subj_dti_df(subj_id, week):
     df['week'] = week
     df['week_num'] = df['week'].str.extract(r'(\d+)') # get numeric values
     
+          
+
+    return df
+
+
+def assign_side(df, p_df):
+    """
+    df = dataframe to assign side to
+    p_df = reference dataframe (contains info)
+    """
     # add lesion side - note that some patients with DTI are not in the anatomical p_df
     left_patients = p_df[p_df.LesionSide == 'left ']['subj_id'].unique()
     right_patients = p_df[p_df.LesionSide == 'right']['subj_id'].unique()
-    controls = p_df[p_df.LesionSide == 'none ']['subj_id'].unique()
+    #controls = p_df[p_df.LesionSide == 'none ']['subj_id'].unique()
+    controls = p_df[p_df.Centre.str[-1] == 'P']['subj_id'].unique()
     df.loc[df.subj_id.isin(left_patients), 'LesionSide'] = 'left '
     df.loc[df.subj_id.isin(right_patients), 'LesionSide'] = 'right'
     df.loc[df.subj_id.isin(controls), 'LesionSide'] = 'none '
@@ -52,10 +63,9 @@ def subj_dti_df(subj_id, week):
     df['region_bilat'] = df['Object'].str[:3]
     # all lesions flipped to the right
     df.loc[(df.isPatient == 1) & (df.Object.str[-1] == 'L'), 'side'] = 'contralesional'
-    df.loc[(df.isPatient == 1) & (df.Object.str[-1] == 'R'), 'side'] = 'ipsilesional'           
+    df.loc[(df.isPatient == 1) & (df.Object.str[-1] == 'R'), 'side'] = 'ipsilesional'
 
     return df
-
 
 def flip_lesion_dti(df):
     """
@@ -80,11 +90,9 @@ def flip_lesion_dti(df):
     
     return all_dfs
 
-
-
-   
 if __name__ == '__main__':
-    p_dti = pd.read_excel(os.path.join(gl.baseDir, 'DTI', 'patient_list.xlsx'), usecols = range(5)) # only need the first 5 cols
+    p_dti = pd.read_excel(os.path.join(gl.baseDir, 'DTI', 'patient_list.xlsx'), usecols = range(10)) # only need the first 5 cols
+    p_dti['subj_id'] = p_dti['Centre'].str.strip() + '_' + p_dti['ID'].astype(str)
 
     dfs = []
 
@@ -93,11 +101,14 @@ if __name__ == '__main__':
         if df is not None:
             dfs.append(df)
 
-        all_df = pd.concat(dfs, ignore_index = True)
-        all_df_flip = flip_lesion_dti(all_df)
+    all_df = pd.concat(dfs, ignore_index = True)
+    all_df = assign_side(df = all_df, p_df = p_dti)
+    all_df_flip = flip_lesion_dti(all_df)
 
-        # exclude subjs without LesionSide
-        all_df_flip = all_df_flip[~all_df_flip.subj_id.isin(gl.bad_dti)]
+    # exclude subjs without LesionSide
+    no_assigned_lesion = all_df_flip[all_df_flip.LesionSide.isna()]['subj_id'].unique()
+    all_df_flip = all_df_flip[~all_df_flip.subj_id.isin(no_assigned_lesion)]
 
-    all_df_flip.to_csv(os.path.join(gl.baseDir, 'DTI', 'JHU_MNI_DTI_flip.tsv'), sep = '\t', index = False)
-    # if unflipped dataframes: commend out "all_df_flip = flip_lesion_dti(all_df)",and save with "all_df" to_csv
+    
+    all_df_flip.to_csv(os.path.join(gl.baseDir, 'DTI', 'JHU_MNI_DTI_flip.tsv'), sep='\t', index=False)
+    

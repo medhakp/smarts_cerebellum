@@ -27,5 +27,3 @@ figure_settings = {
     'figure.titlesize': 12
 }
 plt.rcParams.update(figure_settings)
-
-bad_dti = ['CU_2284', 'CU_2738', 'JHU_2983', 'JHU_3208', 'JHU_3221'] # subjs with DTI but without anatomical (no LesionSide assigned) - exclude these
