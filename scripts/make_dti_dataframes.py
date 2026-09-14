@@ -87,6 +87,12 @@ def flip_lesion_dti(df):
         dfs.append(subj_df)
 
     all_dfs = pd.concat(dfs, ignore_index = True)
+
+    all_dfs['region_bilat'] = all_dfs['Object'].str[:3]
+
+    # all lesions flipped to the right - assign this correctly
+    all_dfs.loc[(all_dfs.isPatient == 1) & (all_dfs.Object.str[-1] == 'L'), 'side'] = 'contralesional'
+    all_dfs.loc[(all_dfs.isPatient == 1) & (all_dfs.Object.str[-1] == 'R'), 'side'] = 'ipsilesional'
     
     return all_dfs
 
