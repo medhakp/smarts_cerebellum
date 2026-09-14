@@ -1,10 +1,10 @@
 # Structural changes in the cerebellum following cortical stroke
 
-This project investigates structural changes to the cerebellum and brain stem following (sub)cortical stroke in N = 40 patients and N = 12 healthy controls. T1-weighted structural MRIs are taken of individuals over the course of 1 year, from within 2 weeks post-stroke to 52 weeks post-stroke (in patients) - healthy controls are also imaged at the same time points.
+This project investigates structural changes to the cerebellum and brain stem following (sub)cortical stroke in N = 40 patients and N = 12 healthy controls. T1-weighted structural MRIs are taken of individuals over the course of 1 year, from within 2 weeks post-stroke to 52 weeks post-stroke (in patients) - healthy controls are also imaged at the same time points. DTI-MRI was also taken at these time points, obtaining a grey-scale FA map.
 
 ## Image processing pipeline for T1w anatomicals
 
-A pipeline for processing anatomicals, using mainly SUITPy and SPM12
+A pipeline for processing anatomicals, using mainly SUITPy and SPM12, has been written.
 
 **Prerequisites**
 
@@ -47,21 +47,24 @@ A pipeline for processing anatomicals, using mainly SUITPy and SPM12
   **4. Volume modulation**
 
   Images of the segments normalised to a template will have voxel values denoting the probability of that segment in a given voxel. Modulated volume images can be used to analyse volume in template space.
+
+  
 ```mermaid
 
 flowchart TB
-    A[("folder: <b> anatomicals</b> <br>{subj}_{week}T1.nii <br> <i>native space anatomicals</i>")] --> P1["sc_anat.m: ANAT:coreg"]
-    P1 --> B[("<b> anatomicals</b> <br>{subj}{week}_T1.nii<br><i>full image coregistered native space anatomicals (affine updated)</i>")]
-    B --> P2["sc_anat.m ANAT:segment"] & P3["tissue_extractor.py - isolate"]
-    P2 --> C[("folder: <b>anatomicals</b><br> c1{subj}_{week}_T1.nii - <i>grey matter volume</i><br>c2{subj}_{week}_T1.nii - <i>white matter volume</i><br>c3{subj}_{week}_T1.nii - <i>cerebrospinal fluid volume</i>")]
-    P3 --> D[("{subj}_{week}_T1_cerebellum_dseg.nii.gz<br><i>cerebellar isolation (binary) mask</i>")]
-    D --> P4["tissue_extractor.py - transformation_file"] & F["tissue_extractor.py - reslice"]
-    P4 --> E[("folder: <b>MNISymC_trans</b><br>T1_to-MNI152NLin2009cSymC_mode-image_xfm.nii.gz<br><i>transformation files (to template: MNI Symmetric cerebellum (MNISymC))</i>")]
+    A[("<b> native space anatomicals</b> <br>{subj}_{week}T1.nii")] --> P1["scipts/sc_anat.m <br> ANAT:coreg()"]
+    P1 --> B[("<b>coregistered native space anatomicals</b> <br>{subj}{week}_T1.nii<br>")]
+    B --> P2["scripts/sc_anat.m ANAT:segment()"] & P3["scripts/tissue_extractor.py <br> isolate()"]
+    P2 --> C[("<b>grey matter volume image</b><br> c1{subj}_{week}_T1.nii<br> <b> white matter volume image </b> c2{subj}_{week}_T1.nii <br> <b>cerebrospinalfluid volume image </b> c3{subj}_{week}_T1.nii")]
+    
+    P3 --> D[("<b>cerebellar isolation mask</b> <br>{subj}_{week}_T1_cerebellum_dseg.nii.gz<br>")]
+    D --> P4["scripts/issue_extractor.py <br> transformation_file()"] & F["scripts/tissue_extractor.py <br> reslice()"]
+    P4 --> E[("<b>transformation files</b><br>T1_to-MNI152NLin2009cSymC_mode-image_xfm.nii.gz<br>")]
     C --> F
     E --> F
-    F --> G[("<b>MNISymC_T1</b><br>{subj}_{week}_MNISymC_T1.nii.gz<br><i>normalised T1 anatomical</i>")] & H[("<b>MNISymC_GM</b><br>{subj}_{week}_MNISymC_GM.nii.gz - <i>grey matter probability</i><br><b>MNISymC_WM</b><br>{subj}_{week}_MNISymC_WM.nii.gz - <i>white matter probability</i>")]
-    H --> P5["modulate_volume.py"]
-    P5 --> I[("<b>MNISymC_GM</b><br>{subj}_{week}_MNISymC_GM_mod.nii.gz - <i>modulated GM volume</i><br><b>MNISymC_WM</b><br>{subj}_{week}_MNISymC_WM.nii.gz - <i>modulated WM volume</i>")]
+    F --> G[("<b>normalised T1 anatomical</b><br>{subj}_{week}_MNISymC_T1.nii.gz<br>")] & H[("<b>grey matter probability</b><br>{subj}_{week}_MNISymC_GM.nii.gz <br><b>white matter probability</b><br>{subj}_{week}_MNISymC_WM.nii.gz")]
+    H --> P5["scripts/modulate_volume.py"]
+    P5 --> I[("<b>modulated GM volume</b><br>{subj}_{week}_MNISymC_GM_mod.nii.gz<br><b>modulated WM volume</b><br>{subj}_{week}_MNISymC_WM.nii.gz")]
 
      A:::nativeNode
      P1:::processNode
@@ -80,9 +83,10 @@ flowchart TB
     classDef nativeNode fill:#eff4ff,stroke:#a8bce0,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
     classDef templateNode fill:#f1ddf4,stroke:#ce9bd9,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
     classDef processNode fill:#f7f5e4,stroke:#e0b96a,stroke-width:1.5px,color:#333,font-family:monospace,font-size:12px
+
 ```
 
-## Regression analysis of anatomicals
+### Regression analysis of anatomicals
 
 We performed a voxel-wise linear regression to see the average change over a year within individuals, and used a linear mixed effects (LME) model to see the time course. These regressions are performed on the T1-intensity (normalised to MNISymC), and on the segmentations fro WM, GM, and CSF (modulated volumes).
 
@@ -90,18 +94,21 @@ We performed a voxel-wise linear regression to see the average change over a yea
 
 **lme**: time course for change; run wtih `roi_lme.py`. Model is fit separately for patients and controls to the mean T1 intensity (normalised T1) or segment volume (modulated WM, GM) for a given ROI.
 
-```mermaid
-flowchart TB
-    A[("{subj}_{week}_MNISymC_T1.nii.gz <br> <i>anatomicals for all weeks</i>")] --> P1["voxelwise_regression.py"]
-    B[("{subj}_{week}_MNISymC_WM_mod.nii.gz <br> <i>modulated WMV images for all weeks</i>")] --> P1
-    C[("{subj}_{week}_MNISymC_GM_mod.nii.gz <br> *modulated GMV images for all weeks*")] --> P1
-    P1 --> D[("{subj}_{week}_MNISymC_{segment}_{intercept/slope}.nii.gz <br> <i>intercept, slope images for given segment (T1, WM_mod, GM_mod)</i>")]
-    D --> P2["slope_summary_img.py"] & P3["dataframes_cerebellum.py"] & P4["dataframes_CST.py"]
-    P2 --> E[("{group}_MNISymC_{segment}_slope_mean.nii.gz <br> <i>mean slope image for group (patients, controls)</i>")]
-    P3 --> F@{ label: "summary_MNISymC_{atlas}_{segment}_slope.tsv <br> <i>tsv with mean slope in each cerebellar ROI for each subject in a given segment. We used the functional cerebellar atlas 'Nettekoven_2024' (symmetric, 32-region)</i>" }
-    P4 --> G[("summary_MNISymC_CST_{segment}_slope.tsv <br> <i>tsv with mean slope in CST for each subject</i>")]
+Analysis of the cerebellar cortex uses the functional parcellations of the cerebellum defined by the Nettekoven atlas [(Nettekoven et al., 2024)](https://doi.org/10.1038/s41467-024-52371-w).
 
-    F@{ shape: cylinder}
+```mermaid
+
+flowchart TB
+    A[("<b>normalised T1 anatomicals</b> {subj}_{week}_MNISymC_T1.nii.gz")] --> P1["scripts/voxelwise_regression.py"]
+    B[("<b>modulated WMV images</b> {subj}_{week}_MNISymC_WM_mod.nii.gz")] --> P1
+    C[("<b>modulated GMV images</b> {subj}_{week}_MNISymC_GM_mod.nii.gz")] --> P1
+    P1 --> D[("<b>slope images</b> {subj}_{week}_MNISymC_{segment}_slope.nii.gz")]
+    D --> P2["scripts/slope_summary_img.py"] & P3["scripts/dataframes_cerebellum.py"] & P4["scripts/dataframes_CST.py"]
+    P2 --> E[("<b>mean slope image </b>{group}_MNISymC_{segment}_slope_mean.nii.gz")]
+    P3 --> F[("<b>mean slope for ROIs in atlas </b>summary_MNISymC_{atlas}_{segment}_slope.tsv" )]
+    P4 --> G[("<b>mean slope in CST by hemisphere </b>summary_MNISymC_CST_{segment}_slope.tsv")]
+
+   
      A:::templateNode
      P1:::processNode
      B:::templateNode
@@ -116,4 +123,28 @@ flowchart TB
     classDef templateNode fill:#f1ddf4,stroke:#ce9bd9,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
     classDef processNode fill:#f7f5e4,stroke:#e0b96a,stroke-width:1.5px,color:#333,font-family:monospace,font-size:12px
 
+```
+
+## DTI analysis pipeline
+
+DTI images give grey-scale FA maps in JHU-MNI space; a white matter atlas (WMPM Type II) [(Mori et al., 2008)](https://doi.org/10.1016/j.neuroimage.2007.12.035) gives the following metrics in 189 WM ROIs: FaMap, trace, eigenvalues 1, 2, 3. FA Map means are analyzed using a linear regression for the average slope and an LME for time course.
+
+```mermaid
+flowchart TB
+    A[("<b>DTI metrics for each subj-week </b>{subj}/{week} <br>JHU_MNI_SS_WMPM_TypeII_ver2.1_dti.txt")] --> P1["scripts/make_dti_dataframes.py"]
+    P1 --> B[("<b>DTI metrics (right lesion flipped)</b> <br>JHU_MNI_DTI_flip.tsv<br>")]
+    B --> P2["scripts/roi_regression.py"] & P3["scripts/roi_lme_DTI.py"]
+    P2 --> C[("<b>FA slope</b> <br> regression_DTI.tsv")]
+    P3 --> D[("<b>FA time course</b> <br> patients_lme_DTI.tsv")]
+
+     A:::nativeNode
+     P1:::processNode
+     B:::nativeNode
+     P2:::processNode
+     P3:::processNode
+     C:::nativeNode
+     D:::nativeNode
+    classDef nativeNode fill:#f2fff2,stroke:#bbd7bc,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
+    classDef processNode fill:#f7f5e4,stroke:#e0b96a,stroke-width:1.5px,color:#333,font-family:monospace,font-size:12px
+    style A fill:#f2fff2,stroke:#bbd7bc
 ```
