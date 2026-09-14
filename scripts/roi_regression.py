@@ -9,7 +9,7 @@ def roi_regression(pred_df, subj_id, tract='CST_R', metric = 'FaMap'):
     pred_df = pred_df[pred_df.subj_id == subj_id]
     pred_df = pred_df[pred_df.metric == metric]
 
-    X = sm.add_constant(pred_df.week_num) # design matrix
+    X = sm.add_constant(pred_df.week) # design matrix
     Y = pred_df['Mean'] # response matrix
 
     # at least 2 weeks for regression

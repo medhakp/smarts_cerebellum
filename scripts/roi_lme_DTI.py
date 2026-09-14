@@ -9,7 +9,7 @@ def make_y_df():
     y_df = y_df[~y_df.subj_id.isin(controls)]
 
     # some minor changes to make it match column names of anat
-    y_df.rename(columns = {'Object': 'regionname', 'week': 'Week', 'Mean': 'mean'}, inplace = True) 
+    y_df.rename(columns = {'Object': 'regionname','Mean': 'mean'}, inplace = True) 
 
     return y_df
 
