@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 import smarts_cerebellum.globals as gl
 
-p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t') # find LesionSide
 
 def _subj_week_loop(df):
     for i in range(0, df.shape[0]):
