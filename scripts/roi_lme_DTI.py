@@ -18,7 +18,7 @@ def assign_sides(lme_df):
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
 
     lme_df['Week'] = lme_df['week'].str.extract(r'(\d+)') # get numeric values
-    lme_df['region_bilat'] = lme_df['regionname'].str[:3]
+    lme_df['region_bilat'] = lme_df.regionname.str.split('_', expand = True)[0]
 
 
     lme_df_patients = p_df[p_df.LesionSide == 'left ']['subj_id'].unique()

@@ -60,7 +60,7 @@ def assign_side(df, p_df):
     df.loc[~df.subj_id.isin(controls), 'isPatient'] = 1
     df.loc[df.subj_id.isin(controls), 'isPatient'] = 0
 
-    df['region_bilat'] = df['Object'].str[:3]
+    df['region_bilat'] = df.Object.str.split('_', expand = True)[0]
     # all lesions flipped to the right
     df.loc[(df.isPatient == 1) & (df.Object.str[-1] == 'L'), 'side'] = 'contralesional'
     df.loc[(df.isPatient == 1) & (df.Object.str[-1] == 'R'), 'side'] = 'ipsilesional'
