@@ -45,7 +45,7 @@ def _load_img_list(p_df, folder, subj, space, segment, param, use_weeks):
 
     p_df_s = p_df[p_df.subj_id==subj]
 
-    LesionSide = p_df_s.LesionSide.unique()
+    LesionSide = p_df_s.LesionSide.iloc[0] #LesionSide = p_df_s.LesionSide.unique()
         
     imgs = []
     if use_weeks:
