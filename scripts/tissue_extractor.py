@@ -98,7 +98,9 @@ def reslice(
             deformation,
             norm_save_path,
             space,
-            anat_dir
+            anat_dir,
+            native_img = None, # default provided
+            img_dir = None,
             ):
     """
     forward deformation: normalize images to space from transformation file
@@ -112,15 +114,22 @@ def reslice(
     }
     
     for subj, week in _subj_week_loop(df):
+        if img_dir == None:
+            img_dir = anat_dir
         # files required for normalization: img in native space, deformation file, isolation mask
-        native_path = f'{anat_dir}/{subj}/{week}/{tissue_dict[segment]}{subj}_{week}_T1.nii'
+        if native_img == None:
+            native_path = f'{img_dir}/{subj}/{week}/{tissue_dict[segment]}{subj}_{week}_T1.nii'
+        else:
+            native_path = os.path.join(img_dir, subj, week, native_img)
+
+
+
         deformation_path = f'{trans_path}/{subj}/{week}/{subj}_{week}_{deformation}'
         mask_path = f'{anat_dir}/{subj}/{week}/{subj}_{week}_T1_cerebellum_dseg.nii.gz'
 
         if not Path(native_path).is_file():
             print(f'{segment} path does not exist for {subj} in week {week}')
             continue
-
         if not Path(deformation_path).is_file():
             print(f'fwd def path does not exist for {subj} in week {week}')
             continue
@@ -142,27 +151,56 @@ def reslice(
 
 
 if __name__ == '__main__':
-    p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
+
+    # # for T1 anatomicals...
+    # p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
+    # anat_dir = os.path.join(gl.baseDir, 'anatomicals')
+
+    # template_space = 'MNI152NLin2009cSymC'
+    # trans_folder = os.path.join(gl.baseDir, 'MNISymC_trans') # folder to which transformation files are saved
+
+    # fwd_deformation = 'T1_to-MNI152NLin2009cSymC_mode-image_xfm.nii.gz'
+    # segments = ['T1', 'GM', 'WM', 'CSF']
+    # space_folder = 'MNISymC'
+    
+    # #isolate(p_df, anat_dir) # binary cerebellar isolation masks
+    # #transformation_files(p_df, anat_dir, trans_folder, template_space) # subj-week transformation files
+    
+    # for segment in segments:
+    #     segment_save_path = os.path.join(gl.baseDir, f'{space_folder}_{segment}')
+    #     reslice(p_df,
+    #             segment,
+    #             trans_path = trans_folder,
+    #             deformation = fwd_deformation,
+    #             norm_save_path = segment_save_path,
+    #             space = space_folder,
+    #             anat_dir = anat_dir
+    #             )
+
+
+
+    # for FA map (from DTI)...
+    fa_map_path = os.path.join('coreg_T1MNI_TP1', 'FaMap_dc_ss.nii')
     anat_dir = os.path.join(gl.baseDir, 'anatomicals')
-
+    img_dir = os.path.join(gl.baseDir, 'DTI')
+    p_df = pd.read_excel(os.path.join(gl.baseDir, 'DTI', 'patient_list.xlsx'), usecols = range(10))
+    
     template_space = 'MNI152NLin2009cSymC'
-    trans_folder = os.path.join(gl.baseDir, 'MNISymC_trans') # folder to which transformation files are saved
-
+    trans_folder = os.path.join(gl.baseDir, 'MNISymC_trans')
     fwd_deformation = 'T1_to-MNI152NLin2009cSymC_mode-image_xfm.nii.gz'
-    segments = ['T1', 'GM', 'WM', 'CSF']
+
     space_folder = 'MNISymC'
+    segment = 'FaMap'
+    segment_save_path = os.path.join(gl.baseDir, f'{space_folder}_{segment}')
+
+    reslice(df = p_df,
+            segment = segment,
+            trans_path = trans_folder,
+            deformation = fwd_deformation,
+            norm_save_path = segment_save_path,
+            space = space_folder,
+            anat_dir = anat_dir,
+            native_img = fa_map_path,
+            img_dir = img_dir
+            )
     
-    #isolate(p_df, anat_dir) # binary cerebellar isolation masks
-    #transformation_files(p_df, anat_dir, trans_folder, template_space) # subj-week transformation files
-    
-    for segment in segments:
-        segment_save_path = os.path.join(gl.baseDir, f'{space_folder}_{segment}')
-        reslice(p_df,
-                segment,
-                trans_path = trans_folder,
-                deformation = fwd_deformation,
-                norm_save_path = segment_save_path,
-                space = space_folder,
-                anat_dir = anat_dir
-                )
-   

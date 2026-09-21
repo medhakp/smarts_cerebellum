@@ -61,8 +61,9 @@ def flip_left_lesion(path,
 
 
 if __name__=='__main__':
-    p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
-    left_lesion_df = p_df[p_df.LesionSide == 'left ']
+    # for T1 anatomcials (regression slopes; normalized segment images; normalized T1 images)
+    # p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
+    # left_lesion_df = p_df[p_df.LesionSide == 'left ']
 
     """
     # flip regression slopes
@@ -71,6 +72,7 @@ if __name__=='__main__':
     segments = ['T1', 'WM_mod', 'GM_mod', 'CSF_mod'] # ran regression on modulated tissue volumes
     for segment in segments:
         flip_left_lesion(path, left_lesion_df, segment = segment, metric = '_slope')
+    """
     """
     # flip normalized segment images
     space = 'MNISymC'
@@ -82,3 +84,22 @@ if __name__=='__main__':
     # flip normalized T1 images
     t1_path = os.path.join(gl.baseDir, f'{space}_T1')
     flip_left_lesion(t1_path, left_lesion_df, segment = 'T1', metric = '', use_weeks = True)
+    """
+
+    # flip FaMaps
+    path = os.path.join(gl.baseDir, 'MNISymC_FaMap')
+    # just get the first row for each subject to get their lesion side
+    p_df = pd.read_excel(os.path.join(gl.baseDir, 'DTI', 'patient_list.xlsx'), usecols = range(10))
+    p_df['subj_id'] = p_df['Centre'].str.strip() + '_' + p_df['ID'].astype(str)
+    left_lesion_subjs = []
+    for subj in p_df.subj_id.unique():
+        subj_df = p_df[p_df.subj_id == subj]
+        lesion_side = subj_df['LesionSide'].iloc[0]
+        if lesion_side == 'left ': 
+            left_lesion_subjs.append(subj)
+
+    left_lesion_df = p_df[p_df.subj_id.isin(left_lesion_subjs)]
+
+    flip_left_lesion(path = path, left_lesion_df = left_lesion_df, segment = 'FaMap', metric = '', use_weeks = True)
+
+    

@@ -1,13 +1,11 @@
 import pandas as pd
 import os
-import smarts_cerebellum.globals as gl
-from smarts_cerebellum import make_nifti
-
-
-# AUTHOR: Marco Emanuele
-
+import numpy as np
 from pathlib import Path
 import nibabel as nib
+import smarts_cerebellum.globals as gl
+
+# AUTHOR: Marco Emanuele
 
 
 def img_2_nii(
@@ -90,6 +88,13 @@ def _subj_week_loop(df):
         # return each subj_id, week one at a time
         yield subj_id, week
 
+# images saved as 4D array; need them as 3D
+def _array_4d_to_3d(img_name):
+    img = nib.load(img_name)
+    arr = img.get_fdata()
+    arr_3d = np.squeeze(arr) # remove axis of dimension 1
+    img_3d = nib.Nifti1Image(arr_3d, img.affine)
+    return img_3d
 
 
 if __name__ == '__main__':
@@ -99,7 +104,19 @@ if __name__ == '__main__':
     for subj, week in _subj_week_loop(p_dti):
         try:
             input_dir = os.path.join(gl.baseDir, 'DTI', subj, week, 'coreg_T1MNI_TP1')
-            make_nifti.img_2_nii(input_dir = input_dir, recursive = False)
+            img_2_nii(input_dir = input_dir, recursive = False, overwrite = True)
+
         except NotADirectoryError:
             print(f"{input_dir} does not exist; skipping")
             continue
+
+    # #remove extra dimension (of size 1) (so that we can normalise later for just cerebellum - need to multiple by cerebellar mask with 3d array)
+    for subj, week in _subj_week_loop(p_dti):
+        image_dir = os.path.join(gl.baseDir, 'DTI', subj, week, 'coreg_T1MNI_TP1')
+        image = os.path.join(image_dir, 'FaMap_dc_ss.nii')
+        if not Path(image).exists():
+            continue
+        img_3d = _array_4d_to_3d(image)
+        nib.save(img_3d, image)
+
+    
