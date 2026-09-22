@@ -100,7 +100,7 @@ def reslice(
             space,
             anat_dir,
             native_img = None, # default provided
-            img_dir = None,
+            img_dir = None
             ):
     """
     forward deformation: normalize images to space from transformation file
@@ -117,12 +117,11 @@ def reslice(
         if img_dir == None:
             img_dir = anat_dir
         # files required for normalization: img in native space, deformation file, isolation mask
-        if native_img == None:
+        if segment in tissue_dict:
             native_path = f'{img_dir}/{subj}/{week}/{tissue_dict[segment]}{subj}_{week}_T1.nii'
         else:
-            native_path = os.path.join(img_dir, subj, week, native_img)
-
-
+            native_path = f'{img_dir}/{subj}/{week}/{subj}_{week}_{segment}.nii'
+        
 
         deformation_path = f'{trans_path}/{subj}/{week}/{subj}_{week}_{deformation}'
         mask_path = f'{anat_dir}/{subj}/{week}/{subj}_{week}_T1_cerebellum_dseg.nii.gz'
@@ -180,7 +179,6 @@ if __name__ == '__main__':
 
 
     # for FA map (from DTI)...
-    fa_map_path = os.path.join('coreg_T1MNI_TP1', 'FaMap_dc_ss.nii')
     anat_dir = os.path.join(gl.baseDir, 'anatomicals')
     img_dir = os.path.join(gl.baseDir, 'DTI')
     p_df = pd.read_excel(os.path.join(gl.baseDir, 'DTI', 'patient_list.xlsx'), usecols = range(10))
@@ -200,7 +198,6 @@ if __name__ == '__main__':
             norm_save_path = segment_save_path,
             space = space_folder,
             anat_dir = anat_dir,
-            native_img = fa_map_path,
             img_dir = img_dir
             )
     
