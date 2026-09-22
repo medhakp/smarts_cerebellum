@@ -18,9 +18,10 @@ function varargout = sc_anat(what, varargin)
         fprintf('Workdir not found. Mount or connect to server and try again.');
     end
     
-    anatomicalDir = 'anatomicals'; % anatomical files (individual space)
+    anatomicalDir = 'anatomicals'; % anatomical files (individual space) (T1)
+    dtiDir = 'DTI';
 
-    pinfo = dload(fullfile(baseDir,'participants_anat.tsv'));
+    pinfo = dload(fullfile(baseDir,'participants.tsv'));
     
     for i = 1:length(pinfo.ID)
         % get ID, center, week from each row
@@ -31,9 +32,14 @@ function varargout = sc_anat(what, varargin)
     
         % need to check if that row is for reference image; if yes, skip
         refT1 = pinfo.RefT1{i};
-        if strcmp(week, refT1)
-            continue % skips this row if row's T1 is the reference - compare the weeks
-        end
+
+        % don't skip ref week for DTI - reference is T1, so W0 DTI should
+        % also be coreg to refT1
+        %if strcmp(week, refT1)
+         %   continue % skips this row if row's T1 is the reference - compare the weeks
+        %end
+
+
 
         % now call function with params
         %vararginoptions(varargin,{'sn', sn, 'week', week, 'centre', centre})
@@ -66,7 +72,8 @@ function varargout = sc_anat(what, varargin)
                 
                 % (2) Run automated co-registration to register bias-corrected meanimage to anatomical image
                 
-                srcFile = fullfile(baseDir, anatomicalDir, subj_id, week, sprintf('%s_%s_T1.nii', subj_id, week));
+                %srcFile = fullfile(baseDir, anatomicalDir, subj_id, week, sprintf('%s_%s_T1.nii', subj_id, week));
+                srcFile = fullfile(baseDir, dtiDir, subj_id, week, sprintf('%s_%s_FaMap.nii', subj_id, week));
                 refFile = fullfile(baseDir, anatomicalDir, subj_id, refT1, sprintf('%s_%s_T1.nii', subj_id, refT1));
             
                 %{

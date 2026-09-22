@@ -14,6 +14,7 @@ def img_2_nii(
     recursive=True,
     compress=False,
     overwrite=False,
+    output_name = None,
     ):
     """Convert every .img file in a folder to a single-file .nii.
 
@@ -29,6 +30,9 @@ def img_2_nii(
         If True, write .nii.gz instead of .nii.
     overwrite : bool
         If True, overwrite existing output files instead of skipping them.
+
+    output_name: str
+        Choose custom name for output file; if None, defaults to name of .img file
 
     Returns
     -------
@@ -57,7 +61,9 @@ def img_2_nii(
         rel_parent = img_path.parent.relative_to(input_dir)
         target_dir = out_base / rel_parent
         target_dir.mkdir(parents=True, exist_ok=True)
-        out_path = target_dir / (img_path.stem + ext)
+
+        stem = output_name if output_name else img_path.stem
+        out_path = target_dir / (stem + ext)
 
         if out_path.exists() and not overwrite:
             results.append((img_path, "skipped (already exists)"))
@@ -104,7 +110,9 @@ if __name__ == '__main__':
     for subj, week in _subj_week_loop(p_dti):
         try:
             input_dir = os.path.join(gl.baseDir, 'DTI', subj, week, 'coreg_T1MNI_TP1')
-            img_2_nii(input_dir = input_dir, recursive = False, overwrite = True)
+            output_dir = os.path.join(gl.baseDir, 'DTI', subj, week)
+            output_name = f'{subj}_{week}_FaMap'
+            img_2_nii(input_dir = input_dir, output_dir = output_dir, recursive = False, output_name = output_name)
 
         except NotADirectoryError:
             print(f"{input_dir} does not exist; skipping")
@@ -112,11 +120,10 @@ if __name__ == '__main__':
 
     # #remove extra dimension (of size 1) (so that we can normalise later for just cerebellum - need to multiple by cerebellar mask with 3d array)
     for subj, week in _subj_week_loop(p_dti):
-        image_dir = os.path.join(gl.baseDir, 'DTI', subj, week, 'coreg_T1MNI_TP1')
-        image = os.path.join(image_dir, 'FaMap_dc_ss.nii')
+        image_dir = os.path.join(gl.baseDir, 'DTI', subj, week)
+        image = os.path.join(image_dir, f'{subj}_{week}_FaMap.nii')
         if not Path(image).exists():
             continue
         img_3d = _array_4d_to_3d(image)
         nib.save(img_3d, image)
-
-    
+        
