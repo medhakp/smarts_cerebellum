@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import smarts_cerebellum.globals as gl
-from smarts_cerebellum.roi_lme import lme_anat
+from smarts_cerebellum.roi_lme import lme_main
 
 # FaMap
 p_df = pd.read_excel(os.path.join(gl.baseDir, 'DTI', 'patient_list.xlsx'), usecols = range(10))
@@ -16,5 +16,5 @@ region_names = [''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
 
 segment = 'FaMap'
 folder = f'{space}_{segment}'
-lme_anat(group = 'patients', p_df = p_df, segment = segment, folder = folder, space = 'MNISymC',
+lme_main(group = 'patients', p_df = p_df, segment = segment, folder = folder, space = 'MNISymC',
          label_image = label_image, region_names = region_names, rois = roi_tract)

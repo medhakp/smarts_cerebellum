@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import smarts_cerebellum.globals as gl
-from smarts_cerebellum.roi_lme import lme_anat
+from smarts_cerebellum.roi_lme import lme_main
 
 # anatomicals
 p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
@@ -21,8 +21,8 @@ cereb_segments = ['T1', 'GM_mod']
 cereb_folders = [f'{space}_T1', f'{space}_GM']
 
 for c_segment, c_folder in zip(cereb_segments, cereb_folders):
-    lme_anat(group = 'patients', p_df = patients_df, segment = c_segment, folder = c_folder, 
+    lme_main(group = 'patients', p_df = patients_df, segment = c_segment, folder = c_folder, 
                 atlas_space = atlas_space, atlas = atlas, maps = maps, rois = atlas)
-    lme_anat(group = 'controls', p_df = controls_df, segment = c_segment, folder = c_folder,
+    lme_main(group = 'controls', p_df = controls_df, segment = c_segment, folder = c_folder,
                 atlas_space = atlas_space, atlas = atlas, maps = maps, rois = atlas)
     

@@ -82,6 +82,7 @@ def make_dataframe_atlas_space(
                                 param        = '_slope',
                                 label_image  = None,
                                 region_names = None,
+                                stats = ['mean']
                               ):
 
     dfs = []
@@ -101,7 +102,7 @@ def make_dataframe_atlas_space(
                                         atlas = the_atlas,
                                         maps = maps,
                                         space = atlas_space,
-                                        stats = ['mean'],
+                                        stats = stats,
                                         label_image = label_image,
                                         region_names = region_names)
         

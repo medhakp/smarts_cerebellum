@@ -44,8 +44,6 @@ if __name__=='__main__':
 
     # demographics not available in "patient_list"; for now, we can just use the T1 patient list
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
-
-    #p_df_w0 = p_df.sort_values("Week").groupby("subj_id", as_index=False).first()
     
     space = 'MNISymC'
     segments = ['FaMap']
@@ -72,7 +70,8 @@ if __name__=='__main__':
             segment = segment,
             param = param,
             label_image = label_image,
-            use_weeks = True
+            use_weeks = True,
+            stats = ['median', 'mean']
         )
         df['hemisphere'], df['region_bilat'] = df.regionname.str[-1], df.regionname.str[:-1]
         df['group'] = np.where(df.isPatient == 0, 'controls', np.where(df.hemisphere == 'L', 'contralesional', 'ipsilesional'))

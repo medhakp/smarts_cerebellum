@@ -3,7 +3,7 @@ import numpy as np
 import os
 import statsmodels.formula.api as smf
 import smarts_cerebellum.globals as gl
-from smarts_cerebellum import predictors_df as pred_df
+from depreciated import predictors_df as pred_df
 
 def _results_df(model):
 

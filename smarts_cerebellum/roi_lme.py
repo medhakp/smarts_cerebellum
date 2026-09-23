@@ -2,10 +2,79 @@ import pandas as pd
 import numpy as np
 import os
 import statsmodels.formula.api as smf
+import SUITPy as suit
+import re
 import smarts_cerebellum.globals as gl
-from smarts_cerebellum import predictors_df as pred_df
 
 
+# make predictors dataframe
+#_______________________________
+def _week_token(image_name):
+    match = re.search(r'W(\d+)', image_name)
+    week_val = match.group(1)
+    return week_val
+
+def _load_img_list(p_df, folder, subj, space, segment):
+
+    p_df_s = p_df[p_df.subj_id==subj]
+
+    LesionSide = p_df_s.LesionSide.iloc[0] #LesionSide = p_df_s.LesionSide.unique()
+        
+    imgs = []
+    weeks = p_df_s.Week.unique()
+    for _week in weeks:
+        week = _week.strip()
+        if LesionSide == 'left ':
+            fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}_FlipLR.nii.gz')
+
+        else:
+            fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}.nii.gz')
+        
+        if os.path.isfile(fname):
+            imgs.append(fname)
+
+    return imgs
+
+def response_df(p_df,
+                     folder = None,
+                     space = 'MNISymC',
+                     atlas_space = 'MNISymC', # if using atlas and maps, set MNISym, etc. Otherwise, default is same as space (MNISymC)
+                     segment = 'T1',
+                     stats = ['mean'],
+                     label_image = None,
+                     region_names = None,
+                     atlas = None,
+                     maps = None,
+                     ):
+    dfs = []
+
+    subj_ids = p_df.subj_id.unique()
+    # find subj-week images - _load_img_list does this
+    for subj in subj_ids:
+        imgs = _load_img_list(p_df, folder, subj, space, segment)
+        if len(imgs) == 0:
+            continue
+        if not atlas == None:
+            suit.fetch_atlas(atlas)
+        df_subj = suit.summarize_data(images = imgs,
+                                      space = atlas_space,
+                                      stats = stats,
+                                      atlas = atlas,
+                                      maps = maps,
+                                      label_image = label_image,
+                                      region_names = region_names)
+        df_subj['subj_id'] = subj
+        dfs.append(df_subj)
+    
+    df = pd.concat(dfs, ignore_index = True)
+    df = df[~df.subj_id.isin(gl.bad)]
+    df['Week'] = df['image_name'].apply(_week_token) # weeks in image name
+    
+    return df
+#_________________________________
+
+
+# add fixed effects to dataframe
 def _fe_results_df(model):
 
     fe = model.fe_params
@@ -47,24 +116,27 @@ def _results_df(model):
     results_df = fe_df.merge(re_df, on = '_key').drop(columns = '_key')
     return results_df
 
-# run lme in rois
-def run_lme(y_df, region):
+# fit lme model
+def fit_lme(y_df, region):
 
+    # predictors dataframe for relevant region
     y_df.rename(columns = {'mean': 'y'},inplace = True)
     y_df = y_df[['subj_id', 'Week', 'regionname', 'y']]
     y_df = y_df[y_df.regionname == region]
     y_df = y_df.reset_index(drop = True)
 
+    # fit model
     model = smf.mixedlm('y~0 + Week', data = y_df, groups = 'subj_id').fit(maxiter = 400)
 
+    # add fitted model results in dataframe
     results = _results_df(model)
     results['regionname'] = region
 
     return results
 
 
-
-def lme_anat(group,
+# run the lme and save results in a dataframe
+def lme_main(group,
                 p_df,
                 folder,
                 segment,
@@ -77,19 +149,19 @@ def lme_anat(group,
                 space = None):
         
         # makes predictors dataframe
-        
         results = []
-        y_df = pred_df.response_df(p_df = p_df, folder = folder,segment = segment,
+        y_df = response_df(p_df = p_df, folder = folder,segment = segment,
                             label_image = label_image, region_names = region_names,
                             atlas_space = atlas_space, atlas = atlas, maps = maps)
+        
+        # fit lme for each region
         regions = y_df.regionname.unique()
-
         for region in regions:
-            result_df = run_lme(y_df, region = region)
+            result_df = fit_lme(y_df, region = region)
             results.append(result_df)
 
+        # save results in dataframe
         result = pd.concat(results, ignore_index = True)
-
         lme_x_dict = {
             'Week[0]': 0,
             'Week[4]': 4,
@@ -97,24 +169,5 @@ def lme_anat(group,
             'Week[24]': 24,
             'Week[52]': 52
         }
-
         result['Week'] = result['week'].map(lme_x_dict)
         result.to_csv(os.path.join(gl.baseDir, 'lme', f'{group}_{space}_{segment}_{rois}_lme.tsv'), sep = '\t')
-
-def lme_roi(group, y_df, rois, imaging = 'DTI', metric = 'FaMap'):
-    results = []
-    y_df = y_df[y_df.regionname.isin(rois)]
-    y_df = y_df[y_df.metric == metric]
-    for roi in rois:
-        result_df = run_lme(y_df, region = roi)
-        results.append(result_df)
-    result = pd.concat(results, ignore_index = True)
-    lme_x_dict = {
-            'Week[0]': 0,
-            'Week[4]': 4,
-            'Week[12]': 12,
-            'Week[24]': 24,
-            'Week[52]': 52
-        }
-    result['Week'] = result['week'].map(lme_x_dict)
-    result.to_csv(os.path.join(gl.baseDir, imaging, f'{group}_lme_{imaging}.tsv'), sep = '\t')

@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 import smarts_cerebellum.globals as gl
 
+# use this to convert individual dataframes (subj-week dataframes) into a combined dataframe containing all subjs-weeks
+# used for DTI dataframes
 
 def _subj_week_loop(df):
     for i in range(0, df.shape[0]):
