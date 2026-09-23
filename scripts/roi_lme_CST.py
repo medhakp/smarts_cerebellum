@@ -19,9 +19,9 @@ tract_segments = ['T1', 'WM_mod']
 tract_folders = [f'{space}_T1', f'{space}_WM']
 for t_segment, t_folder in zip(tract_segments, tract_folders):
     lme_main(group = 'patients', p_df = patients_df, segment = t_segment, folder = t_folder, 
-        label_image = label_image, region_names = region_names, rois = roi_tract)
+        label_image = label_image, region_names = region_names, roi = roi_tract)
     lme_main(group = 'controls', p_df = controls_df, segment = t_segment, folder = t_folder,
-                label_image = label_image, region_names = region_names, rois = roi_tract)
+                label_image = label_image, region_names = region_names, roi = roi_tract)
 
 
 
@@ -37,6 +37,6 @@ for t_segment, t_folder in zip(tract_segments, tract_folders):
 #     region_names = [''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
 
 #     for t_segment, t_folder in zip(tract_segments, tract_folders):
-#         lme_main(group = 'patients', p_df = patients_df, segment = t_segment, folder = t_folder, label_image = label_image, region_names = region_names, rois = f'{roi_tract}_{level}')
-#         lme_main(group = 'controls', p_df = controls_df, segment = t_segment, folder = t_folder, label_image = label_image, region_names = region_names, rois = f'{roi_tract}_{level}')
+#         lme_main(group = 'patients', p_df = patients_df, segment = t_segment, folder = t_folder, label_image = label_image, region_names = region_names, roi = f'{roi_tract}_{level}')
+#         lme_main(group = 'controls', p_df = controls_df, segment = t_segment, folder = t_folder, label_image = label_image, region_names = region_names, roi = f'{roi_tract}_{level}')
 

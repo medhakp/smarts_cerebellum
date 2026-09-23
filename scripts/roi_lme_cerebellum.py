@@ -22,7 +22,7 @@ cereb_folders = [f'{space}_T1', f'{space}_GM']
 
 for c_segment, c_folder in zip(cereb_segments, cereb_folders):
     lme_main(group = 'patients', p_df = patients_df, segment = c_segment, folder = c_folder, 
-                atlas_space = atlas_space, atlas = atlas, maps = maps, rois = atlas)
+                atlas_space = atlas_space, atlas = atlas, maps = maps, roi = atlas)
     lme_main(group = 'controls', p_df = controls_df, segment = c_segment, folder = c_folder,
-                atlas_space = atlas_space, atlas = atlas, maps = maps, rois = atlas)
+                atlas_space = atlas_space, atlas = atlas, maps = maps, roi = atlas)
     

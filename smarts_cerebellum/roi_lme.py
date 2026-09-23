@@ -137,24 +137,36 @@ def fit_lme(y_df, region):
 
 # run the lme and save results in a dataframe
 def lme_main(group,
-                p_df,
-                folder,
-                segment,
+                p_df = None,
+                folder = None,
+                segment = None,
                 atlas_space = None,
                 atlas = None,
                 maps = None,
                 label_image = None,
                 region_names = None,
-                rois = None,
-                space = None):
+                roi = None,
+                space = None,
+                predictors_df = None):
         
-        # makes predictors dataframe
-        results = []
-        y_df = response_df(p_df = p_df, folder = folder,segment = segment,
-                            label_image = label_image, region_names = region_names,
-                            atlas_space = atlas_space, atlas = atlas, maps = maps)
+        """
+        predictors_df (Pandas dataframe): default is None
+            If not provided, assumes images are being used. Will make the response df.
+            If provided, will use that dataframe as the predictors dataframe.
+        """
+        if predictors_df is not None:
+            # predictors dataframe provided - same treatment given to this that is given when making the predictors dataframe
+            y_df = predictors_df
+            y_df = y_df[~y_df.subj_id.isin(gl.bad)]
+            y_df['Week'] = y_df['image_name'].apply(_week_token)
+        else:
+            # makes predictors dataframe
+            y_df = response_df(p_df = p_df, folder = folder,segment = segment,
+                                label_image = label_image, region_names = region_names,
+                                atlas_space = atlas_space, atlas = atlas, maps = maps)
         
         # fit lme for each region
+        results = []
         regions = y_df.regionname.unique()
         for region in regions:
             result_df = fit_lme(y_df, region = region)
@@ -170,4 +182,4 @@ def lme_main(group,
             'Week[52]': 52
         }
         result['Week'] = result['week'].map(lme_x_dict)
-        result.to_csv(os.path.join(gl.baseDir, 'lme', f'{group}_{space}_{segment}_{rois}_lme.tsv'), sep = '\t')
+        result.to_csv(os.path.join(gl.baseDir, 'lme', f'{group}_{space}_{segment}_{roi}_lme.tsv'), sep = '\t')

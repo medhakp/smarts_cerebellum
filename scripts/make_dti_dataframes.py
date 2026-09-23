@@ -36,10 +36,11 @@ def subj_dti_df(subj_id, week):
     df = pd.read_csv(io.StringIO("".join(data_lines)), sep = '\t', names = cols, usecols = range(7))
     df['metric'] = df['Image'].str.extract(r'\\([^\\]+)\.dat$') # get metric (from image name, using re method)
     df['subj_id'] = subj_id
-    df['Week'] = week
-    df['week'] = df['Week'].str.extract(r'(\d+)') # get numeric values
+    df['week'] = week
+    df['Week'] = df['week'].str.extract(r'(\d+)') # get numeric values
     
-          
+    # rename columns to match convention used throughout this project
+    df.rename(columns = {'Mean': 'mean', 'Object': 'regionname', 'Image': 'image_name'}, inplace = True)
 
     return df
 
@@ -61,10 +62,10 @@ def assign_side(df, p_df):
     df.loc[~df.subj_id.isin(controls), 'isPatient'] = 1
     df.loc[df.subj_id.isin(controls), 'isPatient'] = 0
 
-    df['region_bilat'] = df.Object.str.split('_', expand = True)[0]
+    df['region_bilat'] = df.regionname.str.split('_', expand = True)[0]
     # all lesions flipped to the right
-    df.loc[(df.isPatient == 1) & (df.Object.str[-1] == 'L'), 'side'] = 'contralesional'
-    df.loc[(df.isPatient == 1) & (df.Object.str[-1] == 'R'), 'side'] = 'ipsilesional'
+    df.loc[(df.isPatient == 1) & (df.regionname.str[-1] == 'L'), 'side'] = 'contralesional'
+    df.loc[(df.isPatient == 1) & (df.regionname.str[-1] == 'R'), 'side'] = 'ipsilesional'
 
     return df
 
@@ -78,9 +79,9 @@ def flip_lesion_dti(df):
         subj_df = df[df.subj_id == subj].copy()
         if subj_df.LesionSide.values[0] == 'left ':
             
-            subj_df['Object'] = subj_df['Object'].str.replace(r'L$', 'T', regex = True) # need to add "regex = True"
-            subj_df['Object'] = subj_df['Object'].str.replace(r'R$', 'L', regex = True)
-            subj_df['Object'] = subj_df['Object'].str.replace(r'T$', 'R', regex = True)
+            subj_df['regionname'] = subj_df['regionname'].str.replace(r'L$', 'T', regex = True) # need to add "regex = True"
+            subj_df['regionname'] = subj_df['regionname'].str.replace(r'R$', 'L', regex = True)
+            subj_df['regionname'] = subj_df['regionname'].str.replace(r'T$', 'R', regex = True)
             subj_df['is_flipped'] = 1 # lesion flipped
         else:
             subj_df['is_flipped'] = 0 # lesion not flipped
@@ -89,11 +90,11 @@ def flip_lesion_dti(df):
 
     all_dfs = pd.concat(dfs, ignore_index = True)
 
-    all_dfs['region_bilat'] = all_dfs['Object'].str[:3]
+    all_dfs['region_bilat'] = all_dfs['regionname'].str[:3]
 
     # all lesions flipped to the right - assign this correctly
-    all_dfs.loc[(all_dfs.isPatient == 1) & (all_dfs.Object.str[-1] == 'L'), 'side'] = 'contralesional'
-    all_dfs.loc[(all_dfs.isPatient == 1) & (all_dfs.Object.str[-1] == 'R'), 'side'] = 'ipsilesional'
+    all_dfs.loc[(all_dfs.isPatient == 1) & (all_dfs.regionname.str[-1] == 'L'), 'side'] = 'contralesional'
+    all_dfs.loc[(all_dfs.isPatient == 1) & (all_dfs.regionname.str[-1] == 'R'), 'side'] = 'ipsilesional'
     
     return all_dfs
 
