@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import io
 import os
 from pathlib import Path
@@ -62,7 +63,9 @@ def assign_side(df, p_df):
     df.loc[~df.subj_id.isin(controls), 'isPatient'] = 1
     df.loc[df.subj_id.isin(controls), 'isPatient'] = 0
 
-    df['region_bilat'] = df.regionname.str.split('_', expand = True)[0]
+    # given as: regionname_L (or regionname_R), but sometimes has region1_region2_L, etc.
+    df['region_bilat'] = df.regionname.str.split('_').str[:-1].str.join('_')
+
     # all lesions flipped to the right
     df.loc[(df.isPatient == 1) & (df.regionname.str[-1] == 'L'), 'side'] = 'contralesional'
     df.loc[(df.isPatient == 1) & (df.regionname.str[-1] == 'R'), 'side'] = 'ipsilesional'
@@ -98,6 +101,50 @@ def flip_lesion_dti(df):
     
     return all_dfs
 
+def add_metrics(df):
+
+    # rename eigenvalue rows (to follow convention for my sanity)
+    df[df.metric == 'EgVal0'] = df[df.metric == 'EgVal0'].replace('EgVal0', 'lambda_1')
+    df[df.metric == 'EgVal1'] = df[df.metric == 'EgVal1'].replace('EgVal1', 'lambda_2')
+    df[df.metric == 'EgVal2'] = df[df.metric == 'EgVal2'].replace('EgVal2', 'lambda_3')
+
+
+    # mean diffusivity (MD) = trace / 3
+    md_rows = df[df.metric == 'trace'].copy().reset_index(drop = True)
+    md_rows.metric = 'mean_diffusivity'
+    md_rows['mean'] = md_rows['mean'] / 3
+
+    # set other cols to nan, since we don't have it
+    md_rows['Min'] = np.nan
+    md_rows['Max'] = np.nan
+    md_rows['Std'] = np.nan
+    md_rows['image_name'] = np.nan
+
+
+    df = pd.concat([df, md_rows], ignore_index = True)
+
+    # radial diffusivity (RD) = lambda_2 + lambda_3
+    perpendiculars = ['lambda_2', 'lambda_3']
+    perp_rows = df[df.metric.isin(perpendiculars)].copy().reset_index(drop = True)
+
+    rd_rows = df[df.metric == 'trace'].copy().reset_index(drop = True) # just need the template of the dataframe to put new values in; metric == 'trace' is arbitrary here, just for df template purposes
+    rd_rows.metric = 'radial_diffusivity'
+
+    lambda_2 = perp_rows[perp_rows.metric == 'lambda_2'].set_index(['subj_id', 'week', 'regionname'])['mean']
+    lambda_3 = perp_rows[perp_rows.metric == 'lambda_3'].set_index(['subj_id', 'week', 'regionname'])['mean']
+
+    rd_rows['mean'] = ((lambda_2 + lambda_3) /2).values
+
+    # set other cols to nan, since we don't have it
+    rd_rows['Min'] = np.nan
+    rd_rows['Max'] = np.nan
+    rd_rows['Std'] = np.nan
+    rd_rows['image_name'] = np.nan
+
+    df = pd.concat([df, rd_rows], ignore_index = True)
+
+    return df
+
 if __name__ == '__main__':
     p_dti = pd.read_excel(os.path.join(gl.baseDir, 'DTI', 'patient_list.xlsx'), usecols = range(10)) # only need the first 5 cols
     p_dti['subj_id'] = p_dti['Centre'].str.strip() + '_' + p_dti['ID'].astype(str)
@@ -110,13 +157,14 @@ if __name__ == '__main__':
             dfs.append(df)
 
     all_df = pd.concat(dfs, ignore_index = True)
-    all_df = assign_side(df = all_df, p_df = p_dti)
-    all_df_flip = flip_lesion_dti(all_df)
+    all_df = assign_side(df = all_df, p_df = p_dti) # assign LesionSide
+    all_df_flip = flip_lesion_dti(all_df) # flip lesion
+    all_df_flip = add_metrics(all_df_flip) # add metrics (MD, RD), rename eigenvalues (e.g. EgVal0 = lambda_1)
 
     # exclude subjs without LesionSide
     no_assigned_lesion = all_df_flip[all_df_flip.LesionSide.isna()]['subj_id'].unique()
     all_df_flip = all_df_flip[~all_df_flip.subj_id.isin(no_assigned_lesion)]
 
-    
+  
     all_df_flip.to_csv(os.path.join(gl.baseDir, 'DTI', 'JHU_MNI_DTI_flip.tsv'), sep='\t', index=False)
     

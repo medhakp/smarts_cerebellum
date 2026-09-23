@@ -33,7 +33,8 @@ if __name__ == '__main__':
     y_df = y_df[~y_df.subj_id.isin(controls)]
 
     # choose metric
-    metric = 'EgVal0'
+        # options: FaMap, trace, lambda_1, lambda_2, lambda_3, mean_diffusivity, radial_diffusivity
+    metric = 'lambda_1'
     y_df = y_df[y_df.metric == metric]
     y_df = y_df.copy() # warning
 
