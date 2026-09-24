@@ -111,6 +111,9 @@ def add_metrics(df):
 
     # mean diffusivity (MD) = trace / 3
     md_rows = df[df.metric == 'trace'].copy().reset_index(drop = True)
+    # we need to give it an arbitrary image name (for use in other functions (e.g. in lme_roi, _week_token())), so make name just the start of image_name, the part with subj, week; excluding metric.dat portion
+    md_rows['image_name'] = md_rows['image_name'].str.extract(r'(.+?)' + md_rows.metric.iloc[0] + r'\.dat')[0]
+
     md_rows.metric = 'mean_diffusivity'
     md_rows['mean'] = md_rows['mean'] / 3
 
@@ -118,9 +121,8 @@ def add_metrics(df):
     md_rows['Min'] = np.nan
     md_rows['Max'] = np.nan
     md_rows['Std'] = np.nan
-    md_rows['image_name'] = np.nan
 
-
+    
     df = pd.concat([df, md_rows], ignore_index = True)
 
     # radial diffusivity (RD) = lambda_2 + lambda_3
@@ -128,7 +130,11 @@ def add_metrics(df):
     perp_rows = df[df.metric.isin(perpendiculars)].copy().reset_index(drop = True)
 
     rd_rows = df[df.metric == 'trace'].copy().reset_index(drop = True) # just need the template of the dataframe to put new values in; metric == 'trace' is arbitrary here, just for df template purposes
+    # we need to give it an arbitrary image name (for use in other functions (e.g. in lme_roi, _week_token())), so make name just the start of image_name, the part with subj, week; excluding metric.dat portion
+    rd_rows['image_name'] = rd_rows['image_name'].str.extract(r'(.+?)' + rd_rows.metric.iloc[0] + r'\.dat')[0]
+
     rd_rows.metric = 'radial_diffusivity'
+    
 
     lambda_2 = perp_rows[perp_rows.metric == 'lambda_2'].set_index(['subj_id', 'week', 'regionname'])['mean']
     lambda_3 = perp_rows[perp_rows.metric == 'lambda_3'].set_index(['subj_id', 'week', 'regionname'])['mean']
@@ -139,7 +145,7 @@ def add_metrics(df):
     rd_rows['Min'] = np.nan
     rd_rows['Max'] = np.nan
     rd_rows['Std'] = np.nan
-    rd_rows['image_name'] = np.nan
+
 
     df = pd.concat([df, rd_rows], ignore_index = True)
 
