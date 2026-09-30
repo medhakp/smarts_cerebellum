@@ -18,7 +18,7 @@ def _subj_week_loop(df):
 def reslice_atlas(
             df = None,
             atlas_name = None,
-            atlas = None,
+            atlas_path = None,
             trans_path = None,
             inverse_deformation = 'T1_from-MNI152NLin2009cSymC_mode-image_xfm.nii.gz',
             save_atlas_path = None, # save to same place as native anatomicals? so gl.baseDir/anatomicals (= save_atlas_path)
@@ -28,7 +28,7 @@ def reslice_atlas(
     inverse deformation
     """
 
-    atlas_path = f'{gl.baseDir}/ROI/cerebellar_atlases/{atlas}/{atlas_name}.nii'
+ 
     if not Path(atlas_path).is_file():
         print(f'{atlas_path} not found')
         return None
@@ -57,17 +57,26 @@ def reslice_atlas(
 if __name__ == '__main__':
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
 
-    atlas_names = ['atl-NettekovenSym32_space-MNISym_dseg', 'atl-Anatom_space-MNISym_dseg'] # Nettekoven_2024 (sym, 32 region), Diedrichsen_2009 (anatomical)
-    atlases = ['Nettekoven_2024', 'Diedrichsen_2009']
+    atlas_name = 'MNISymC.CST'
+    atlas_path = os.path.join(gl.baseDir, 'ROI', 'MNISymC.CST.nii')
 
     trans_folder = os.path.join(gl.baseDir, 'MNISymC_trans')
-    save_atlas_path = os.path.join(gl.baseDir, 'anatomicals') # save subj-week atlas to same place as subj-week anatomicals
+    save_atlas_path = os.path.join(gl.baseDir, 'anatomicals')
 
-    for atlas_name, atlas in zip(atlas_names, atlases):
-        reslice_atlas(
-                df = p_df,
-                atlas_name = atlas_name,
-                atlas = atlas,
-                trans_path = trans_folder,
-                save_atlas_path = save_atlas_path
-                )
+    reslice_atlas(df = p_df, atlas_name = atlas_name, atlas_path = atlas_path, trans_path = trans_folder, save_atlas_path = save_atlas_path)
+
+
+    # atlas_names = ['atl-NettekovenSym32_space-MNISym_dseg', 'atl-Anatom_space-MNISym_dseg'] # Nettekoven_2024 (sym, 32 region), Diedrichsen_2009 (anatomical)
+    # atlas_paths = [os.path.join(gl.baseDir, 'ROI', 'cerebellar_atlases', 'Nettekoven_2024', 'atl-NettekovenSym32_space-MNISym_dseg.nii'), os.path.join(gl.baseDir, 'ROI', 'cerebellar_atlases', 'Diedrichsen_2009', 'atl-Anatom_space-MNISym_dseg.nii')]
+
+    # trans_folder = os.path.join(gl.baseDir, 'MNISymC_trans')
+    # save_atlas_path = os.path.join(gl.baseDir, 'anatomicals') # save subj-week atlas to same place as subj-week anatomicals
+
+    # for atlas_name, atlas_path in zip(atlas_names, atlas_paths):
+    #     reslice_atlas(
+    #             df = p_df,
+    #             atlas_name = atlas_name,
+    #             atlas_path = atlas_path,
+    #             trans_path = trans_folder,
+    #             save_atlas_path = save_atlas_path
+    #             )
