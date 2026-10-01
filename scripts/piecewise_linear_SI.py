@@ -19,7 +19,6 @@ def piecewise_lin_pred(x, params):
     piecewise_fun = np.where(x<x_star, b0 + b1*x, b0 + (b1-b2)*x_star + b2*x) # x1: x<x_star (first eqn); x2: x>=x_star (second eqn)
     return piecewise_fun # vector: y values, [y_1, ..., y_n]
 
-# calculate R^2
 def piecewise_SSE(params, x, y):
     SSE = np.nansum((y - piecewise_lin_pred(x, params))**2)
     return SSE
@@ -63,11 +62,11 @@ def piecewise_lin_fit(x,y):
 
 
 
-def calculate_residuals(params_df, behav_df):
+def calculate_residuals(params_df, behav_df, x, y_obs):
     params = [params_df.iloc[0].x_star, params_df.iloc[0].beta_0, params_df.iloc[0].beta_1, params_df.iloc[0].beta_2]
 
     # calculate residuals
-    res_df = pd.DataFrame({'subj_id': behav_df['subj_id'].values, 'x': np.array(x), 'y_obs': np.array(y)})
+    res_df = pd.DataFrame({'subj_id': behav_df['subj_id'].values, 'x': np.array(x), 'y_obs': np.array(y_obs)}).dropna().copy()
     res_df['y_hat'] = piecewise_lin_pred(res_df['x'].values, params) # using optimized (minimized sum of squared error) parameters
     res_df['residuals'] = res_df['y_obs'] - res_df['y_hat']
 
@@ -94,7 +93,7 @@ if __name__ == '__main__':
         x = (behav_week['mvc_norm'])
         y = (behav_week['indiv_norm'])
         params_df = piecewise_lin_fit(x, y) # get fitted params, SSE, TSS, R^2
-        residual_week = calculate_residuals(params_df = params_df, behav_df = behav_week) # for a given week
+        residual_week = calculate_residuals(params_df = params_df, behav_df = behav_week, x = x, y_obs = y) # for a given week
         residual_week['Week'] = week
         dfs.append(residual_week)
 
@@ -105,5 +104,5 @@ if __name__ == '__main__':
     x = (behav['mvc_norm'])
     y = (behav['indiv_norm'])
     params_df = piecewise_lin_fit(x, y) # get fitted params, SSE, TSS, R^2
-    residuals_time_invar = calculate_residuals(params_df = params_df, behav_df = behav) # for a given week
+    residuals_time_invar = calculate_residuals(params_df = params_df, behav_df = behav, x = x, y_obs = y) # for a given week
     residuals_time_invar.to_csv(os.path.join(gl.baseDir, 'behavioural', 'piecewise_SI_residuals_time_invariant.tsv'), sep = '\t', index = False)
