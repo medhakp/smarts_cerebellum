@@ -66,7 +66,7 @@ def calculate_residuals(params_df, behav_df, x, y_obs):
     params = [params_df.iloc[0].x_star, params_df.iloc[0].beta_0, params_df.iloc[0].beta_1, params_df.iloc[0].beta_2]
 
     # calculate residuals
-    res_df = pd.DataFrame({'subj_id': behav_df['subj_id'].values, 'x': np.array(x), 'y_obs': np.array(y_obs)}).dropna().copy()
+    res_df = pd.DataFrame({'subj_id': behav_df['subj_id'].values, 'Week': behav_df['Week'].values, 'x': np.array(x), 'y_obs': np.array(y_obs)}).dropna().copy()
     res_df['y_hat'] = piecewise_lin_pred(res_df['x'].values, params) # using optimized (minimized sum of squared error) parameters
     res_df['residuals'] = res_df['y_obs'] - res_df['y_hat']
 
