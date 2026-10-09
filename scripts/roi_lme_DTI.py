@@ -28,13 +28,13 @@ if __name__ == '__main__':
     # FaMap - from .tsv file (dataframe) in JHU-MNI
 
     # provide predictors dataframe - exclude controls
-    y_df = pd.read_csv(os.path.join(gl.baseDir, 'DTI', 'JHU_MNI_DTI_flip.tsv'), sep = '\t', low_memory = False) # warning: 2 diff dtypes
+    y_df = pd.read_csv(os.path.join(gl.baseDir, 'DTI', 'WMPMII_DTI_flip.tsv'), sep = '\t', low_memory = False) # warning: 2 diff dtypes
     controls = ['CUP_1001', 'CUP_1002', 'JHP_1001', 'JHP_1002', 'JHP_1004']
     y_df = y_df[~y_df.subj_id.isin(controls)]
 
     # choose metric
-        # options: FaMap, trace, lambda_1, lambda_2, lambda_3, mean_diffusivity, radial_diffusivity
-    metric = 'lambda_1'
+        # options: FaMap, (trace), lambda_1,(lambda_2, lambda_3), mean_diffusivity, radial_diffusivity
+    metric = 'radial_diffusivity'
     y_df = y_df[y_df.metric == metric]
     y_df = y_df.copy() # warning
 
@@ -42,5 +42,5 @@ if __name__ == '__main__':
     tracts = ['CST_L', 'CST_R']
     y_df = y_df[y_df.regionname.isin(tracts)]
 
-    lme_main(group = 'patients', predictors_df = y_df,roi = 'CST', space = 'JHU_MNI', segment = metric)
+    lme_main(group = 'patients', predictors_df = y_df,roi = 'CST', space = 'WMPMII', segment = metric)
 

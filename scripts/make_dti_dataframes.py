@@ -172,5 +172,5 @@ if __name__ == '__main__':
     all_df_flip = all_df_flip[~all_df_flip.subj_id.isin(no_assigned_lesion)]
 
   
-    all_df_flip.to_csv(os.path.join(gl.baseDir, 'DTI', 'JHU_MNI_DTI_flip.tsv'), sep='\t', index=False)
+    all_df_flip.to_csv(os.path.join(gl.baseDir, 'DTI', 'WMPMII_DTI_flip.tsv'), sep='\t', index=False)
     
