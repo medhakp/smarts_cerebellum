@@ -88,6 +88,8 @@ def flip_lesion_dti(df):
             subj_df['is_flipped'] = 1 # lesion flipped
         else:
             subj_df['is_flipped'] = 0 # lesion not flipped
+            
+        df['hemisphere'] = df['regionname'].str.extract(r'_([LR])$')[0]
         
         dfs.append(subj_df)
 
