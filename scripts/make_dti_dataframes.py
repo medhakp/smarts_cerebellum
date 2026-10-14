@@ -152,6 +152,31 @@ def add_metrics(df):
 
     return df
 
+def add_normalized_metrics(df):
+    # df metrics
+    df_patients = df[df.isPatient == 1]
+    # normalize df metrics
+    df_wide = df_patients.pivot(index = ['subj_id', 'Week', 'metric', 'region_bilat'], columns =  'side', values = 'mean')
+    df_wide['ratio'] = df_wide['ipsilesional'] / df_wide['contralesional']
+    df_wide['log_ratio'] = np.log(df_wide['ratio'])
+    df_wide['asymmetry_index'] = (df_wide['contralesional'] - df_wide['ipsilesional']) / (df_wide['contralesional'] + df_wide['ipsilesional'])
+
+    df_wide.columns.name = None
+    df_wide = df_wide.reset_index()
+
+    df_long = df_wide.melt(
+        id_vars = ['subj_id', 'Week', 'metric', 'region_bilat', 'ratio', 'log_ratio', 'asymmetry_index'],
+        value_vars = ['ipsilesional', 'contralesional'], 
+        var_name = 'side', value_name = 'mean'
+
+        )
+
+    keys = ['subj_id', 'Week', 'metric', 'region_bilat', 'side']
+    df_merged = df.merge(df_long[keys + ['ratio', 'log_ratio', 'asymmetry_index']], 
+                    on = keys, how = 'left', validate = 'many_to_one')
+
+    return df_merged
+
 if __name__ == '__main__':
     p_dti = pd.read_excel(os.path.join(gl.baseDir, 'DTI', 'patient_list.xlsx'), usecols = range(10)) # only need the first 5 cols
     p_dti['subj_id'] = p_dti['Centre'].str.strip() + '_' + p_dti['ID'].astype(str)
@@ -167,6 +192,7 @@ if __name__ == '__main__':
     all_df = assign_side(df = all_df, p_df = p_dti) # assign LesionSide
     all_df_flip = flip_lesion_dti(all_df) # flip lesion
     all_df_flip = add_metrics(all_df_flip) # add metrics (MD, RD), rename eigenvalues (e.g. EgVal0 = lambda_1)
+    all_df_flip = add_normalized_metrics(all_df_flip)
 
     # exclude subjs without LesionSide
     no_assigned_lesion = all_df_flip[all_df_flip.LesionSide.isna()]['subj_id'].unique()
