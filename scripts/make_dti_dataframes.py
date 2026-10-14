@@ -64,7 +64,7 @@ def assign_side(df, p_df):
     df.loc[df.subj_id.isin(controls), 'isPatient'] = 0
 
     # given as: regionname_L (or regionname_R), but sometimes has region1_region2_L, etc.
-    df['region_bilat'] = df.regionname.str.split('_').str[:-1].str.join('_')
+    df['region_bilat'] = df.regionname.str.replace(r'_[LR]$', '', regex = True) # fixed
 
     # all lesions flipped to the right
     df.loc[(df.isPatient == 1) & (df.regionname.str[-1] == 'L'), 'side'] = 'contralesional'
@@ -93,7 +93,6 @@ def flip_lesion_dti(df):
 
     all_dfs = pd.concat(dfs, ignore_index = True)
 
-    all_dfs['region_bilat'] = all_dfs['regionname'].str[:3]
 
     # all lesions flipped to the right - assign this correctly
     all_dfs.loc[(all_dfs.isPatient == 1) & (all_dfs.regionname.str[-1] == 'L'), 'side'] = 'contralesional'
