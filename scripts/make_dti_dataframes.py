@@ -70,6 +70,10 @@ def assign_side(df, p_df):
     df.loc[(df.isPatient == 1) & (df.regionname.str[-1] == 'L'), 'side'] = 'contralesional'
     df.loc[(df.isPatient == 1) & (df.regionname.str[-1] == 'R'), 'side'] = 'ipsilesional'
 
+    # for controls, need to assign LesionSide for calculating asymmetry index (note that this is just R = ipsilesional; meaningless)
+    df.loc[(df.isPatient == 0) & (df.regionname.str[-1] == 'L'), 'side'] = 'contralesional'
+    df.loc[(df.isPatient == 0) & (df.regionname.str[-1] == 'R'), 'side'] = 'ipsilesional'
+
     return df
 
 def flip_lesion_dti(df):
@@ -153,10 +157,8 @@ def add_metrics(df):
     return df
 
 def add_normalized_metrics(df):
-    # df metrics
-    df_patients = df[df.isPatient == 1]
     # normalize df metrics
-    df_wide = df_patients.pivot(index = ['subj_id', 'Week', 'metric', 'region_bilat'], columns =  'side', values = 'mean')
+    df_wide = df.pivot(index = ['subj_id', 'Week', 'metric', 'region_bilat'], columns =  'side', values = 'mean')
     df_wide['ratio'] = df_wide['ipsilesional'] / df_wide['contralesional']
     df_wide['log_ratio'] = np.log(df_wide['ratio'])
     df_wide['asymmetry_index'] = (df_wide['contralesional'] - df_wide['ipsilesional']) / (df_wide['contralesional'] + df_wide['ipsilesional'])
