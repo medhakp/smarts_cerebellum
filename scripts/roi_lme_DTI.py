@@ -10,24 +10,22 @@ if __name__ == '__main__':
 
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
 
-    # for predictors, use already-made df (for obs values)
-    x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_FaMap', 'summary_MNISymC_Nettekoven_2024_FaMap.tsv'), sep = '\t')
-    x_df = x_df[x_df.regionname.str.endswith("R")].copy()
- 
-
     space = 'MNISymC'
-    # cerebellar atlas
-    atlas_space = 'MNISym'
-    atlas = 'Nettekoven_2024'
-    maps = 'atl-NettekovenSym32'
+    atlas_space = 'MNISymC'
+    roi_tract = 'MCP'
+    label_image = os.path.join(gl.baseDir, 'ROI', f'MNISymC.MCP_no_ventral_pons.nii')
+    region_names = [''] * 2 + [f'{roi_tract}_L', f'{roi_tract}_R']
 
-    # CEREBELLUM
-    cereb_segments = ['FaMap']
-    cereb_folders = [f'{space}_FaMap']
+    segment = 'FaMap'
+    folder = f'{space}_{segment}'
 
-    for c_segment, c_folder in zip(cereb_segments, cereb_folders):
-        lme_main(group = 'patients', p_df = p_df, segment = c_segment, folder = c_folder, space = 'MNISymC',
-                atlas_space = atlas_space, atlas = atlas, maps = maps, roi = atlas, stat = 'asymmetry_index', predictors_df = x_df)
+    x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_FaMap', 'summary_MNISymC_MCP_FaMap.tsv'), sep = '\t')
+    x_df = x_df[x_df.regionname == 'MCP_R'].copy()
+    x_df['regionname'] = f'{roi_tract}_ai'
+
+    lme_main(group = 'patients', p_df = p_df, segment = segment, folder = folder, space = 'MNISymC',
+                label_image = label_image, region_names = region_names, roi = roi_tract, 
+                predictors_df= x_df, stat = 'asymmetry_index')
     
     
 

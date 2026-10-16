@@ -20,14 +20,14 @@ if __name__=='__main__':
 
 
     # atlas - CST
-    tract = 'CST'
-    label_image=os.path.join(gl.baseDir, 'ROI', 'MNISymC.CST.nii')
-    region_names = [''] * 13 + ['CST_L', 'CST_R'] # regionnames count in SUITpy start for 1 but ours from 14
+    # tract = 'CST'
+    # label_image=os.path.join(gl.baseDir, 'ROI', 'MNISymC.CST.nii')
+    # region_names = [''] * 13 + ['CST_L', 'CST_R'] # regionnames count in SUITpy start for 1 but ours from 14
 
-    # # atlas - MCP
-    # tract = 'MCP'
-    # label_image=os.path.join(gl.baseDir, 'ROI', f'MNISymC.{tract}.nii')
-    # region_names = [''] * 2 + [f'MCPL', f'MCPR'] # start at n-1 (e.g. in FSLEyes, we have 3, 4; so, start from 2 here)
+    # atlas - MCP
+    tract = 'MCP'
+    label_image=os.path.join(gl.baseDir, 'ROI', f'MNISymC.{tract}.nii')
+    region_names = [''] * 2 + [f'MCP_L', f'MCP_R'] # start at n-1 (e.g. in FSLEyes, we have 3, 4; so, start from 2 here)
 
     
     for segment, folder in zip(segments, folders):
