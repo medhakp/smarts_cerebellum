@@ -20,7 +20,7 @@ if __name__ == '__main__':
     folder = f'{space}_{segment}'
 
     x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_FaMap', 'summary_MNISymC_MCP_FaMap.tsv'), sep = '\t')
-    x_df = x_df[x_df.regionname == 'MCP_R'].copy()
+    x_df = x_df[x_df.regionname == 'MCP_L'].copy()
     x_df['regionname'] = f'{roi_tract}_ai'
 
     lme_main(group = 'patients', p_df = p_df, segment = segment, folder = folder, space = 'MNISymC',
