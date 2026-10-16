@@ -9,6 +9,7 @@ import numpy as np
 
 if __name__=='__main__':
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep='\t')
+    p_df = p_df[p_df.isPatient == 1]
     
     space = 'MNISymC'
     segments = ['FaMap']

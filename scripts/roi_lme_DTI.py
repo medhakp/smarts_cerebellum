@@ -10,23 +10,36 @@ if __name__ == '__main__':
 
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
 
-    space = 'MNISymC'
-
-    # custom ROI
-    roi_tract = 'CST'
-    label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{roi_tract}.nii')
-    region_names = [''] * 13 + [f'left_{roi_tract}', f'{roi_tract}_R']
-
-    segment = 'FaMap'
-    folder = f'{space}_{segment}'
-
     # for predictors, use already-made df (for obs values)
-    x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_FaMap', 'summary_MNISymC_CST_FaMap.tsv'), sep = '\t')
-    x_df = x_df[x_df.regionname == f'{roi_tract}_R'].copy()
-    x_df['regionname'] = f'{roi_tract}_ai'
-    lme_main(group = 'patients', p_df = p_df, segment = segment, folder = folder, space = 'MNISymC',
-                label_image = label_image, region_names = region_names, roi = roi_tract, 
-                predictors_df= x_df, stat = 'asymmetry_index')
+    x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_FaMap', 'summary_MNISymC_Nettekoven_2024_FaMap.tsv'), sep = '\t')
+    x_df = x_df[x_df.regionname.str.endswith("R")].copy()
+ 
+
+    space = 'MNISymC'
+    # cerebellar atlas
+    atlas_space = 'MNISym'
+    atlas = 'Nettekoven_2024'
+    maps = 'atl-NettekovenSym32'
+
+    # CEREBELLUM
+    cereb_segments = ['FaMap']
+    cereb_folders = [f'{space}_FaMap']
+
+    for c_segment, c_folder in zip(cereb_segments, cereb_folders):
+        lme_main(group = 'patients', p_df = p_df, segment = c_segment, folder = c_folder, space = 'MNISymC',
+                atlas_space = atlas_space, atlas = atlas, maps = maps, roi = atlas, stat = 'asymmetry_index', predictors_df = x_df)
+    
+    
+
+    # # custom ROI
+    # roi_tract = 'CST'
+    # label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{roi_tract}.nii')
+    # region_names = [''] * 13 + [f'left_{roi_tract}', f'{roi_tract}_R']
+
+    # segment = 'FaMap'
+    # folder = f'{space}_{segment}'
+
+    #x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_FaMap', 'summary_MNISymC_CST_FaMap.tsv'), sep = '\t')
 
    
    
