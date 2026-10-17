@@ -13,15 +13,15 @@ if __name__ == '__main__':
 
     space = 'MNISymC'
     atlas_space = 'MNISymC'
-    roi_tract = 'CST'
-    label_image = os.path.join(gl.baseDir, 'ROI', f'MNISymC.{roi_tract}.nii') # CST: use CST.no_ventral_pons
+    roi_tract = 'MCP'
+    label_image = os.path.join(gl.baseDir, 'ROI', f'MNISymC.{roi_tract}.nii') # MCP_no_ventral_pons renamed MCP; with_ventral_pons is the original
     region_names = [''] * 13 + [f'{roi_tract}_L', f'{roi_tract}_R']
 
     segment = 'FaMap'
     folder = f'{space}_{segment}'
 
-    x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_FaMap', 'summary_MNISymC_CST_FaMap.tsv'), sep = '\t')
-    x_df = x_df[x_df.regionname == 'CST_R'].copy()
+    x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_FaMap', 'summary_MNISymC_MCP_FaMap.tsv'), sep = '\t')
+    x_df = x_df[x_df.regionname == 'MCP_R'].copy()
     x_df['regionname'] = f'{roi_tract}_ai'
 
     lme_main(group = 'patients', p_df = p_df, segment = segment, folder = folder, space = 'MNISymC',
@@ -31,14 +31,14 @@ if __name__ == '__main__':
     
 
     # # custom ROI
-    # roi_tract = 'CST'
+    # roi_tract = 'MCP'
     # label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{roi_tract}.nii')
     # region_names = [''] * 13 + [f'left_{roi_tract}', f'{roi_tract}_R']
 
     # segment = 'FaMap'
     # folder = f'{space}_{segment}'
 
-    #x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_FaMap', 'summary_MNISymC_CST_FaMap.tsv'), sep = '\t')
+    #x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_FaMap', 'summary_MNISymC_MCP_FaMap.tsv'), sep = '\t')
 
    
    
@@ -57,9 +57,9 @@ if __name__ == '__main__':
     y_df = y_df.copy() # warning
 
     # choose tracts
-    tracts = ['CST_L', 'CST_R']
+    tracts = ['MCP_L', 'MCP_R']
     y_df = y_df[y_df.regionname.isin(tracts)]
 
-    lme_main(group = 'patients', predictors_df = y_df,roi = 'CST', space = 'WMPMII', segment = metric)
+    lme_main(group = 'patients', predictors_df = y_df,roi = 'MCP', space = 'WMPMII', segment = metric)
     """
 
