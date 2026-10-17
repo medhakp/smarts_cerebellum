@@ -80,10 +80,10 @@ flowchart TB
     classDef nativeNode fill:#eff4ff,stroke:#a8bce0,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
     classDef templateNode fill:#f1ddf4,stroke:#ce9bd9,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
     classDef processNode fill:#f7f5e4,stroke:#e0b96a,stroke-width:1.5px,color:#333,font-family:monospace,font-size:12px
-    style S1 stroke:transparent,fill:#f2fff2
-    style S2 fill:#f2fff2,stroke:transparent
-    style S3 fill:#f2fff2,stroke:transparent
-    style S4 fill:#f2fff2,stroke:transparent
+    style S1 stroke:transparent,fill:#BBDEFB
+    style S2 fill:#BBDEFB,stroke:transparent
+    style S3 fill:#BBDEFB,stroke:transparent
+    style S4 fill:#BBDEFB,stroke:transparent
 ```
 
 ### Regression analysis of anatomicals
