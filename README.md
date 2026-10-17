@@ -16,31 +16,26 @@ A pipeline for processing anatomicals, using mainly SUITPy and SPM12, has been w
   
 ```mermaid
 flowchart TB
- subgraph S1["1. <b>native space</b>"]
         P1@{ label: "scripts/sc_anat('ANAT:coreg')" }
         A[("<b>raw T1w anatomicals: </b> <br>anatomicals/&lt;subj&gt;/&lt;week&gt;/&lt;subj&gt;_&lt;week&gt;T1.nii")]
         B[("<b>coregistered T1w anatomicals (to time point 1): </b> <br>anatomicals/&lt;subj&gt;/&lt;week&gt;/&lt;subj&gt;_&lt;week&gt;T1.nii<br>")]
         P2@{ label: "scripts/sc_anat('ANAT:segment')" }
         P3["scripts/tissue_extractor.isolate()"]
         C[("<b>grey matter volume image</b><br>c1&lt;subj&gt;_&lt;week&gt;_T1.nii<br><b>white matter volume image</b><br>c2&lt;subj&gt;_&lt;week&gt;_T1.nii<br><b>cerebrospinalfluid volume image</b><br>c3&lt;subj&gt;_&lt;week&gt;_T1.nii<br><i>(c4, c5 not used)</i>")]
-  end
- subgraph S2["2. <b>normalization</b>"]
+
         D[("<b>cerebellar isolation mask</b> <br>&lt;subj&gt;_&lt;week&gt;_T1_cerebellum_dseg.nii.gz<br>")]
         P4["scripts/tissue_extractor.transformation_files()"]
         E[("<b>transformation files</b><br>MNISymC_trans/&lt;subj&gt;/&lt;week&gt;/&lt;subj&gt;_&lt;week&gt;_T1_to-MNI152NLin2009cSymC_mode-image_xfm.nii.gz<br>")]
         F["scripts/tissue_extractor.reslice()"]
         G[("<b>normalised T1 anatomical</b><br>MNISymC_T1/&lt;subj&gt;/&lt;week&gt;/&lt;subj&gt;_&lt;week&gt;_MNISymC_T1.nii.gz<br>")]
         H[("<b>grey matter probability</b><br>MNISymC_GM/&lt;subj&gt;/&lt;week&gt;/&lt;subj&gt;_&lt;week&gt;_MNISymC_GM.nii.gz <br><b>white matter probability</b><br>MNISymC_WM/&lt;subj&gt;/&lt;week&gt;/&lt;subj&gt;_&lt;week&gt;_MNISymC_WM.nii.gz")]
-  end
- subgraph S3["3. <b> modulated tissue volume</b>"]
+  
         P5["scripts/modulate_volume.py"]
         I[("<b>modulated GM volume</b><br>MNISymC_GM/&lt;subj&gt;/&lt;week&gt;/&lt;subj&gt;_&lt;week&gt;_MNISymC_GM_mod.nii.gz<br><b>modulated WM volume</b><br>MNISymC_WM/&lt;subj&gt;/&lt;week&gt;/&lt;subj&gt;_&lt;week&gt;_MNISymC_WM_mod.nii.gz")]
-  end
- subgraph S4["4. <b>flip lesion</b>"]
+  
         P6["scripts/flip_lesion.py"]
         J@{ label: "<span style=\"--tw-border-spacing-y:\">**normalised T1 anatomical (left lesion flipped to right)**</span><br style=\"--tw-border-spacing-y:\">MNISymC_T1/&lt;subj&gt;/&lt;week&gt;/&lt;subj&gt;_&lt;week&gt;_MNISymC_T1.nii.gz<br>MNISymC_T1/&lt;subj&gt;/&lt;week&gt;/&lt;subj&gt;_&lt;week&gt;_MNISymC_T1_FlipLR.nii.gz" }
         K[("<b>modulated GM volume (left lesions flipped to right)</b><br>MNISymC_GM/&lt;subj&gt;/&lt;week&gt;/&lt;subj&gt;_&lt;week&gt;_MNISymC_GM_mod.nii.gz<br>MNISymC_GM/&lt;subj&gt;/&lt;week&gt;/&lt;subj&gt;_&lt;week&gt;_MNISymC_GM_mod_FlipLR.nii.gz<br><b>modulated WM volume (left lesions flipped to right)</b><br>MNISymC_WM/&lt;subj&gt;/&lt;week&gt;/&lt;subj&gt;_&lt;week&gt;_MNISymC_WM_mod.nii.gz<br>MNISymC_WM/&lt;subj&gt;/&lt;week&gt;/&lt;subj&gt;_&lt;week&gt;_MNISymC_WM_mod_FlipLR.nii.gz")]
-  end
     A --> P1
     P1 --> B
     B --> P2 & P3
@@ -80,10 +75,7 @@ flowchart TB
     classDef nativeNode fill:#eff4ff,stroke:#a8bce0,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
     classDef templateNode fill:#f1ddf4,stroke:#ce9bd9,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
     classDef processNode fill:#f7f5e4,stroke:#e0b96a,stroke-width:1.5px,color:#333,font-family:monospace,font-size:12px
-    style S1 stroke:transparent,fill:#BBDEFB
-    style S2 fill:#BBDEFB,stroke:transparent
-    style S3 fill:#BBDEFB,stroke:transparent
-    style S4 fill:#BBDEFB,stroke:transparent
+  
 ```
 
 ### Regression analysis of anatomicals
