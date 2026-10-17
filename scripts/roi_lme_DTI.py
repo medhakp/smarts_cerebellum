@@ -9,18 +9,19 @@ if __name__ == '__main__':
     # FaMap - images in MNISymC (template space)
 
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
+    p_df = p_df[p_df.isPatient == 1]
 
     space = 'MNISymC'
     atlas_space = 'MNISymC'
-    roi_tract = 'MCP'
-    label_image = os.path.join(gl.baseDir, 'ROI', f'MNISymC.MCP_no_ventral_pons.nii')
-    region_names = [''] * 2 + [f'{roi_tract}_L', f'{roi_tract}_R']
+    roi_tract = 'CST'
+    label_image = os.path.join(gl.baseDir, 'ROI', f'MNISymC.{roi_tract}.nii') # CST: use CST.no_ventral_pons
+    region_names = [''] * 13 + [f'{roi_tract}_L', f'{roi_tract}_R']
 
     segment = 'FaMap'
     folder = f'{space}_{segment}'
 
-    x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_FaMap', 'summary_MNISymC_MCP_FaMap.tsv'), sep = '\t')
-    x_df = x_df[x_df.regionname == 'MCP_L'].copy()
+    x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_FaMap', 'summary_MNISymC_CST_FaMap.tsv'), sep = '\t')
+    x_df = x_df[x_df.regionname == 'CST_R'].copy()
     x_df['regionname'] = f'{roi_tract}_ai'
 
     lme_main(group = 'patients', p_df = p_df, segment = segment, folder = folder, space = 'MNISymC',

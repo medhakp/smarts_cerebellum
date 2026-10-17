@@ -11,17 +11,17 @@ controls_df = p_df[p_df.isPatient == 0]
 space = 'MNISymC'
 
 # custom ROI
-roi_tract = 'CST'
+roi_tract = 'MCP'
 label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{roi_tract}.nii')
-region_names = [''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
+region_names = [''] * 2 + [f'{roi_tract}_L', f'{roi_tract}_R']
     
-tract_segments = ['T1', 'WM_mod']
-tract_folders = [f'{space}_T1', f'{space}_WM']
+tract_segments = ['WM_mod']
+tract_folders = [f'{space}_WM']
 for t_segment, t_folder in zip(tract_segments, tract_folders):
     lme_main(group = 'patients', p_df = patients_df, segment = t_segment, folder = t_folder, 
-        label_image = label_image, region_names = region_names, roi = roi_tract)
+        label_image = label_image, region_names = region_names, roi = roi_tract, space = space)
     lme_main(group = 'controls', p_df = controls_df, segment = t_segment, folder = t_folder,
-                label_image = label_image, region_names = region_names, roi = roi_tract)
+                label_image = label_image, region_names = region_names, roi = roi_tract, space = space)
 
 
 

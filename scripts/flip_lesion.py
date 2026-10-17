@@ -89,7 +89,7 @@ if __name__=='__main__':
     # flip FaMaps
     path = os.path.join(gl.baseDir, 'MNISymC_FaMap')
     # just get the first row for each subject to get their lesion side
-    p_df = pd.read_excel(os.path.join(gl.baseDir, 'DTI', 'patient_list.xlsx'), usecols = range(10))
+    p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
     p_df['subj_id'] = p_df['Centre'].str.strip() + '_' + p_df['ID'].astype(str)
     left_lesion_subjs = []
     for subj in p_df.subj_id.unique():

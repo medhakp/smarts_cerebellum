@@ -20,7 +20,7 @@ patients_df = p_df[p_df.isPatient == 1]
 controls_df = p_df[p_df.isPatient == 0]
 
 space = 'MNISymC'
-segments = ['WM', 'GM', 'CSF']
+#segments = ['WM']
 weeks = ['W0', 'W4', 'W12', 'W24', 'W52']
 
 
@@ -112,21 +112,29 @@ def summarize_weeks(weeks = weeks,
     df.to_csv(os.path.join(gl.baseDir, search_dir, f'summary_{group}_{space}_{rois}_{segment}_{param}.tsv'), sep='\t', index=False)
 
 # custom map
-roi_tract = 'CST'
+roi_tract = 'MCP'
 label_image=os.path.join(gl.baseDir, 'ROI', f'MNISymC.{roi_tract}.nii')
-region_names=[''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
+region_names=[''] * 2 + [f'{roi_tract}_L', f'{roi_tract}_R']
 
-# cerebellar atlas available from SUIT
-atlas = 'Nettekoven_2024'
-maps = 'atl-NettekovenSym32'
+segment = 'WM'
+search_dir = f'MNISymC_{segment}/means'
+summarize_weeks(group = 'patients', segment = f'{segment}_mod', search_dir = search_dir, atlas_space = 'MNISym', label_image = label_image, region_names = region_names, rois = roi_tract)
+summarize_weeks(group = 'controls', segment = f'{segment}_mod', search_dir = search_dir, atlas_space = 'MNISym', label_image = label_image, region_names = region_names, rois = roi_tract)
 
 
-for segment in segments:
-    search_dir = f'MNISymC_{segment}/means'
-    summarize_weeks(group = 'patients', segment = f'{segment}_mod', search_dir = search_dir, atlas_space = 'MNISym', atlas = atlas, maps = maps, rois = atlas)
-    summarize_weeks(group = 'controls', segment = f'{segment}_mod', search_dir = search_dir, atlas_space = 'MNISym', atlas = atlas, maps = maps, rois = atlas)
+
+
+# # cerebellar atlas available from SUIT
+# atlas = 'Nettekoven_2024'
+# maps = 'atl-NettekovenSym32'
+
+
+# for segment in segments:
+#     search_dir = f'MNISymC_{segment}/means'
+#     summarize_weeks(group = 'patients', segment = f'{segment}_mod', search_dir = search_dir, atlas_space = 'MNISym', atlas = atlas, maps = maps, rois = atlas)
+#     summarize_weeks(group = 'controls', segment = f'{segment}_mod', search_dir = search_dir, atlas_space = 'MNISym', atlas = atlas, maps = maps, rois = atlas)
 
     
 
-summarize_weeks(group = 'patients', search_dir = 'MNISymC_T1/means', atlas_space = 'MNISym', atlas = atlas, maps = maps, rois = atlas)
-summarize_weeks(group = 'controls', search_dir = 'MNISymC_T1/means', atlas_space = 'MNISym', atlas = atlas, maps = maps, rois = atlas)
+# summarize_weeks(group = 'patients', search_dir = 'MNISymC_T1/means', atlas_space = 'MNISym', atlas = atlas, maps = maps, rois = atlas)
+# summarize_weeks(group = 'controls', search_dir = 'MNISymC_T1/means', atlas_space = 'MNISym', atlas = atlas, maps = maps, rois = atlas)
