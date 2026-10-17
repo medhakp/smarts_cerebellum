@@ -1,7 +1,6 @@
 import pandas as pd
 import os
 import numpy as np
-import SUITPy as suit
 import smarts_cerebellum.globals as gl
 from smarts_cerebellum.dataframes import make_dataframe_atlas_space
 from smarts_cerebellum.dti_normalized_metrics import add_normalized_metrics
@@ -19,16 +18,15 @@ if __name__=='__main__':
     folders = [f'{space}_FaMap']
     param = ''
 
-
-    # #atlas - CST
-    # tract = 'CST'
-    # label_image=os.path.join(gl.baseDir, 'ROI', 'MNISymC.CST.nii')
-    # region_names = [''] * 13 + ['CST_L', 'CST_R'] # regionnames count in SUITpy start for 1 but ours from 14
-
-    #atlas - MCP
-    tract = 'MCP'
-    label_image=os.path.join(gl.baseDir, 'ROI', f'MNISymC.{tract}.nii')
-    region_names = [''] * 2 + ['MCP_L', 'MCP_R'] # start at n-1 (e.g. in FSLEyes, we have 3, 4; so, start from 2 here)
+    atlas = '' # 'CST', 'MCP'
+    if atlas == 'CST':
+        region_names = [''] * 13 + ['CST_L', 'CST_R']
+    elif atlas == 'MCP':
+        region_names = [''] * 2 + ['MCP_L', 'MCP_R']
+    else:
+        raise ValueError(f'invalid atlas: {atlas}')
+    
+    label_image=os.path.join(gl.baseDir, 'ROI', f'MNISymC.{atlas}.nii')
 
     
     for segment, folder in zip(segments, folders):
@@ -48,4 +46,4 @@ if __name__=='__main__':
         # here, we should also calculate our metrics: ratio, log_ratio, asymmetry index
         df = add_normalized_metrics(df)
 
-        df.to_csv(os.path.join(gl.baseDir, folder, f'summary_{space}_{tract}_{segment}{param}.tsv'), sep='\t', index=False)
+        df.to_csv(os.path.join(gl.baseDir, folder, f'summary_{space}_{atlas}_{segment}{param}.tsv'), sep='\t', index=False)
