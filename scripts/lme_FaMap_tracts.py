@@ -3,6 +3,7 @@ import os
 import smarts_cerebellum.globals as gl
 from smarts_cerebellum.roi_lme import lme_main
 
+
 if __name__ == '__main__':
 
     
@@ -15,13 +16,13 @@ if __name__ == '__main__':
     atlas_space = 'MNISymC'
     roi_tract = 'MCP'
     label_image = os.path.join(gl.baseDir, 'ROI', f'MNISymC.{roi_tract}.nii') # MCP_no_ventral_pons renamed MCP; with_ventral_pons is the original
-    region_names = [''] * 13 + [f'{roi_tract}_L', f'{roi_tract}_R']
+    region_names = [''] * 2 + [f'{roi_tract}_L', f'{roi_tract}_R']
 
     segment = 'FaMap'
     folder = f'{space}_{segment}'
 
     x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_FaMap', 'summary_MNISymC_MCP_FaMap.tsv'), sep = '\t')
-    x_df = x_df[x_df.regionname == 'MCP_R'].copy()
+    x_df = x_df[x_df.regionname == 'MCP_L'].copy()
     x_df['regionname'] = f'{roi_tract}_ai'
 
     lme_main(group = 'patients', p_df = p_df, segment = segment, folder = folder, space = 'MNISymC',
