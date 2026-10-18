@@ -65,9 +65,7 @@ flowchart TB
     style D fill:#BBDEFB
 ```
 
-### Regression analysis of anatomicals
-
-Analysis of the cerebellar cortex uses the functional parcellations of the cerebellum defined by the Nettekoven atlas [(Nettekoven et al., 2024)](https://doi.org/10.1038/s41467-024-52371-w).
+### Voxel-wise analysis of anatomicals
 
 ```mermaid
 ---
@@ -114,9 +112,79 @@ flowchart TB
     classDef templateNode fill:#f1ddf4,stroke:#ce9bd9,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
     classDef processNode fill:#f7f5e4,stroke:#e0b96a,stroke-width:1.5px,color:#333,font-family:monospace,font-size:12px
 ```
+### LME for time course
+```mermaid
+---
+config:
+  layout: fixed
+---
+flowchart TB
+    C[("<b>modulated WM volume</b><br>MNISymC_WM/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßweekﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß_MNISymC_WM_mod(_FlipLR).nii.gz")] --> P1["scripts/lme_anat_tracts.py"]
+    P1 --> D[("<b>time course for WMV in CST/MCP<br></b>lme/ﬂ°°60¶ßgroupﬂ°°62¶ß_MNISymC_WM_mod_ﬂ°°60¶ßCST/MCPﬂ°°62¶ß_lme.tsv")]
+    n1[("<b>modulated GM volume</b><br>MNISymC_GM/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßweekﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß_MNISymC_GM_mod(_FlipLR).nii.gz")] --> n2["scripts/lme_cerebellum_tracts.py"]
+    n2 --> n3[("<b>time course for GMV in cerebellar ROIs<br></b>lme/ﬂ°°60¶ßgroupﬂ°°62¶ß_MNISymC_GM_mod_Nettekoven2024_lme.tsv")]
+
+    n2@{ shape: rect}
+     C:::templateNode
+     P1:::processNode
+     D:::templateNode
+     n1:::templateNode
+     n2:::processNode
+     n3:::templateNode
+    classDef templateNode fill:#f1ddf4,stroke:#ce9bd9,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
+    classDef processNode fill:#f7f5e4,stroke:#e0b96a,stroke-width:1.5px,color:#333,font-family:monospace,font-size:12px
+```
+Analysis of the cerebellar cortex uses the functional parcellations of the cerebellum defined by the Nettekoven atlas [(Nettekoven et al., 2024)](https://doi.org/10.1038/s41467-024-52371-w).
 
 
-## DTI analysis pipeline
+## FaMap analysis pipeline
 
-DTI images give grey-scale FA maps in JHU-MNI space; a white matter atlas (WMPM Type II) [(Mori et al., 2008)](https://doi.org/10.1016/j.neuroimage.2007.12.035) gives the following metrics in 189 WM ROIs: FaMap, trace, eigenvalues 1, 2, 3. FA Map means are analyzed using a linear regression for the average slope and an LME for time course.
+FaMap images are manually aligned and coregistered to the reference T1w anatomical (from first time point).
+```mermaid
+---
+config:
+  layout: fixed
+---
+flowchart TB
+    C[("`**grey-scale FA map hdr, img**<br>DTI/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßweekﬂ°°62¶ß/coreg_T1MNI_TP1/FaMap_dc_ss.hdr<br>DTI/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßweekﬂ°°62¶ß/coreg_T1MNI_TP1/FaMap_dc_ss.img`")] --> P1["make_nifti_dti.py"]
+    P1 --> D[("<b>grey-scale FA map Nifti<br></b>DTI/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßweekﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß_FaMap.nii")]
+    D --> n1@{ label: "manual alignment<br>sc_anat('ANAT:coreg')" }
+    n1 --> n2[("<b>co-registered grey-scale FA map Nifti<br></b>DTI/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßweekﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß_FaMap.nii")]
+    n2 --> n3["te.reslice()"]
+    n3 --> n4[("<b>normalized FaMap images<br></b>MNISymC_trans/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß_MNISymC_FaMap.nii")]
+    n4 --> n5["flip_lesion.py"]
+    n5 --> n6@{ label: "<b>left lesion flipped FaMap images<br></b>MNISymC_trans/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß__MNISymC_FaMap_FlipLR.nii<br><span style=\"--tw-border-spacing-y:\">**right lesion flipped FaMap images**</span><br>MNISymC_trans/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß_MNISymC_FaMap.nii" }
+    n6 --> n7["dataframes_FaMap_tracts.py"] & n8["lme_FaMap_tracts.py"]
+    n7 --> n9[("<b>FA metrics in CST/MCP<br></b>MNISymC_trans/summary_MNISymC_CST_FaMap.tsv<br>MNISymC_trans/summary_MNISymC_CST_FaMap.tsv")]
+    n8 --> n10@{ label: "<b>time course for FA metrics in CST/MCP<br></b>lme/patients_MNISymC_FaMap_CST_lme.tsv<br>lme/patients_MNISymC_FaMap_CST_lme.tsv<br style=\"--tw-border-spacing-y:\">" }
 
+    n1@{ shape: rect}
+    n3@{ shape: rect}
+    n5@{ shape: rect}
+    n6@{ shape: cylinder}
+    n7@{ shape: rect}
+    n8@{ shape: rect}
+    n10@{ shape: cylinder}
+     C:::templateNode
+     P1:::processNode
+     D:::templateNode
+     n1:::processNode
+     n2:::templateNode
+     n3:::processNode
+     n4:::templateNode
+     n5:::processNode
+     n6:::templateNode
+     n7:::processNode
+     n8:::processNode
+     n9:::templateNode
+     n10:::templateNode
+    classDef templateNode fill:#f1ddf4,stroke:#ce9bd9,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
+    classDef processNode fill:#f7f5e4,stroke:#e0b96a,stroke-width:1.5px,color:#333,font-family:monospace,font-size:12px
+    style C fill:#C8E6C9,stroke:#00C853
+    style D fill:#C8E6C9,stroke:#00C853
+    style n2 stroke:#00C853,fill:#C8E6C9
+    style n4 fill:#C8E6C9,stroke:#00C853
+    style n6 stroke:#00C853,fill:#C8E6C9
+    style n9 stroke:#00C853,fill:#C8E6C9
+    style n10 stroke:#00C853,fill:#C8E6C9
+```
