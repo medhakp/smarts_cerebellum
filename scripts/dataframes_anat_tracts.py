@@ -44,7 +44,7 @@ def summary_df(
 
     
 if __name__=='__main__':
-    mode = 'slope' # 'slope', 'normalized'
+    mode = 'normalized' # 'slope', 'normalized'
     atlas = 'MCP' # 'CST', 'MCP'
     
     space = 'MNISymC'

@@ -21,6 +21,11 @@ if __name__ == '__main__':
         region_names = [''] * 13 + [f'{roi_tract}_L', f'{roi_tract}_R']
     else:
         raise ValueError(f'invalid tract {roi_tract}')
+    
+
+    # predictors df (x_df) - use obs values.
+    x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_WM', f'summary_MNISymC_{roi_tract}_WM_mod.tsv'), sep = '\t')
+    
 
         
     tract_segments = ['WM_mod']
@@ -29,7 +34,8 @@ if __name__ == '__main__':
         lme_main(group = 'patients', p_df = patients_df, segment = t_segment, folder = t_folder, 
             label_image = label_image, region_names = region_names, roi = roi_tract, space = space)
         lme_main(group = 'controls', p_df = controls_df, segment = t_segment, folder = t_folder,
-                    label_image = label_image, region_names = region_names, roi = roi_tract, space = space)
+                    label_image = label_image, region_names = region_names, roi = roi_tract, space = space,
+                    predictors_df = x_df, stat = 'mean')
 
 
 
