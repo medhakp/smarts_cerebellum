@@ -153,8 +153,9 @@ Analysis of the cerebellar cortex uses the functional parcellations of the cereb
 FaMap images are manually aligned and coregistered to the reference T1w anatomical (from first time point).
 ```mermaid
 ---
+---
 config:
-  layout: fixed
+  layout: degre
 ---
 flowchart TB
     C[("`**grey-scale FA map hdr, img**<br>DTI/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßweekﬂ°°62¶ß/coreg_T1MNI_TP1/FaMap_dc_ss.hdr<br>DTI/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßweekﬂ°°62¶ß/coreg_T1MNI_TP1/FaMap_dc_ss.img`")] --> P1["make_nifti_dti.py"]
@@ -165,9 +166,11 @@ flowchart TB
     n3 --> n4[("<b>normalized FaMap images<br></b>MNISymC_trans/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß_MNISymC_FaMap.nii")]
     n4 --> n5["flip_lesion.py"]
     n5 --> n6@{ label: "<b>left lesion flipped FaMap images<br></b>MNISymC_trans/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß__MNISymC_FaMap_FlipLR.nii<br><span style=\"--tw-border-spacing-y:\">**right lesion flipped FaMap images**</span><br>MNISymC_trans/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß_MNISymC_FaMap.nii" }
-    n6 --> n7["dataframes_FaMap_tracts.py"] & n8["lme_FaMap_tracts.py"]
-    n7 --> n9[("<b>FA metrics in CST/MCP<br></b>MNISymC_trans/summary_MNISymC_CST_FaMap.tsv<br>MNISymC_trans/summary_MNISymC_CST_FaMap.tsv")]
+    n6 --> n7["dataframes_FaMap_tracts.py"] & n8["lme_FaMap_tracts.py"] & n12["dataframes_FaMap_cerebellum.py"] & n11["lme_FaMap_cerebellum.py"]
+    n7 --> n9[("<b>FA metrics in CST/MCP<br></b>MNISymC_FaMap/summary_MNISymC_CST_FaMap.tsv<br>MNISymC_FaMap/summary_MNISymC_MCP_FaMap.tsv")]
     n8 --> n10@{ label: "<b>time course for FA metrics in CST/MCP<br></b>lme/patients_MNISymC_FaMap_CST_lme.tsv<br>lme/patients_MNISymC_FaMap_CST_lme.tsv<br style=\"--tw-border-spacing-y:\">" }
+    n12 --> n13[("<b>FA metrics in cerebellum<br></b>MNISymC_FaMap/summary_MNISymC_cerebellum_FaMap.tsv<br>")]
+    n11 --> n14[("<b>time course for metrics in cerebellum<br></b>lme/patients_MNISymC_FaMap_cerebellum_lme.tsv<br>")]
 
     n1@{ shape: rect}
     n3@{ shape: rect}
@@ -175,6 +178,8 @@ flowchart TB
     n6@{ shape: cylinder}
     n7@{ shape: rect}
     n8@{ shape: rect}
+    n12@{ shape: rect}
+    n11@{ shape: rect}
     n10@{ shape: cylinder}
      C:::templateNode
      P1:::processNode
@@ -187,8 +192,12 @@ flowchart TB
      n6:::templateNode
      n7:::processNode
      n8:::processNode
+     n12:::processNode
+     n11:::processNode
      n9:::templateNode
      n10:::templateNode
+     n13:::templateNode
+     n14:::templateNode
     classDef templateNode fill:#f1ddf4,stroke:#ce9bd9,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
     classDef processNode fill:#f7f5e4,stroke:#e0b96a,stroke-width:1.5px,color:#333,font-family:monospace,font-size:12px
     style C fill:#C8E6C9,stroke:#00C853
@@ -198,4 +207,6 @@ flowchart TB
     style n6 stroke:#00C853,fill:#C8E6C9
     style n9 stroke:#00C853,fill:#C8E6C9
     style n10 stroke:#00C853,fill:#C8E6C9
+    style n13 stroke:#00C853,fill:#C8E6C9
+    style n14 stroke:#00C853,fill:#C8E6C9
 ```
