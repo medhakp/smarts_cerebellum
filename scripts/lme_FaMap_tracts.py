@@ -6,6 +6,8 @@ from smarts_cerebellum.roi_lme import lme_main
 
 if __name__ == '__main__':
 
+    # CHANGE THIS
+    roi_tract = 'MCP'
     
     # FaMap - images in MNISymC (template space)
 
@@ -13,35 +15,27 @@ if __name__ == '__main__':
     p_df = p_df[p_df.isPatient == 1]
 
     space = 'MNISymC'
-    atlas_space = 'MNISymC'
-    roi_tract = 'MCP'
+
+    if roi_tract == 'MCP':
+        region_names = [''] * 2 + [f'{roi_tract}_L', f'{roi_tract}_R']
+    elif roi_tract == 'CST':
+        region_names = [''] * 13 + [f'{roi_tract}_L', f'{roi_tract}_R']
+    else:
+        raise ValueError(f'invalid tract {roi_tract}')
+    
     label_image = os.path.join(gl.baseDir, 'ROI', f'MNISymC.{roi_tract}.nii') # MCP_no_ventral_pons renamed MCP; with_ventral_pons is the original
-    region_names = [''] * 2 + [f'{roi_tract}_L', f'{roi_tract}_R']
 
     segment = 'FaMap'
     folder = f'{space}_{segment}'
 
-    x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_FaMap', 'summary_MNISymC_MCP_FaMap.tsv'), sep = '\t')
-    x_df = x_df[x_df.regionname == 'MCP_L'].copy()
+    # predictors df (x_df) - use obs values.
+    x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_FaMap', f'summary_MNISymC_{roi_tract}_FaMap.tsv'), sep = '\t')
+    x_df = x_df[x_df.regionname == f'{roi_tract}_R'].copy() # if using ratio, log ratio, or asymmetry index
     x_df['regionname'] = f'{roi_tract}_ai'
 
     lme_main(group = 'patients', p_df = p_df, segment = segment, folder = folder, space = 'MNISymC',
                 label_image = label_image, region_names = region_names, roi = roi_tract, 
                 predictors_df= x_df, stat = 'asymmetry_index')
-    
-    
-
-    # # custom ROI
-    # roi_tract = 'MCP'
-    # label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{roi_tract}.nii')
-    # region_names = [''] * 13 + [f'left_{roi_tract}', f'{roi_tract}_R']
-
-    # segment = 'FaMap'
-    # folder = f'{space}_{segment}'
-
-    #x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_FaMap', 'summary_MNISymC_MCP_FaMap.tsv'), sep = '\t')
-
-   
    
     """
     # FaMap - from .tsv file (dataframe) in JHU-MNI (Eve) (WMPMII atlas)

@@ -8,7 +8,9 @@ from smarts_cerebellum.dti_normalized_metrics import add_normalized_metrics
 
 if __name__=='__main__':
 
+    atlas = 'MCP' # 'CST', 'MCP'
 
+    
     # demographics not available in "patient_list"; for now, we can just use the T1 patient list
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
     p_df = p_df[p_df.isPatient == 1]
@@ -18,7 +20,6 @@ if __name__=='__main__':
     folders = [f'{space}_FaMap']
     param = ''
 
-    atlas = '' # 'CST', 'MCP'
     if atlas == 'CST':
         region_names = [''] * 13 + ['CST_L', 'CST_R']
     elif atlas == 'MCP':

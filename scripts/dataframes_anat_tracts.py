@@ -38,15 +38,16 @@ def summary_df(
                           np.where(df.hemisphere == 'L', 'contralesional', 'ipsilesional'))
     
     if config['average']:
-        df = df.groupby(['subj_id', 'regionname', 'group']).mean(numeric_only=True).reset_index() # used for slopes
+        df = df.groupby(['subj_id', 'regionname', 'side']).mean(numeric_only=True).reset_index() # used for slopes
         
     df.to_csv(os.path.join(gl.baseDir, folder, f'summary_{space}_{atlas}_{segment}{config["param"]}.tsv'), sep='\t', index=False)
 
     
 if __name__=='__main__':
-    mode = 'normalized' # 'slope', 'normalized'
-    space = 'MNISymC'
+    mode = 'slope' # 'slope', 'normalized'
     atlas = 'MCP' # 'CST', 'MCP'
+    
+    space = 'MNISymC'
     segment = 'WM_mod'
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep='\t')
 
