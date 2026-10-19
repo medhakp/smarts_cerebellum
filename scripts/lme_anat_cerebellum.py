@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
     for c_segment, c_folder in zip(cereb_segments, cereb_folders):
         lme_main(group = 'patients', p_df = patients_df, segment = c_segment, folder = c_folder, 
-                    atlas_space = atlas_space, atlas = atlas, maps = maps, roi = atlas)
+                    atlas_space = atlas_space, atlas = atlas, maps = maps, roi = atlas,)
         lme_main(group = 'controls', p_df = controls_df, segment = c_segment, folder = c_folder,
                     atlas_space = atlas_space, atlas = atlas, maps = maps, roi = atlas)
         
