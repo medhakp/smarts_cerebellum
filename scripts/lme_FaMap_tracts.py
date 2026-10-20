@@ -32,6 +32,7 @@ if __name__ == '__main__':
     x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_FaMap', f'summary_MNISymC_{roi_tract}_FaMap.tsv'), sep = '\t')
     x_df = x_df[x_df.regionname == f'{roi_tract}_R'].copy() # if using ratio, log ratio, or asymmetry index
     x_df['regionname'] = f'{roi_tract}_ai'
+    x_df = x_df[x_df.isPatient == 1]
 
     lme_main(group = 'patients', p_df = p_df, segment = segment, folder = folder, space = 'MNISymC',
                 label_image = label_image, region_names = region_names, roi = roi_tract, 
