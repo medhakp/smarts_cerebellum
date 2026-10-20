@@ -5,13 +5,14 @@ from smarts_cerebellum.roi_lme import lme_main
 
 if __name__ == '__main__':
 
+    roi_tract = 'MCP'
+
     # anatomicals
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
     patients_df = p_df[p_df.isPatient == 1]
     controls_df = p_df[p_df.isPatient == 0]
 
     space = 'MNISymC'
-    roi_tract = 'MCP'
     label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{roi_tract}.nii')
 
 
@@ -24,7 +25,9 @@ if __name__ == '__main__':
     
 
     # predictors df (x_df) - use obs values.
-    x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_WM', f'summary_MNISymC_{roi_tract}_WM_mod.tsv'), sep = '\t')
+    x_df = pd.read_csv(os.path.join(gl.baseDir, f'{space}_WM', f'summary_{space}_{roi_tract}_WM_mod.tsv'), sep = '\t')
+    x_df_patients = x_df[x_df.isPatient == 1]
+    x_df_controls = x_df[x_df.isPatient == 0]
     
 
         
@@ -32,25 +35,10 @@ if __name__ == '__main__':
     tract_folders = [f'{space}_WM']
     for t_segment, t_folder in zip(tract_segments, tract_folders):
         lme_main(group = 'patients', p_df = patients_df, segment = t_segment, folder = t_folder, 
-            label_image = label_image, region_names = region_names, roi = roi_tract, space = space)
+            label_image = label_image, region_names = region_names, roi = roi_tract, space = space,
+            predictors_df = x_df_patients, stat = 'mean')
         lme_main(group = 'controls', p_df = controls_df, segment = t_segment, folder = t_folder,
                     label_image = label_image, region_names = region_names, roi = roi_tract, space = space,
-                    predictors_df = x_df, stat = 'mean')
+                    predictors_df = x_df_controls, stat = 'mean')
 
-
-
-    # custom ROIs (at different levels)
-    # roi_tract = 'CST'
-    # levels = ['midbrain', 'pons', 'medulla']
-
-    # tract_segments = ['WM_mod']
-    # tract_folders = [f'{space}_WM']
-
-    # for level in levels:
-    #     label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{roi_tract}.{level}.nii')
-    #     region_names = [''] * 13 + [f'left_{roi_tract}', f'right_{roi_tract}']
-
-    #     for t_segment, t_folder in zip(tract_segments, tract_folders):
-    #         lme_main(group = 'patients', p_df = patients_df, segment = t_segment, folder = t_folder, label_image = label_image, region_names = region_names, roi = f'{roi_tract}_{level}')
-    #         lme_main(group = 'controls', p_df = controls_df, segment = t_segment, folder = t_folder, label_image = label_image, region_names = region_names, roi = f'{roi_tract}_{level}')
 
