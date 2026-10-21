@@ -17,63 +17,64 @@ A pipeline for processing anatomicals, using mainly SUITPy and SPM12, has been w
 ```mermaid
 ---
 config:
-  layout: fixed
+ layout: fixed
 ---
 flowchart TB
-    A[("<b>raw T1w anatomicals: </b> <br>anatomicals/ﬂ°lt¶ßsubjﬂ°gt¶ß/ﬂ°lt¶ßweekﬂ°gt¶ß/ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ßT1.nii")] --> P1@{ label: "scripts/sc_anat('ANAT:coreg')" }
-    P1 --> B[("<b>coregistered T1w anatomicals (to time point 1): </b> <br>anatomicals/ﬂ°lt¶ßsubjﬂ°gt¶ß/ﬂ°lt¶ßweekﬂ°gt¶ß/ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ßT1.nii<br>")]
-    B --> P2@{ label: "scripts/sc_anat('ANAT:segment')" } & P3["scripts/tissue_extractor.isolate()"]
-    P2 --> C[("<b>grey matter volume image</b><br>c1ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_T1.nii<br><b>white matter volume image</b><br>c2ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_T1.nii<br><b>cerebrospinalfluid volume image</b><br>c3ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_T1.nii<br><i>(c4, c5 not used)</i>")]
-    P3 --> D[("<b>cerebellar isolation mask</b> <br>ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_T1_cerebellum_dseg.nii.gz<br>")]
-    D --> P4["scripts/tissue_extractor.transformation_files()"]
-    P4 --> E[("<b>transformation files</b><br>MNISymC_trans/ﬂ°lt¶ßsubjﬂ°gt¶ß/ﬂ°lt¶ßweekﬂ°gt¶ß/ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_T1_to-MNI152NLin2009cSymC_mode-image_xfm.nii.gz<br>")]
-    C --> F["scripts/tissue_extractor.reslice()"]
-    E --> F
-    F --> G[("<b>normalised T1 anatomical</b><br>MNISymC_T1/ﬂ°lt¶ßsubjﬂ°gt¶ß/ﬂ°lt¶ßweekﬂ°gt¶ß/ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_MNISymC_T1.nii.gz<br>")] & H[("<b>grey matter probability</b><br>MNISymC_GM/ﬂ°lt¶ßsubjﬂ°gt¶ß/ﬂ°lt¶ßweekﬂ°gt¶ß/ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_MNISymC_GM.nii.gz <br><b>white matter probability</b><br>MNISymC_WM/ﬂ°lt¶ßsubjﬂ°gt¶ß/ﬂ°lt¶ßweekﬂ°gt¶ß/ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_MNISymC_WM.nii.gz")]
-    H --> P5["scripts/modulate_volume.py"]
-    P5 --> I[("<b>modulated GM volume</b><br>MNISymC_GM/ﬂ°lt¶ßsubjﬂ°gt¶ß/ﬂ°lt¶ßweekﬂ°gt¶ß/ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_MNISymC_GM_mod.nii.gz<br><b>modulated WM volume</b><br>MNISymC_WM/ﬂ°lt¶ßsubjﬂ°gt¶ß/ﬂ°lt¶ßweekﬂ°gt¶ß/ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_MNISymC_WM_mod.nii.gz")]
-    I --> P6["scripts/flip_lesion.py"]
-    G --> P6
-    P6 --> J@{ label: "<span style=\"--tw-border-spacing-y:\">**normalised T1 anatomical (left lesion flipped to right)**<br></span>MNISymC_T1/ﬂ°lt¶ßsubjﬂ°gt¶ß/ﬂ°lt¶ßweekﬂ°gt¶ß/ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_MNISymC_T1(_FlipLR).nii.gz<br>" } & n3[("`**modulated GM volume (left lesions flipped to right)**<br>MNISymC_GM/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß_MNISymC_GM_mod.nii.gz<br>MNISymC_GM/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß_MNISymC_GM_mod_FlipLR.nii.gz`")] & n2[("`**modulated WM volume (left lesions flipped to right)**<br>MNISymC_WM/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß_MNISymC_WM_mod.nii.gz<br>MNISymC_WM/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß_MNISymC_WM_mod_FlipLR.nii.gz`")]
-    n2 --> n1["scripts/lme_anat_tracts.py"]
-    n1 --> n4[("`**WMV in CST/MCP**<br>MNISymC_WM/summary_MNISymC_CST_WM_mod.nii.gz<br>MNISymC_WM/summary_MNISymC_MCP_WM_mod.nii.gz`")]
-    n3 --> n6["scripts/lme_anat_cerebellum.py"]
-    n6 --> n5[("`**GMV in cerebellar ROIs**<br>MNISymC_GM/summary_MNISymC_Nettekoven2024_GM_mod.nii.gz<br><br>`")]
+   A[("<b>raw T1w anatomicals: </b> <br>anatomicals/ﬂ°lt¶ßsubjﬂ°gt¶ß/ﬂ°lt¶ßweekﬂ°gt¶ß/ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ßT1.nii")] --> P1@{ label: "scripts/sc_anat('ANAT:coreg')" }
+   P1 --> B[("<b>coregistered T1w anatomicals (to time point 1): </b> <br>anatomicals/ﬂ°lt¶ßsubjﬂ°gt¶ß/ﬂ°lt¶ßweekﬂ°gt¶ß/ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ßT1.nii<br>")]
+   B --> P2@{ label: "scripts/sc_anat('ANAT:segment')" } & P3["scripts/tissue_extractor.isolate()"]
+   P2 --> C[("<b>grey matter volume image</b><br>c1ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_T1.nii<br><b>white matter volume image</b><br>c2ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_T1.nii<br><b>cerebrospinalfluid volume image</b><br>c3ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_T1.nii<br><i>(c4, c5 not used)</i>")]
+   P3 --> D[("<b>cerebellar isolation mask</b> <br>ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_T1_cerebellum_dseg.nii.gz<br>")]
+   D --> P4["scripts/tissue_extractor.transformation_files()"]
+   P4 --> E[("<b>transformation files</b><br>MNISymC_trans/ﬂ°lt¶ßsubjﬂ°gt¶ß/ﬂ°lt¶ßweekﬂ°gt¶ß/ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_T1_to-MNI152NLin2009cSymC_mode-image_xfm.nii.gz<br>")]
+   C --> F["scripts/tissue_extractor.reslice()"]
+   E --> F
+   F --> G[("<b>normalised T1 anatomical</b><br>MNISymC_T1/ﬂ°lt¶ßsubjﬂ°gt¶ß/ﬂ°lt¶ßweekﬂ°gt¶ß/ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_MNISymC_T1.nii.gz<br>")] & H[("<b>grey matter probability</b><br>MNISymC_GM/ﬂ°lt¶ßsubjﬂ°gt¶ß/ﬂ°lt¶ßweekﬂ°gt¶ß/ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_MNISymC_GM.nii.gz <br><b>white matter probability</b><br>MNISymC_WM/ﬂ°lt¶ßsubjﬂ°gt¶ß/ﬂ°lt¶ßweekﬂ°gt¶ß/ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_MNISymC_WM.nii.gz")]
+   H --> P5["scripts/modulate_volume.py"]
+   P5 --> I[("<b>modulated GM volume</b><br>MNISymC_GM/ﬂ°lt¶ßsubjﬂ°gt¶ß/ﬂ°lt¶ßweekﬂ°gt¶ß/ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_MNISymC_GM_mod.nii.gz<br><b>modulated WM volume</b><br>MNISymC_WM/ﬂ°lt¶ßsubjﬂ°gt¶ß/ﬂ°lt¶ßweekﬂ°gt¶ß/ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_MNISymC_WM_mod.nii.gz")]
+   I --> P6["scripts/flip_lesion.py"]
+   G --> P6
+   P6 --> J@{ label: "<span style=\"--tw-border-spacing-y:\">**normalised T1 anatomical (left lesion flipped to right)**<br></span>MNISymC_T1/ﬂ°lt¶ßsubjﬂ°gt¶ß/ﬂ°lt¶ßweekﬂ°gt¶ß/ﬂ°lt¶ßsubjﬂ°gt¶ß_ﬂ°lt¶ßweekﬂ°gt¶ß_MNISymC_T1(_FlipLR).nii.gz<br>" } & n3[("`**modulated GM volume (left lesions flipped to right)**<br>MNISymC_GM/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß_MNISymC_GM_mod.nii.gz<br>MNISymC_GM/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß_MNISymC_GM_mod_FlipLR.nii.gz`")] & n2[("`**modulated WM volume (left lesions flipped to right)**<br>MNISymC_WM/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß_MNISymC_WM_mod.nii.gz<br>MNISymC_WM/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß_MNISymC_WM_mod_FlipLR.nii.gz`")]
+   n2 --> n1["scripts/dataframes_anat_tracts.py"]
+   n1 --> n4[("`**WMV in CST/MCP**<br>MNISymC_WM/summary_MNISymC_ﬂ°°60¶ßCST/MCPﬂ°°62¶ß_WM_mod.tsv<br>`")]
+   n3 --> n6["scripts/dataframes_anat_cerebellum.py"]
+   n6 --> n5[("`**GMV in cerebellar ROIs**<br>MNISymC_GM/summary_MNISymC_Nettekoven2024_GM_mod.tsv<br><br>`")]
 
-    P1@{ shape: rect}
-    P2@{ shape: rect}
-    J@{ shape: cylinder}
-    n1@{ shape: rect}
-    n6@{ shape: rect}
-     A:::nativeNode
-     P1:::processNode
-     B:::nativeNode
-     P2:::processNode
-     P3:::processNode
-     C:::nativeNode
-     D:::nativeNode
-     P4:::processNode
-     E:::templateNode
-     F:::processNode
-     G:::templateNode
-     H:::templateNode
-     P5:::processNode
-     I:::templateNode
-     P6:::processNode
-     J:::templateNode
-     n3:::templateNode
-     n2:::templateNode
-     n1:::processNode
-     n4:::templateNode
-     n6:::processNode
-     n5:::templateNode
-    classDef nativeNode fill:#eff4ff,stroke:#a8bce0,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
-    classDef templateNode fill:#f1ddf4,stroke:#ce9bd9,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
-    classDef processNode fill:#f7f5e4,stroke:#e0b96a,stroke-width:1.5px,color:#333,font-family:monospace,font-size:12px
-    style A fill:#BBDEFB
-    style B fill:#BBDEFB
-    style C fill:#BBDEFB
-    style D fill:#BBDEFB
+
+   P1@{ shape: rect}
+   P2@{ shape: rect}
+   J@{ shape: cylinder}
+   n1@{ shape: rect}
+   n6@{ shape: rect}
+    A:::nativeNode
+    P1:::processNode
+    B:::nativeNode
+    P2:::processNode
+    P3:::processNode
+    C:::nativeNode
+    D:::nativeNode
+    P4:::processNode
+    E:::templateNode
+    F:::processNode
+    G:::templateNode
+    H:::templateNode
+    P5:::processNode
+    I:::templateNode
+    P6:::processNode
+    J:::templateNode
+    n3:::templateNode
+    n2:::templateNode
+    n1:::processNode
+    n4:::templateNode
+    n6:::processNode
+    n5:::templateNode
+   classDef nativeNode fill:#eff4ff,stroke:#a8bce0,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
+   classDef templateNode fill:#f1ddf4,stroke:#ce9bd9,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
+   classDef processNode fill:#f7f5e4,stroke:#e0b96a,stroke-width:1.5px,color:#333,font-family:monospace,font-size:12px
+   style A fill:#BBDEFB
+   style B fill:#BBDEFB
+   style C fill:#BBDEFB
+   style D fill:#BBDEFB
 ```
 
 ### Voxel-wise analysis of anatomicals
@@ -127,23 +128,24 @@ flowchart TB
 ```mermaid
 ---
 config:
-  layout: fixed
+ layout: fixed
 ---
 flowchart TB
-    C[("<b>modulated WM volume</b><br>MNISymC_WM/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßweekﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß_MNISymC_WM_mod(_FlipLR).nii.gz")] --> P1["scripts/lme_anat_tracts.py"]
-    P1 --> D[("<b>time course for WMV in CST/MCP<br></b>lme/ﬂ°°60¶ßgroupﬂ°°62¶ß_MNISymC_WM_mod_ﬂ°°60¶ßCST/MCPﬂ°°62¶ß_lme.tsv")]
-    n1[("<b>modulated GM volume</b><br>MNISymC_GM/ﬂ°°60¶ßsubjﬂ°°62¶ß/ﬂ°°60¶ßweekﬂ°°62¶ß/ﬂ°°60¶ßsubjﬂ°°62¶ß_ﬂ°°60¶ßweekﬂ°°62¶ß_MNISymC_GM_mod(_FlipLR).nii.gz")] --> n2["scripts/lme_cerebellum_tracts.py"]
-    n2 --> n3[("<b>time course for GMV in cerebellar ROIs<br></b>lme/ﬂ°°60¶ßgroupﬂ°°62¶ß_MNISymC_GM_mod_Nettekoven2024_lme.tsv")]
+   C[("<b>modulated WMV in CST/MCP</b><br>MNISymC_WM/summary_MNISymC_ﬂ°°60¶ßCST/MCPﬂ°°62¶ß_WM_mod.tsv")] --> P1["scripts/lme_anat_tracts.py"]
+   P1 --> D[("<b>time course for WMV in CST/MCP<br></b>lme/ﬂ°°60¶ßgroupﬂ°°62¶ß_MNISymC_WM_mod_ﬂ°°60¶ßCST/MCPﬂ°°62¶ß_lme.tsv")]
+   n1[("<b>modulated GMV in cerebellum</b><br>MNISymC_GM/summary_MNISymC_Nettekoven_2024_GM_mod.tsv")] --> n2["scripts/lme_cerebellum_tracts.py"]
+   n2 --> n3[("<b>time course for GMV in cerebellar ROIs<br></b>lme/ﬂ°°60¶ßgroupﬂ°°62¶ß_MNISymC_GM_mod_Nettekoven2024_lme.tsv")]
 
-    n2@{ shape: rect}
-     C:::templateNode
-     P1:::processNode
-     D:::templateNode
-     n1:::templateNode
-     n2:::processNode
-     n3:::templateNode
-    classDef templateNode fill:#f1ddf4,stroke:#ce9bd9,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
-    classDef processNode fill:#f7f5e4,stroke:#e0b96a,stroke-width:1.5px,color:#333,font-family:monospace,font-size:12px
+
+   n2@{ shape: rect}
+    C:::templateNode
+    P1:::processNode
+    D:::templateNode
+    n1:::templateNode
+    n2:::processNode
+    n3:::templateNode
+   classDef templateNode fill:#f1ddf4,stroke:#ce9bd9,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
+   classDef processNode fill:#f7f5e4,stroke:#e0b96a,stroke-width:1.5px,color:#333,font-family:monospace,font-size:12px
 ```
 Analysis of the cerebellar cortex uses the functional parcellations of the cerebellum defined by the Nettekoven atlas [(Nettekoven et al., 2024)](https://doi.org/10.1038/s41467-024-52371-w).
 
