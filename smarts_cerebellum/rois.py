@@ -78,9 +78,12 @@ def cut_roi(roi_path, z_start, z_end):
 
 # # perhaps these can be moved to scripts?
 
-# # macros
-# roi_path = f'{gl.baseDir}/ROI/xtract-tract-atlases-maxprob5-1mm.nii.gz'
-# template_path = f'{gl.baseDir}/ROI/tpl-MNI152NLin2009cSymC_T1w.nii'
+roi_path = f'{gl.baseDir}/ROI/xtract-tract-atlases-maxprob5-1mm.nii.gz'
+template_path = f'{gl.baseDir}/ROI/tpl-MNI152NLin2009cSymC_T1w.nii'
+
+# acoustic ratidation ([4,5])
+cereb_tract = roi_in_template([4, 5], roi_path, template_path)
+nib.save(cereb_tract, f'{gl.baseDir}/ROI/MNISymC.acoustic_radiation.nii')
 
 # #____________________
 # # make cerebellum CST ROI in MNISym (MNISymC.CST)
@@ -106,17 +109,3 @@ def cut_roi(roi_path, z_start, z_end):
 # lr_labels = [4,3] # right = 4, left = 3
 # lr_tract = left_right_roi(tract_path, og_label, lr_labels)
 # nib.save(lr_tract, tract_path)
-
-import os
-# cut CST ROIs
-    # midbrain: 78-50; pons: 49-20; medulla: 19-0
-cst_roi = os.path.join(gl.baseDir, 'ROI', 'MNISymC.CST.nii')
-
-midbrain_img = cut_roi(cst_roi, 50, 77)
-nib.save(midbrain_img, f'{gl.baseDir}/ROI/MNISymC.CST.midbrain.nii')
-
-pons_img = cut_roi(cst_roi, 20, 49)
-nib.save(pons_img, f'{gl.baseDir}/ROI/MNISymC.CST.pons.nii')
-
-medulla_img = cut_roi(cst_roi, 0, 19)
-nib.save(medulla_img, f'{gl.baseDir}/ROI/MNISymC.CST.medulla.nii')
