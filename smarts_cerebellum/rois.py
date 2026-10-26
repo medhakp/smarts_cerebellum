@@ -2,6 +2,13 @@ import nibabel as nib
 import numpy as np
 import smarts_cerebellum.globals as gl
 import nitools as nt
+import os
+
+# import not working here, so add its path
+import sys
+sys.path.append("/home/UWO/mporwal2/Documents/GitHub/Functional_Fusion")
+import Functional_Fusion.atlas_map as am
+
 
 def roi_in_template(labels, roi_path, template_path):
     """
@@ -75,37 +82,46 @@ def cut_roi(roi_path, z_start, z_end):
     cut_img = nib.Nifti1Image(cut_arr, affine = roi.affine, header = roi.header)
     return cut_img
 
-
-# # perhaps these can be moved to scripts?
-
-roi_path = f'{gl.baseDir}/ROI/xtract-tract-atlases-maxprob5-1mm.nii.gz'
-template_path = f'{gl.baseDir}/ROI/tpl-MNI152NLin2009cSymC_T1w.nii'
-
-# acoustic ratidation ([4,5])
-cereb_tract = roi_in_template([4, 5], roi_path, template_path)
-nib.save(cereb_tract, f'{gl.baseDir}/ROI/MNISymC.acoustic_radiation.nii')
-
-# #____________________
-# # make cerebellum CST ROI in MNISym (MNISymC.CST)
-# # cst_vals = [14, 15]
-# # save_name = 'MNISymC.CST'
-
-# # cereb_tract = roi_in_template(cst_vals, roi_path, template_path)
-# # nib.save(cereb_tract, f'{gl.baseDir}/ROI/{save_name}.nii')
+def warp_atlas(xtract, target, save_path):
+    atlas_src = am.AtlasVolumetric('xtract', xtract, structure='brain', space='MNI152NLin6Asym') # current space
+    atlas_trg = am.AtlasVolumetric('template', target, structure = 'cerebellum', space = 'MNI152NLin2009cSymC')
+    data = atlas_src.read_data(xtract)
+    data[np.isnan(data)] = 0
+    data_new = am.deform_data(data,atlas_src, atlas_trg, interpolation=0) # deform; use nearest-neighbour for discrete
+    data_new[np.isnan(data_new)] = 0
+    img = atlas_trg.data_to_nifti(data_new)
+    nib.save(img, save_path)
 
 
-# #____________________
-# # make cerebellar CST for middle cerebellar peduncle
-# mcp_vals = [26]
-# save_name = 'MNISymC.MCP'
+def make_roi(roi, save_path, template):
+    if roi == 'CST':
+        cst_vals = [14, 15]
+        save_name = 'MNISymC.CST'
+        cereb_tract = roi_in_template(cst_vals, save_path, template)
+        nib.save(cereb_tract, f'{gl.baseDir}/ROI/{save_name}.nii')
+    elif roi == 'MCP_with_ventral_pons':
+        mcp_vals = [26]
+        save_name = 'MNISymC.MCP_with_ventral_pons'
 
-# cereb_tract = roi_in_template(mcp_vals, roi_path, template_path)
-# nib.save(cereb_tract, f'{gl.baseDir}/ROI/{save_name}.nii')
+        cereb_tract = roi_in_template(mcp_vals, save_path, template)
+        nib.save(cereb_tract, f'{gl.baseDir}/ROI/{save_name}.nii')
 
-# #______________
-# # get left, right MCP tract separately
-# tract_path = f'{gl.baseDir}/ROI/MNISymC.MCP.nii'
-# og_label = 26 # label of tract - assumed one value
-# lr_labels = [4,3] # right = 4, left = 3
-# lr_tract = left_right_roi(tract_path, og_label, lr_labels)
-# nib.save(lr_tract, tract_path)
+        # get left, right MCP tract separately
+        tract_path = f'{gl.baseDir}/ROI/MNISymC.MCP_with_ventral_pons.nii'
+        og_label = 26 # label of tract - assumed one value
+        lr_labels = [4,3] # right = 4, left = 3
+        lr_tract = left_right_roi(tract_path, og_label, lr_labels)
+        nib.save(lr_tract, tract_path)
+    else:
+        raise ValueError("invalid roi")
+
+if __name__ == '__main__':
+    xtract =  os.path.join(gl.baseDir, 'ROI', 'xtract-tract-atlases-maxprob5-1mm.nii.gz') # source
+    template = os.path.join(gl.baseDir, 'ROI', 'tpl-MNI152NLin2009cSymC_T1w.nii') # target
+    save_path = os.path.join(gl.baseDir, 'ROI', 'MNISymC.xtract.nii')
+
+    warp_atlas(xtract, template, save_path)
+
+    make_roi('MCP_with_ventral_pons', save_path, template)
+    # MCP (no ventral pons): set y = 76; then scroll up in y, remove anything at y>76; save as MNISymC.nii
+ 

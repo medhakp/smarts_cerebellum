@@ -44,8 +44,9 @@ def summary_df(
 
     
 if __name__=='__main__':
+
     mode = 'normalized' # 'slope', 'normalized'
-    atlas = 'acoustic_radiation' # 'CST', 'MCP'
+    atlas = 'MCP' # 'CST', 'MCP'
     
     space = 'MNISymC'
     segment = 'WM_mod'
@@ -55,8 +56,6 @@ if __name__=='__main__':
         region_names = [''] * 13 + ['CST_L', 'CST_R']
     elif atlas == 'MCP':
         region_names = [''] * 2 + ['MCP_L', 'MCP_R']
-    elif atlas == 'acoustic_radiation':
-        region_names = [''] * 3 + ['acoustic_L', 'acoustic_R']
     else:
         raise ValueError(f'invalid atlas: {atlas}')
 

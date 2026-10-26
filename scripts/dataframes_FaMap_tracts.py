@@ -8,7 +8,7 @@ from smarts_cerebellum.dti_normalized_metrics import add_normalized_metrics
 
 if __name__=='__main__':
 
-    atlas = 'MCP' # 'CST', 'MCP'
+    atlas = 'CST' # 'CST', 'MCP'
 
     
     # demographics not available in "patient_list"; for now, we can just use the T1 patient list
