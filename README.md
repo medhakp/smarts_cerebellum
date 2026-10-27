@@ -80,6 +80,8 @@ flowchart TB
 
 **MNISymC_WM/summary_MNISymC_<CST/MCP>_WM_mod.tsv**
 
+Dataframes summarizing modulated WMV for CST or MCP.
+
 | column | description|
 | :---- | ----: |
 | `subj_id` | `subject identifier: centre + ID` |
@@ -104,6 +106,8 @@ flowchart TB
 | `side` | `relative to LesionSide: ipsilesional/contralesional` |
 
 **MNISymC_GM/summary_MNISymC_Nettekoven_2024_GM_mod.tsv**
+
+Dataframes summarizing modulated GMV in cerebellar ROIs.
 
 *Analysis of the cerebellar cortex uses the functional parcellations of the cerebellum defined by the Nettekoven atlas [(Nettekoven et al., 2024)](https://doi.org/10.1038/s41467-024-52371-w).*
 
@@ -179,7 +183,10 @@ flowchart TB
 ```
 
 ### Dataframes
-**regression/summary_MNISymC_Nettekoven_2024_GM_mod_slope.tsv**
+
+**regression/summary_MNISymC_<CST/MCP>_WM_mod_slope.tsv**
+
+Dataframes summarizing average change in modulated WMV in CST/MCP.
 
 | column | description|
 | :---- | ----: |
@@ -198,7 +205,9 @@ flowchart TB
 | `handedness` | `subj's handedness` |
 | `side` | `relative to LesionSide: ipsilesional/contralesional` |
 
-**regression/summary_MNISymC_<CST/MCP>_WM_mod_slope.tsv**
+**regression/summary_MNISymC_Nettekoven_2024_GM_mod_slope.tsv**
+
+Dataframes summarizing modulating GMV in cerebellar ROIs.
 
 | column | description|
 | :---- | ----: |
