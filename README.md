@@ -76,6 +76,59 @@ flowchart TB
    style C fill:#BBDEFB
    style D fill:#BBDEFB
 ```
+### Dataframes
+
+**MNISymC_WM/summary_MNISymC_<CST/MCP>_WM_mod.tsv**
+
+| column | description|
+| :---- | ----: |
+| `subj_id` | `subject identifier: centre + ID` |
+| `image_name` | `Nifti image used` |
+| `region` | `ROI numeric label` |
+| `regionname` | `ROI name (lateralized)` |
+| `volume` | `volume of region (for 1mm^3, volume = number of pixels)` |
+| `atlas` | `atlas containing ROI` |
+| `mean` | `mean tissue volume` |
+| `Week` | `week as integer` |
+| `Centre` | `imaging centre (university)` |
+| `ID` | `ID number for subj` |
+| `RefT1` | `reference anatomical` |
+| `age` | `patient age` |
+| `Gender` | `patient gender` |
+| `isPatient` | `patient = 1, control = 0` |
+| `LesionSide` | `left /right (side of lesion)` |
+| `LesionLocation` | `cortical/subcortical/mixed/None (controls)` |
+| `handedness` | `subj's handedness` |
+| `hemisphere` | `ROI hemisphere` |
+| `region_bilat` | `regionname, non-lateralized` |
+| `side` | `relative to LesionSide: ipsilesional/contralesional` |
+
+**MNISymC_GM/summary_MNISymC_Nettekoven_2024_GM_mod.tsv**
+
+*Analysis of the cerebellar cortex uses the functional parcellations of the cerebellum defined by the Nettekoven atlas [(Nettekoven et al., 2024)](https://doi.org/10.1038/s41467-024-52371-w).*
+
+| column | description|
+| :---- | ----: |
+| `subj_id` | `subject identifier: centre + ID` |
+| `image_name` | `Nifti image used` |
+| `region` | `ROI numeric label` |
+| `regionname` | `ROI name (lateralized)` |
+| `volume` | `volume of region (for 1mm^3, volume = number of pixels)` |
+| `atlas` | `atlas containing ROI` |
+| `mean` | `mean tissue volume` |
+| `Week` | `week as integer` |
+| `Centre` | `imaging centre (university)` |
+| `ID` | `ID number for subj` |
+| `RefT1` | `reference anatomical` |
+| `age` | `patient age` |
+| `Gender` | `patient gender` |
+| `isPatient` | `patient = 1, control = 0` |
+| `LesionSide` | `left /right (side of lesion)` |
+| `LesionLocation` | `cortical/subcortical/mixed/None (controls)` |
+| `handedness` | `subj's handedness` |
+| `hemisphere` | `ROI hemisphere` |
+| `region_bilat` | `regionname, non-lateralized` |
+| `side` | `relative to LesionSide: ipsilesional/contralesional` |
 
 ### Voxel-wise analysis of anatomicals
 
@@ -124,6 +177,46 @@ flowchart TB
     classDef templateNode fill:#f1ddf4,stroke:#ce9bd9,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
     classDef processNode fill:#f7f5e4,stroke:#e0b96a,stroke-width:1.5px,color:#333,font-family:monospace,font-size:12px
 ```
+
+### Dataframes
+**regression/summary_MNISymC_Nettekoven_2024_GM_mod_slope.tsv**
+
+| column | description|
+| :---- | ----: |
+| `subj_id` | `subject identifier: centre + ID` |
+| `region` | `ROI numeric label` |
+| `regionname` | `ROI name (lateralized)` |
+| `volume` | `volume of region (for 1mm^3, volume = number of pixels)` |
+| `mean` | `mean tissue volume (slope)` |
+| `ID` | `ID number for subj` |
+| `RefT1` | `reference anatomical` |
+| `age` | `patient age` |
+| `Gender` | `patient gender` |
+| `isPatient` | `patient = 1, control = 0` |
+| `LesionSide` | `left /right (side of lesion)` |
+| `LesionLocation` | `cortical/subcortical/mixed/None (controls)` |
+| `handedness` | `subj's handedness` |
+| `side` | `relative to LesionSide: ipsilesional/contralesional` |
+
+**regression/summary_MNISymC_<CST/MCP>_WM_mod_slope.tsv**
+
+| column | description|
+| :---- | ----: |
+| `subj_id` | `subject identifier: centre + ID` |
+| `region` | `ROI numeric label` |
+| `regionname` | `ROI name (lateralized)` |
+| `volume` | `volume of region (for 1mm^3, volume = number of pixels)` |
+| `mean` | `mean tissue volume (slope)` |
+| `ID` | `ID number for subj` |
+| `RefT1` | `reference anatomical` |
+| `age` | `patient age` |
+| `Gender` | `patient gender` |
+| `isPatient` | `patient = 1, control = 0` |
+| `LesionSide` | `left /right (side of lesion)` |
+| `LesionLocation` | `cortical/subcortical/mixed/None (controls)` |
+| `handedness` | `subj's handedness` |
+| `side` | `relative to LesionSide: ipsilesional/contralesional` |
+
 ### LME for time course
 ```mermaid
 ---
@@ -147,7 +240,6 @@ flowchart TB
    classDef templateNode fill:#f1ddf4,stroke:#ce9bd9,stroke-width:1.5px,color:#333,font-family:Arial,font-size:12px
    classDef processNode fill:#f7f5e4,stroke:#e0b96a,stroke-width:1.5px,color:#333,font-family:monospace,font-size:12px
 ```
-Analysis of the cerebellar cortex uses the functional parcellations of the cerebellum defined by the Nettekoven atlas [(Nettekoven et al., 2024)](https://doi.org/10.1038/s41467-024-52371-w).
 
 
 ## FaMap analysis pipeline
