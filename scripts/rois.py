@@ -82,16 +82,14 @@ def cut_roi(roi_path, z_start, z_end):
     cut_img = nib.Nifti1Image(cut_arr, affine = roi.affine, header = roi.header)
     return cut_img
 
-def warp_atlas(xtract, target, save_path):
-    atlas_src = am.AtlasVolumetric('xtract', xtract, structure='brain', space='MNI152NLin6Asym') # current space
-    atlas_trg = am.AtlasVolumetric('template', target, structure = 'cerebellum', space = 'MNI152NLin2009cSymC')
-    data = atlas_src.read_data(xtract)
-    data[np.isnan(data)] = 0
-    data_new = am.deform_data(data,atlas_src, atlas_trg, interpolation=0) # deform; use nearest-neighbour for discrete
-    data_new[np.isnan(data_new)] = 0
+def warp_atlas(src_img, src_mask, trg_mask, trg_space = 'MNI152NLin2009cSymC', save_path = None, interpolation = 0):
+    
+    atlas_src = am.AtlasVolumetric('xtract_src', src_mask, structure='brain', space='MNI152NLin6Asym') # current space
+    atlas_trg = am.AtlasVolumetric('xtract_trg', trg_mask, structure = 'brain', space = trg_space)
+    data = atlas_src.read_data(src_img)
+    data_new = am.deform_data(data, atlas_src, atlas_trg, interpolation = interpolation)
     img = atlas_trg.data_to_nifti(data_new)
     nib.save(img, save_path)
-
 
 def make_roi(roi, save_path, template):
     if roi == 'CST':
@@ -116,12 +114,18 @@ def make_roi(roi, save_path, template):
         raise ValueError("invalid roi")
 
 if __name__ == '__main__':
-    xtract =  os.path.join(gl.baseDir, 'ROI', 'xtract-tract-atlases-maxprob5-1mm.nii.gz') # source
-    template = os.path.join(gl.baseDir, 'ROI', 'tpl-MNI152NLin2009cSymC_T1w.nii') # target
+    
+    xtract = os.path.join(gl.baseDir, 'ROI', 'xtract-tract-atlases-maxprob5-1mm.nii.gz')
+    src_mask = os.path.join(gl.baseDir, 'ROI', 'cerebellar_atlases', 'tpl-MNI152NLin6Asym', 'tpl-MNI152NLin6Asym_mask.nii')
+    trg_mask = os.path.join(gl.baseDir, 'ROI', 'cerebellar_atlases', 'tpl-MNI152NLin2009cSymC', 'tpl-MNI152NLin2009cSymC_desc-cereb_mask.nii')
+
     save_path = os.path.join(gl.baseDir, 'ROI', 'MNISymC.xtract.nii')
 
-    warp_atlas(xtract, template, save_path)
+    warp_atlas(src_img = xtract, src_mask = src_mask, trg_mask = trg_mask,
+               save_path = save_path)
+    
 
-    make_roi('MCP_with_ventral_pons', save_path, template)
+    template = os.path.join(gl.baseDir, 'ROI', 'tpl-MNI152NLin2009cSymC_T1w.nii') # target
+    make_roi('CST', save_path, template)
     # MCP (no ventral pons): set y = 76; then scroll up in y, remove anything at y>76; save as MNISymC.nii
  
