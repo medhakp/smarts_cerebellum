@@ -46,7 +46,7 @@ def summary_df(
 if __name__=='__main__':
 
     mode = 'normalized' # 'slope', 'normalized'
-    atlas = 'MCP' # 'CST', 'MCP'
+    atlas = 'CST' # 'CST', 'MCP'
     
     space = 'MNISymC'
     segment = 'WM_mod'

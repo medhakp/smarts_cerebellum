@@ -3,14 +3,15 @@ import numpy as np
 import smarts_cerebellum.globals as gl
 import nitools as nt
 import os
+import ants
 
 # import not working here, so add its path
 import sys
 sys.path.append("/home/UWO/mporwal2/Documents/GitHub/Functional_Fusion")
 import Functional_Fusion.atlas_map as am
 
-
-def roi_in_template(labels, roi_path, template_path):
+# 1. make atlas cerebellum-only (in its space)
+def cerebellum_only_roi(roi_path, template_path):
     """
     returns Nifti (uncompressed)
     """
@@ -24,20 +25,48 @@ def roi_in_template(labels, roi_path, template_path):
     roi_template = nt.sample_image(roi, x, y,z, interpolation = 0) # use nearest-neighbour for discrete values
 
     # get relevant tracts
-    tract_vals = np.isin(roi_template, labels)
-    tract_arr = np.where(tract_vals, roi_template, 0)
 
-    # if cerebellar template has zero value in a voxel, set tract value to zero as well
-    cereb_tract_arr = np.where(template_arr!=0, tract_arr, 0)
+    cereb_tract_arr = np.where(template_arr!=0, roi_template, 0)
 
     # avoid rounding/floating points in tract labels: round up and save array vals as int
-    cereb_tract_arr = np.ceil(cereb_tract_arr).astype(int)
+    #cereb_tract_arr = np.ceil(cereb_tract_arr).astype(int)
 
-    # save image with template affine
     cereb_tract = nib.Nifti1Image(cereb_tract_arr, template.affine, template.header)
     return cereb_tract
-   
 
+# 2. warp atlas
+def warp_atlas(xtract, source, target, save_path):
+    source_img = ants.image_read(source)
+    target_img = ants.image_read(target)
+
+    # get only cerebellum + brainstem area in atlas's space
+    xtract_cerebellum = cerebellum_only_roi(xtract, source) # returns nifti object
+    xtract_cerebellum = ants.from_nibabel_nifti(xtract_cerebellum).astype('float32') # convert nifti object to ants
+
+    # create deformation file from source (atlas) to target space
+    reg = ants.registration(fixed = target_img, moving = source_img)
+
+    # use that deformation to warp atlas (interpolator = genericLabel for label images)
+    warped_atlas = ants.apply_transforms(fixed = target_img,
+                                        moving = xtract_cerebellum,
+                                        transformlist = reg['fwdtransforms'],
+                                        interpolator = 'genericLabel')
+    # save warped atlas
+    ants.image_write(warped_atlas, save_path)
+
+
+# 3. extract relevant tract
+def get_tract(labels, roi_path):
+    roi = nib.load(roi_path)
+    roi_arr = roi.get_fdata()
+
+    tract_arr = np.where(np.isin(roi_arr, labels), # tract vals
+                          roi_arr, # in this array, else 0
+                          0).astype(np.int16)
+    return nib.Nifti1Image(tract_arr, roi.affine)
+  
+
+# optional: get left/right tracts (if needed, e.g. MCP given bilaterally)
 def left_right_roi(tract_path, og_label, lr_labels):
     # we can split the array in half and literally do left-right
     # assumes symmetric template
@@ -61,6 +90,7 @@ def left_right_roi(tract_path, og_label, lr_labels):
     lr_tract = nib.Nifti1Image(tract_arr, tract.affine, tract.header)
     return lr_tract
 
+# optional: cut roi into segments
 def cut_roi(roi_path, z_start, z_end):
     """
     cuts ROI based on z-coordinates
@@ -82,26 +112,18 @@ def cut_roi(roi_path, z_start, z_end):
     cut_img = nib.Nifti1Image(cut_arr, affine = roi.affine, header = roi.header)
     return cut_img
 
-def warp_atlas(src_img, src_mask, trg_mask, trg_space = 'MNI152NLin2009cSymC', save_path = None, interpolation = 0):
-    
-    atlas_src = am.AtlasVolumetric('xtract_src', src_mask, structure='brain', space='MNI152NLin6Asym') # current space
-    atlas_trg = am.AtlasVolumetric('xtract_trg', trg_mask, structure = 'brain', space = trg_space)
-    data = atlas_src.read_data(src_img)
-    data_new = am.deform_data(data, atlas_src, atlas_trg, interpolation = interpolation)
-    img = atlas_trg.data_to_nifti(data_new)
-    nib.save(img, save_path)
 
-def make_roi(roi, save_path, template):
+def make_roi(roi, roi_path, save_name):
     if roi == 'CST':
         cst_vals = [14, 15]
         save_name = 'MNISymC.CST'
-        cereb_tract = roi_in_template(cst_vals, save_path, template)
+        cereb_tract = get_tract(cst_vals, roi_path)
         nib.save(cereb_tract, f'{gl.baseDir}/ROI/{save_name}.nii')
     elif roi == 'MCP_with_ventral_pons':
         mcp_vals = [26]
         save_name = 'MNISymC.MCP_with_ventral_pons'
 
-        cereb_tract = roi_in_template(mcp_vals, save_path, template)
+        cereb_tract = get_tract(mcp_vals,roi_path)
         nib.save(cereb_tract, f'{gl.baseDir}/ROI/{save_name}.nii')
 
         # get left, right MCP tract separately
@@ -114,18 +136,18 @@ def make_roi(roi, save_path, template):
         raise ValueError("invalid roi")
 
 if __name__ == '__main__':
-    
+
     xtract = os.path.join(gl.baseDir, 'ROI', 'xtract-tract-atlases-maxprob5-1mm.nii.gz')
-    src_mask = os.path.join(gl.baseDir, 'ROI', 'cerebellar_atlases', 'tpl-MNI152NLin6Asym', 'tpl-MNI152NLin6Asym_mask.nii')
-    trg_mask = os.path.join(gl.baseDir, 'ROI', 'cerebellar_atlases', 'tpl-MNI152NLin2009cSymC', 'tpl-MNI152NLin2009cSymC_desc-cereb_mask.nii')
+    source = os.path.join(gl.baseDir, 'ROI', 'cerebellar_atlases', 'tpl-MNI152NLin6AsymC', 'tpl-MNI152NLin6AsymC_T1w.nii') # "moving"; use cerebellum-only template
+    target = os.path.join(gl.baseDir, 'ROI', 'tpl-MNI152NLin2009cSymC_T1w.nii') # "fixed"
+    warped_path = os.path.join(gl.baseDir, 'ROI', 'MNISymC.xtract.nii')
 
-    save_path = os.path.join(gl.baseDir, 'ROI', 'MNISymC.xtract.nii')
+    # 1. warp atlas (only once)
+    warp_atlas(xtract=xtract, source=source, target=target, save_path=warped_path)
 
-    warp_atlas(src_img = xtract, src_mask = src_mask, trg_mask = trg_mask,
-               save_path = save_path)
-    
-
-    template = os.path.join(gl.baseDir, 'ROI', 'tpl-MNI152NLin2009cSymC_T1w.nii') # target
-    make_roi('CST', save_path, template)
+    # make each ROI
+    roi = 'CST'
+    roi_save_name = f'MNISymC.{roi}'
+    make_roi(roi = roi, roi_path = warped_path, save_name=roi_save_name)
     # MCP (no ventral pons): set y = 76; then scroll up in y, remove anything at y>76; save as MNISymC.nii
  
