@@ -5,13 +5,9 @@ import nitools as nt
 import os
 import ants
 
-# import not working here, so add its path
-import sys
-sys.path.append("/home/UWO/mporwal2/Documents/GitHub/Functional_Fusion")
-import Functional_Fusion.atlas_map as am
 
 # 1. make atlas cerebellum-only (in its space)
-def cerebellum_only_roi(roi_path, template_path):
+def _cerebellum_only_roi(roi_path, template_path, thresh = 0.1):
     """
     returns Nifti (uncompressed)
     """
@@ -24,33 +20,41 @@ def cerebellum_only_roi(roi_path, template_path):
     x,y,z = nt.affine_transform(i, j, k, template.affine)
     roi_template = nt.sample_image(roi, x, y,z, interpolation = 0) # use nearest-neighbour for discrete values
 
-    # get relevant tracts
-
-    cereb_tract_arr = np.where(template_arr!=0, roi_template, 0)
+    cereb_tract_arr = np.where(template_arr > thresh, roi_template, 0)
 
     # avoid rounding/floating points in tract labels: round up and save array vals as int
-    #cereb_tract_arr = np.ceil(cereb_tract_arr).astype(int)
+    cereb_tract_arr = np.rint(np.nan_to_num(cereb_tract_arr)).astype(np.int16)
 
     cereb_tract = nib.Nifti1Image(cereb_tract_arr, template.affine, template.header)
+    cereb_tract.set_data_dtype(np.int16)
     return cereb_tract
 
 # 2. warp atlas
-def warp_atlas(xtract, source, target, save_path):
+def warp_atlas(xtract, source, target, save_path, 
+               transform = 'antsRegistrationSyN[s]', # same transformation used in SUITPy normalization
+               seed = 1
+               ):
+    
     source_img = ants.image_read(source)
     target_img = ants.image_read(target)
 
     # get only cerebellum + brainstem area in atlas's space
-    xtract_cerebellum = cerebellum_only_roi(xtract, source) # returns nifti object
-    xtract_cerebellum = ants.from_nibabel_nifti(xtract_cerebellum).astype('float32') # convert nifti object to ants
-
+    xtract_cerebellum = ants.from_nibabel_nifti(_cerebellum_only_roi(xtract, source)) # convert nifti object to ants
+    
     # create deformation file from source (atlas) to target space
-    reg = ants.registration(fixed = target_img, moving = source_img)
+    reg = ants.registration(fixed = target_img, moving = source_img,
+                            type_of_transform = transform,
+                            random_seed = seed
+                            )
 
     # use that deformation to warp atlas (interpolator = genericLabel for label images)
     warped_atlas = ants.apply_transforms(fixed = target_img,
                                         moving = xtract_cerebellum,
                                         transformlist = reg['fwdtransforms'],
                                         interpolator = 'genericLabel')
+    
+    # round to int
+    
     # save warped atlas
     ants.image_write(warped_atlas, save_path)
 
@@ -70,9 +74,11 @@ def get_tract(labels, roi_path):
 def left_right_roi(tract_path, og_label, lr_labels):
     # we can split the array in half and literally do left-right
     # assumes symmetric template
+    # should use world coordinates here
     
     tract = nib.load(tract_path)
     tract_arr = tract.get_fdata()
+
 
     middle = tract_arr.shape[0] // 2 # split array into half
     right = np.zeros_like(tract_arr, dtype = bool) # zero-like array instead of just zeroes?
@@ -90,30 +96,9 @@ def left_right_roi(tract_path, og_label, lr_labels):
     lr_tract = nib.Nifti1Image(tract_arr, tract.affine, tract.header)
     return lr_tract
 
-# optional: cut roi into segments
-def cut_roi(roi_path, z_start, z_end):
-    """
-    cuts ROI based on z-coordinates
-    Usage: cutting CST tract into midbrain, pons, medulla
-    """
-    roi = nib.load(roi_path)
-
-    # world coordinates
-    i, j, k = np.indices(roi.shape)
-    x,y,z = nt.affine_transform(i, j, k, roi.affine)
-    roi_arr = nt.sample_image(roi, x, y,z, interpolation = 0) # use nearest-neighbour for discrete values
-
-    cut_arr = np.zeros(roi_arr.shape)
-    cut_arr[:,:, z_start:z_end+1] = roi_arr[:,:, z_start:z_end+1]
-
-    # avoid rounding/floating points in tract labels: round up and save array vals as int
-    cut_arr = np.ceil(cut_arr).astype(int)
-
-    cut_img = nib.Nifti1Image(cut_arr, affine = roi.affine, header = roi.header)
-    return cut_img
 
 
-def make_roi(roi, roi_path, save_name):
+def make_roi(roi, roi_path):
     if roi == 'CST':
         cst_vals = [14, 15]
         save_name = 'MNISymC.CST'
@@ -129,7 +114,7 @@ def make_roi(roi, roi_path, save_name):
         # get left, right MCP tract separately
         tract_path = f'{gl.baseDir}/ROI/MNISymC.MCP_with_ventral_pons.nii'
         og_label = 26 # label of tract - assumed one value
-        lr_labels = [4,3] # right = 4, left = 3
+        lr_labels = [3,4] # right = 4, left = 3
         lr_tract = left_right_roi(tract_path, og_label, lr_labels)
         nib.save(lr_tract, tract_path)
     else:
@@ -144,10 +129,13 @@ if __name__ == '__main__':
 
     # 1. warp atlas (only once)
     warp_atlas(xtract=xtract, source=source, target=target, save_path=warped_path)
+    # 2. cut cerebellum-only again (in target space)
+    atlas_cerebellum = _cerebellum_only_roi(warped_path, target)
+    nib.save(atlas_cerebellum, warped_path) # save cut roi to the same path
 
-    # make each ROI
-    roi = 'CST'
-    roi_save_name = f'MNISymC.{roi}'
-    make_roi(roi = roi, roi_path = warped_path, save_name=roi_save_name)
-    # MCP (no ventral pons): set y = 76; then scroll up in y, remove anything at y>76; save as MNISymC.nii
- 
+    # 3. make each ROI
+    rois = ['CST', 'MCP_with_ventral_pons']
+    for roi in rois:
+        make_roi(roi = roi, roi_path = warped_path)
+        # 'MNISymC.MCP': MCP (no ventral pons): set y = 76; then scroll up in y, remove anything at y>76; save as MNISymC.nii
+    
