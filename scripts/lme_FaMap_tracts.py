@@ -7,7 +7,7 @@ from smarts_cerebellum.roi_lme import lme_main
 if __name__ == '__main__':
 
     # CHANGE THIS
-    roi_tract = 'CST'
+    roi_tract = 'MCP' # CST, MCP
     
     # FaMap - images in MNISymC (template space)
 

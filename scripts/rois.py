@@ -114,7 +114,7 @@ def make_roi(roi, roi_path):
         # get left, right MCP tract separately
         tract_path = f'{gl.baseDir}/ROI/MNISymC.MCP_with_ventral_pons.nii'
         og_label = 26 # label of tract - assumed one value
-        lr_labels = [3,4] # right = 4, left = 3
+        lr_labels = [4,3] # right = 4, left = 3
         lr_tract = left_right_roi(tract_path, og_label, lr_labels)
         nib.save(lr_tract, tract_path)
     else:
@@ -128,13 +128,13 @@ if __name__ == '__main__':
     warped_path = os.path.join(gl.baseDir, 'ROI', 'MNISymC.xtract.nii')
 
     # 1. warp atlas (only once)
-    warp_atlas(xtract=xtract, source=source, target=target, save_path=warped_path)
+    #warp_atlas(xtract=xtract, source=source, target=target, save_path=warped_path)
     # 2. cut cerebellum-only again (in target space)
-    atlas_cerebellum = _cerebellum_only_roi(warped_path, target)
-    nib.save(atlas_cerebellum, warped_path) # save cut roi to the same path
+    #atlas_cerebellum = _cerebellum_only_roi(warped_path, target)
+    #nib.save(atlas_cerebellum, warped_path) # save cut roi to the same path
 
     # 3. make each ROI
-    rois = ['CST', 'MCP_with_ventral_pons']
+    rois = [ 'MCP_with_ventral_pons']
     for roi in rois:
         make_roi(roi = roi, roi_path = warped_path)
         # 'MNISymC.MCP': MCP (no ventral pons): set y = 76; then scroll up in y, remove anything at y>76; save as MNISymC.nii
