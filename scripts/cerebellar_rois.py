@@ -4,7 +4,7 @@ import smarts_cerebellum.globals as gl
 from nitools.color import read_lut
 import os
 
-def mega_cerebellar_roi(atlas, label_num, template, new_label = 1):
+def make_cerebellar_roi(atlas, label_num, template, new_label = 1):
     if isinstance(atlas, str):
         atlas = nib.load(atlas)
     # otherwise, assume 'atlas' is nifti image
@@ -13,19 +13,25 @@ def mega_cerebellar_roi(atlas, label_num, template, new_label = 1):
 
     atlas_arr = atlas.get_fdata().astype(np.int16)
     roi_arr = np.where(np.isin(atlas_arr, label_num), new_label, 0).astype(np.int16)
+    
     return nib.Nifti1Image(roi_arr, template.affine)
 
 
 def lr_cerebellar_atlas(template, lut):
     # cerebellar ROI based on left, right hemishere
+    if isinstance(template, str):
+        template = nib.load(template)
+
 
     left_rois = {label: idx for label, idx in zip(list(lut.values()), list(lut.keys())) if label[-1]=='L'}
     right_rois = {label: idx for label, idx in zip(list(lut.values()), list(lut.keys())) if label[-1]=='R'}
 
-    left_cerebellar_roi = mega_cerebellar_roi(atlas = cerebellar_roi, label_num = list(left_rois.values()), template = template, new_label = 1)
-    right_cerebellar_roi = mega_cerebellar_roi(atlas = cerebellar_roi, label_num = list(right_rois.values()), template = template, new_label = 2)
+    left_cerebellar_roi = make_cerebellar_roi(atlas = cerebellar_roi, label_num = list(left_rois.values()), template = template, new_label = 1)
+    right_cerebellar_roi = make_cerebellar_roi(atlas = cerebellar_roi, label_num = list(right_rois.values()), template = template, new_label = 2)
 
-    return left_cerebellar_roi, right_cerebellar_roi
+    mega_roi = left_cerebellar_roi.get_fdata() + right_cerebellar_roi.get_fdata()
+
+    return nib.Nifti1Image(mega_roi, template.affine)
 
 def mads_cerebellar_atlas(template, lut):
     # cerebellar ROI based on M, A, D, S parcellation (left, right)
@@ -55,8 +61,7 @@ if __name__ == '__main__':
     lut = {int(i): lbl for i, lbl in zip(index, labels)}
 
 
-    left, right = lr_cerebellar_atlas(template = template, lut = lut)
+    mega_roi = lr_cerebellar_atlas(template = template, lut = lut)
     
     save_path = os.path.join(gl.baseDir, 'ROI', 'Nettekoven_atlases')
-    nib.save(left, os.path.join(save_path, 'atl-NettekovenSym_LEFT_MNISymC.nii'))
-    nib.save(right, os.path.join(save_path, 'atl-NettekovenSym_RIGHT_MNISymC.nii'))
+    nib.save(mega_roi, os.path.join(save_path, 'atl-NettekovenSym_LeftRight_MNISymC.nii'))

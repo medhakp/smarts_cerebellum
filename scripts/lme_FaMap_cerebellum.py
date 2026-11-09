@@ -13,9 +13,16 @@ if __name__ == '__main__':
     space = 'MNISymC'
 
     # cerebellar atlas
+    # atlas_space = 'MNISym'
+    # atlas = 'Nettekoven_2024'
+    # maps = 'atl-NettekovenSym32'
+    # roi = atlas
+
+    # custom ROI
+    roi = os.path.join(gl.baseDir, 'ROI', 'Nettekoven_atlases', 'atl-NettekovenSym_LeftRight_MNISymC.nii')
+    roi_labels = [''] * 0 + ['cerebellum_L', 'cerebellum_R']
+    atlas = 'atl-NettekovenSym_LeftRight'
     atlas_space = 'MNISym'
-    atlas = 'Nettekoven_2024'
-    maps = 'atl-NettekovenSym32'
 
 
 
@@ -30,5 +37,5 @@ if __name__ == '__main__':
 
     for c_segment, c_folder in zip(cereb_segments, cereb_folders):
         lme_main(group = 'patients', p_df = patients_df, segment = c_segment, folder = c_folder, 
-                    atlas_space = atlas_space, atlas = atlas, maps = maps, roi = atlas,
+                    atlas_space = atlas_space, roi = atlas,
                     predictors_df= x_df, stat = 'asymmetry_index')

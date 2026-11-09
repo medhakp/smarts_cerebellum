@@ -14,9 +14,12 @@ def summary_df(
                p_df,
                space,
                segment,
-               atlas,
-               maps,
-               mode
+               mode,
+               atlas = None,
+               maps = None,
+               roi = None,
+               roi_labels = None,
+               save_name = None,
                ):
     config = MODES[mode]
     folder = config['folder'].format(space = space) # MNISymC
@@ -31,20 +34,30 @@ def summary_df(
         param = config['param'],
         the_atlas = atlas,
         maps = maps,
-        use_weeks = config['use_weeks']    
+        use_weeks = config['use_weeks'],
+        label_image = roi,
+        region_names = roi_labels
     )
 
-    df['hemisphere'], df['regionname'] = df.regionname.str[-1], df.regionname.str[:-1]
+    df['hemisphere']=  df.regionname.str[-1]
     df['side'] = np.where(df.isPatient == 0, 'controls', np.where(df.hemisphere == 'L', 'contralesional', 'ipsilesional'))
-    df.to_csv(os.path.join(gl.baseDir, folder, f'summary_{space}_{atlas}_{segment}{config["param"]}.tsv'), sep='\t', index=False)
-
+    if not atlas == None:
+        df.to_csv(os.path.join(gl.baseDir, folder, f'summary_{space}_{atlas}_{segment}{config["param"]}.tsv'), sep='\t', index=False)
+    else:
+        df.to_csv(os.path.join(gl.baseDir, folder, f'summary_{space}_{save_name}_{segment}{config["param"]}.tsv'), sep='\t', index=False)
 
 if __name__=='__main__':
     mode = 'normalized' # 'slope', 'normalized'
     space = 'MNISymC'
-    atlas = 'Nettekoven_2024'
-    maps = 'atl-NettekovenSym32'
+
+    # atlas = 'Nettekoven_2024'
+    # maps = 'atl-NettekovenSym32'
+
     segment = 'GM_mod'
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep='\t')
 
-    summary_df(p_df = p_df, space = space, segment = segment, atlas = atlas, maps = maps, mode = mode)
+    # use custom ROI
+    roi = os.path.join(gl.baseDir, 'ROI', 'Nettekoven_atlases', 'atl-NettekovenSym_LeftRight_MNISymC.nii')
+    roi_labels = [''] * 0 + ['cerebellum_L', 'cerebellum_R']
+
+    summary_df(p_df = p_df, space = space, segment = segment, roi = roi, roi_labels = roi_labels, mode = mode, save_name = 'NettekovenLeftRight')
