@@ -56,8 +56,12 @@ if __name__=='__main__':
     segment = 'GM_mod'
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep='\t')
 
-    # use custom ROI
-    roi = os.path.join(gl.baseDir, 'ROI', 'Nettekoven_atlases', 'atl-NettekovenSym_LeftRight_MNISymC.nii')
-    roi_labels = [''] * 0 + ['cerebellum_L', 'cerebellum_R']
+    # use custom ROI - left-right atlas
+    # roi = os.path.join(gl.baseDir, 'ROI', 'Nettekoven_atlases', 'atl-NettekovenSym_LeftRight_MNISymC.nii')
+    # roi_labels = [''] * 0 + ['cerebellum_L', 'cerebellum_R']
 
-    summary_df(p_df = p_df, space = space, segment = segment, roi = roi, roi_labels = roi_labels, mode = mode, save_name = 'NettekovenLeftRight')
+    # use custom ROI - MADS atlas
+    roi = os.path.join(gl.baseDir, 'ROI', 'Nettekoven_atlases', 'atl-NettekovenSym_MADS_MNISymC.nii')
+    roi_labels = [''] * 0 + ['M_L', 'A_L', 'D_L', 'S_L', 'M_R', 'A_R', 'D_R', 'S_R']
+
+    summary_df(p_df = p_df, space = space, segment = segment, roi = roi, roi_labels = roi_labels, mode = mode, save_name = 'Nettekoven_MADS')

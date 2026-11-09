@@ -17,10 +17,16 @@ if __name__ == '__main__':
     # atlas = 'Nettekoven_2024'
     # maps = 'atl-NettekovenSym32'
 
-    # custom ROI
-    roi = os.path.join(gl.baseDir, 'ROI', 'Nettekoven_atlases', 'atl-NettekovenSym_LeftRight_MNISymC.nii')
-    roi_labels = [''] * 0 + ['cerebellum_L', 'cerebellum_R']
-    atlas = 'NettekovenLeftRight'
+    # custom ROI - left/right atlas
+    # roi = os.path.join(gl.baseDir, 'ROI', 'Nettekoven_atlases', 'atl-NettekovenSym_LeftRight_MNISymC.nii')
+    # roi_labels = [''] * 0 + ['cerebellum_L', 'cerebellum_R']
+    # atlas = 'NettekovenLeftRight'
+
+    # use custom ROI - MADS atlas
+    roi = os.path.join(gl.baseDir, 'ROI', 'Nettekoven_atlases', 'atl-NettekovenSym_MADS_MNISymC.nii')
+    roi_labels = [''] * 0 + ['M_L', 'A_L', 'D_L', 'S_L', 'M_R', 'A_R', 'D_R', 'S_R']
+    atlas = 'Nettekoven_MADS'
+
     atlas_space = 'MNISym'
 
     x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_GM', f'summary_MNISymC_{atlas}_GM_mod.tsv'), sep = '\t')
