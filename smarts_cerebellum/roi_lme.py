@@ -147,7 +147,7 @@ def lme_main(group,
                 maps = None,
                 label_image = None,
                 region_names = None,
-                roi = None,
+                save_name = None,
                 space = None,
                 predictors_df = None,
                 stat = 'mean' # stat to run LME on
@@ -180,4 +180,4 @@ def lme_main(group,
             'Week[52]': 52
         }
         result['Week'] = result['week'].map(lme_x_dict)
-        result.to_csv(os.path.join(gl.baseDir, 'lme', f'{group}_{space}_{segment}_{roi}_lme.tsv'), sep = '\t')
+        result.to_csv(os.path.join(gl.baseDir, 'lme', f'{group}_{space}_{segment}_{save_name}_lme.tsv'), sep = '\t')

@@ -3,42 +3,96 @@ import os
 import smarts_cerebellum.globals as gl
 from smarts_cerebellum.roi_lme import lme_main
 
-if __name__ == '__main__':
+atlases = {
+    'left_right': dict(roi = 'atl-NettekovenSym_LeftRight_MNISymC.nii', 
+                        roi_labels = [''] * 0 + ['cerebellum_L', 'cerebellum_R'],
+                        save_name = 'Nettekoven_LeftRight'),
 
-    # anatomicals
-    p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
+    'mads': dict(roi='atl-NettekovenSym_MADS_MNISymC.nii', 
+                    roi_labels = [''] * 0 + ['M_L', 'A_L', 'D_L', 'S_L', 'M_R', 'A_R', 'D_R', 'S_R'],
+                    save_name = 'Nettekoven_MADS'),
+    
+    '32_region': dict(atlas = 'Nettekoven_2024',
+                        maps = 'atl-NettekovenSym32',
+                        save_name = None)
+    }
+
+def run_lme(
+            p_df,
+            space,
+            atlas_space,
+            segment,
+            folder = None,
+
+            # built-in atlas (from DiedrichsenLab)
+            atlas = None,
+            maps = None,
+
+            # custom atlas
+            roi = None,
+            roi_labels= None,
+
+            save_name = None
+            ):
+    if not atlas == None:
+        save_name = atlas
+    
+    x_df = pd.read_csv(os.path.join(gl.baseDir, folder, f'summary_MNISymC_{save_name}_{segment}.tsv'), sep = '\t')
     patients_df = p_df[p_df.isPatient == 1]
     controls_df = p_df[p_df.isPatient == 0]
 
+    lme_main(group = 'patients',
+             p_df = patients_df,
+             segment = segment,
+             folder = folder,
+             atlas_space = atlas_space,
+             space = space,
+             atlas = save_name,
+             maps = maps,
+             label_image = roi,
+             region_names = roi_labels,
+             predictors_df = x_df[x_df.isPatient == 1],
+             save_name = save_name
+             )
+
+    lme_main(group = 'controls',
+            p_df = controls_df,
+            segment = segment,
+            folder = folder,
+            atlas_space = atlas_space,
+            space = space,
+            atlas = save_name,
+            maps = maps,
+            label_image = roi,
+            region_names = roi_labels,
+            predictors_df = x_df[x_df.isPatient == 0],
+            save_name = save_name
+            )
+
+
+if __name__ == '__main__':
+
+    run_atlases = ['mads']
+
+    # anatomicals
+    p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
+    
     space = 'MNISymC'
-
-    # cerebellar atlas
-    # atlas_space = 'MNISym'
-    # atlas = 'Nettekoven_2024'
-    # maps = 'atl-NettekovenSym32'
-
-    # custom ROI - left/right atlas
-    # roi = os.path.join(gl.baseDir, 'ROI', 'Nettekoven_atlases', 'atl-NettekovenSym_LeftRight_MNISymC.nii')
-    # roi_labels = [''] * 0 + ['cerebellum_L', 'cerebellum_R']
-    # atlas = 'NettekovenLeftRight'
-
-    # use custom ROI - MADS atlas
-    roi = os.path.join(gl.baseDir, 'ROI', 'Nettekoven_atlases', 'atl-NettekovenSym_MADS_MNISymC.nii')
-    roi_labels = [''] * 0 + ['M_L', 'A_L', 'D_L', 'S_L', 'M_R', 'A_R', 'D_R', 'S_R']
-    atlas = 'Nettekoven_MADS'
-
     atlas_space = 'MNISym'
 
-    x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_GM', f'summary_MNISymC_{atlas}_GM_mod.tsv'), sep = '\t')
- 
+    cereb_segment ='GM_mod'
+    cereb_folder = f'{space}_GM'
+    roi_dir = os.path.join(gl.baseDir, 'ROI', 'Nettekoven_atlases')
 
+    for run_atlas in run_atlases:
+        kwargs = dict(atlases[run_atlas])
+        if 'roi' in kwargs:
+            kwargs['roi'] = os.path.join(roi_dir, kwargs['roi'])
 
-    cereb_segments = ['GM_mod']
-    cereb_folders = [f'{space}_GM']
+        run_lme(p_df = p_df,
+                space = space,
+                atlas_space = atlas_space,
+                segment = cereb_segment,
+                folder = cereb_folder,
+                **kwargs)
 
-    for c_segment, c_folder in zip(cereb_segments, cereb_folders):
-        lme_main(group = 'patients', p_df = patients_df, segment = c_segment, folder = c_folder, 
-                    atlas_space = atlas_space, space = space, atlas = atlas, roi = atlas,predictors_df = x_df[x_df.isPatient == 1])
-        lme_main(group = 'controls', p_df = controls_df, segment = c_segment, folder = c_folder,
-                    atlas_space = atlas_space, space = space, atlas = atlas, roi = atlas, predictors_df = x_df[x_df.isPatient == 0])
-        
