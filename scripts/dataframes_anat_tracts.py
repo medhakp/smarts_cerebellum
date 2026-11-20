@@ -5,9 +5,11 @@ import smarts_cerebellum.globals as gl
 from smarts_cerebellum.dataframes import make_dataframe_atlas_space
 
 MODES = {
-    'normalized': dict(param = '', use_weeks = True, folder = '{space}_WM', w0_only = False, average = False),
-    'slope': dict(param = '_slope', use_weeks = False, folder = 'regression', w0_only = True, average = True)
-}
+    'normalized': dict(param = '', use_weeks = True, folder = 'MNISymC_WM', w0_only = False, average = False),
+    'slope': dict(param = '_slope', use_weeks = False, folder = 'regression', w0_only = True, average = True),
+    'jacobian': dict(param = '', use_weeks = True, folder = 'MNISymC_trans', w0_only = False, average = False, week_dir = True)
+    
+    }
 
 def summary_df(
                p_df,
@@ -15,13 +17,20 @@ def summary_df(
                segment,
                atlas,
                region_names,
-               mode
+               mode,
+               folder = None,
+               label_image = None
                ):
     config = MODES[mode]
-    folder = config['folder'].format(space = space) # MNISymC
+    if not folder == None:
+        folder = folder
+    else:
+        folder = config['folder'].format(space = space) # MNISymC
 
     if config['w0_only']:
         p_df = p_df.sort_values("Week").groupby("subj_id", as_index=False).first()
+    if label_image == None:
+        label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{atlas}.nii')
 
     df = make_dataframe_atlas_space(
         p_df = p_df,
@@ -29,8 +38,9 @@ def summary_df(
         region_names = region_names,
         segment = segment,
         param = config['param'],
-        label_image = os.path.join(gl.baseDir, 'ROI', f'{space}.{atlas}.nii'),
-        use_weeks = config['use_weeks']    
+        label_image = label_image,
+        use_weeks = config['use_weeks']  ,
+        week_dir = config.get('week_dir', False)
     )
 
     df['hemisphere'], df['region_bilat'] = df.regionname.str[-1], df.regionname.str[:-1]
@@ -45,20 +55,25 @@ def summary_df(
     
 if __name__=='__main__':
 
-    mode = 'normalized' # 'slope', 'normalized'
-    atlas = 'MCP' # 'CST', 'MCP'
+    mode = 'jacobian' # 'slope', 'normalized', 'jacobian'
+    atlas = 'MCP_pons' # 'CST', 'MCP', 'MCP_PONS'
     
     space = 'MNISymC'
-    segment = 'WM_mod'
+    segment = 'T1_to-MNI152NLin2009cSymC_mode-image_detJ'
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep='\t')
 
     if atlas == 'CST':
         region_names = [''] * 13 + ['CST_L', 'CST_R']
     elif atlas == 'MCP':
         region_names = [''] * 2 + ['MCP_L', 'MCP_R']
+    elif atlas == 'MCP_pons':
+        region_names = [''] * 2 + ['PONS_L', 'PONS_R']
     else:
         raise ValueError(f'invalid atlas: {atlas}')
 
     summary_df(p_df = p_df, space = space, atlas = atlas, 
-               region_names = region_names, segment = segment, mode = mode)
+               region_names = region_names, segment = segment, mode = mode,
+               folder = 'MNISymC_trans', # if not using WM
+               label_image = os.path.join(gl.baseDir, 'ROI', 'MNISymC.MCP_pons.nii')
+               )
     

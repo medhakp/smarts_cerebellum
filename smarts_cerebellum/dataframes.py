@@ -3,6 +3,7 @@ import SUITPy as suit
 import smarts_cerebellum.globals as gl
 import os
 import re
+import glob
 
 def _week_token(image_name):
     match = re.search(r'W(\d+)', image_name)
@@ -41,24 +42,22 @@ def _add_demographics(df, p_df, subj):
     return df
 
 
-def _load_img_list(p_df, folder, subj, space, segment, param, use_weeks):
+def _load_img_list(p_df, folder, subj, space, segment, param, use_weeks, week_dir):
 
     p_df_s = p_df[p_df.subj_id==subj]
 
     LesionSide = p_df_s.LesionSide.iloc[0] #LesionSide = p_df_s.LesionSide.unique()
-        
+    suffix = '_FlipLR' if LesionSide.strip() == 'left' else ''
+
     imgs = []
     if use_weeks:
         weeks = p_df_s.Week.unique()
         for _week in weeks:
             week = _week.strip()
-            if LesionSide == 'left ':
-                fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}{param}_FlipLR.nii.gz')
-            else:
-                fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{week}_{space}_{segment}{param}.nii.gz')
+            subdir = week if week_dir else ''
+            pattern = os.path.join(gl.baseDir, folder, subj, subdir, f'{subj}_{week}_*{segment}{param}{suffix}.nii.gz')
+            imgs += glob.glob(pattern)
             
-            if os.path.isfile(fname):
-                imgs.append(fname)
     else:
         if LesionSide == 'left ':
             fname = os.path.join(gl.baseDir, folder, subj, f'{subj}_{space}_{segment}{param}_FlipLR.nii.gz')
@@ -82,7 +81,8 @@ def make_dataframe_atlas_space(
                                 param        = '_slope',
                                 label_image  = None,
                                 region_names = None,
-                                stats = ['mean']
+                                stats = ['mean'],
+                                week_dir = False
                               ):
 
     dfs = []
@@ -92,7 +92,7 @@ def make_dataframe_atlas_space(
     # loop through all subjects - perform each operation on each subject
     for subj in subj_ids:
         
-        imgs = _load_img_list(p_df, folder, subj, space, segment, param, use_weeks)
+        imgs = _load_img_list(p_df, folder, subj, space, segment, param, use_weeks, week_dir)
         if len(imgs)==0:
             continue
         

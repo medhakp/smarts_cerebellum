@@ -25,13 +25,15 @@ def flip_left_lesion(path,
                      space='MNISymC', 
                      segment='T1', 
                      metric='_slope',
-                     use_weeks = False):
+                     use_weeks = False,
+                     week_on_path = False):
     '''
     flip left lesion to the right
     '''
     flips = []
     for subj in left_lesion_df.subj_id.unique():
         if use_weeks == False:
+       
             flip = f'{path}/{subj}/{subj}_{space}_{segment}{metric}.nii.gz'
 
             if not Path(flip).is_file():
@@ -49,14 +51,21 @@ def flip_left_lesion(path,
 
             for _week in weeks:
                 week = _week.strip()
-                flip = f'{path}/{subj}/{subj}_{week}_{space}_{segment}{metric}.nii.gz'
+
+                if week_on_path == True:
+                    flip = f'{path}/{subj}/{week}/{subj}_{week}_{space}_{segment}{metric}.nii.gz'
+                else:
+                    flip = f'{path}/{subj}/{subj}_{week}_{space}_{segment}{metric}.nii.gz'
                 
                 if not Path(flip).is_file():
                     continue
                                 
                 flipped = FlipLR(flip)
                 
-                nib.save(flipped, f'{path}/{subj}/{subj}_{week}_{space}_{segment}{metric}_FlipLR.nii.gz')
+                if week_on_path == True:
+                    nib.save(flipped, f'{path}/{subj}/{week}/{subj}_{week}_{space}_{segment}{metric}_FlipLR.nii.gz')
+                else:
+                    nib.save(flipped, f'{path}/{subj}/{subj}_{week}_{space}_{segment}{metric}_FlipLR.nii.gz')
 
 def flip_regression_slopes(left_lesion_df):
     path = os.path.join(gl.baseDir, 'regression')
@@ -79,17 +88,13 @@ def flip_normalized_images(left_lesion_df):
 
 def flip_FaMap(left_lesion_df):
     path = os.path.join(gl.baseDir, 'MNISymC_FaMap')
-    # left_lesion_subjs = []
-    # for subj in p_df.subj_id.unique():
-    #     subj_df = p_df[p_df.subj_id == subj]
-    #     lesion_side = subj_df['LesionSide'].iloc[0]
-    #     if lesion_side == 'left ': 
-    #         left_lesion_subjs.append(subj)
-
-    # left_lesion_df = p_df[p_df.subj_id.isin(left_lesion_subjs)]
 
     flip_left_lesion(path = path, left_lesion_df = left_lesion_df, segment = 'FaMap', metric = '', use_weeks = True)
 
+def flip_detJ(left_lesion_df):
+    path = os.path.join(gl.baseDir, 'MNISymC_trans')
+    flip_left_lesion(path = path, left_lesion_df = left_lesion_df, space = 'T1', segment = 'to-MNI152NLin2009cSymC_mode-image_detJ', 
+                     metric = '', use_weeks = True, week_on_path = True)
     
 
 
@@ -100,5 +105,5 @@ if __name__=='__main__':
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
     left_lesion_df = p_df[p_df.LesionSide == 'left ']
 
-    flip_FaMap(left_lesion_df)
+    flip_detJ(left_lesion_df)
     
