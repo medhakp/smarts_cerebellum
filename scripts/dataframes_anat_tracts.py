@@ -59,7 +59,7 @@ if __name__=='__main__':
     atlas = 'pons' # 'CST', 'MCP', 'pons'
     
     space = 'MNISymC'
-    segment = 'GM_mod'
+    segment = 'WM_mod'
     #segment = 'T1_to-MNI152NLin2009cSymC_mode-image_detJ'
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep='\t')
 
@@ -75,6 +75,6 @@ if __name__=='__main__':
     summary_df(p_df = p_df, space = space, atlas = atlas, 
                region_names = region_names, segment = segment, mode = mode,
                label_image = os.path.join(gl.baseDir, 'ROI', 'MNISymC.pons.nii'),
-               folder = 'MNISymC_GM'
+               folder = 'MNISymC_WM'
                )
     

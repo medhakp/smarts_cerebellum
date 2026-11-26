@@ -27,14 +27,14 @@ if __name__ == '__main__':
     
 
     # predictors df (x_df) - use obs values.
-    x_df = pd.read_csv(os.path.join(gl.baseDir, f'{space}_GM', f'summary_{space}_{roi_tract}_GM_mod.tsv'), sep = '\t')
+    x_df = pd.read_csv(os.path.join(gl.baseDir, f'{space}_WM', f'summary_{space}_{roi_tract}_WM_mod.tsv'), sep = '\t')
     x_df_patients = x_df[x_df.isPatient == 1]
     x_df_controls = x_df[x_df.isPatient == 0]
     
 
         
-    tract_segments = ['GM_mod']
-    tract_folders = [f'{space}_GM']
+    tract_segments = ['WM_mod']
+    tract_folders = [f'{space}_WM']
     for t_segment, t_folder in zip(tract_segments, tract_folders):
         lme_main(group = 'patients', p_df = patients_df, segment = t_segment, folder = t_folder, 
             label_image = label_image, region_names = region_names, save_name = roi_tract, space = space,
