@@ -56,7 +56,7 @@ def summary_df(
 if __name__=='__main__':
 
     mode = 'normalized' # 'slope', 'normalized', 'jacobian'
-    atlas = 'MCP_pons' # 'CST', 'MCP', 'MCP_PONS'
+    atlas = 'CST' # 'CST', 'MCP', 'MCP_PONS'
     
     space = 'MNISymC'
     segment = 'WM_mod'
@@ -74,7 +74,5 @@ if __name__=='__main__':
 
     summary_df(p_df = p_df, space = space, atlas = atlas, 
                region_names = region_names, segment = segment, mode = mode,
-               folder = 'MNISymC_WM', # if not using WM
-               label_image = os.path.join(gl.baseDir, 'ROI', 'MNISymC.MCP_pons.nii')
                )
     

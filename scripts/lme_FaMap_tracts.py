@@ -35,7 +35,7 @@ if __name__ == '__main__':
     x_df = x_df[x_df.isPatient == 1]
 
     lme_main(group = 'patients', p_df = p_df, segment = segment, folder = folder, space = 'MNISymC',
-                label_image = label_image, region_names = region_names, roi = roi_tract, 
+                label_image = label_image, region_names = region_names, save_name = roi_tract, 
                 predictors_df= x_df, stat = 'asymmetry_index')
    
     """
