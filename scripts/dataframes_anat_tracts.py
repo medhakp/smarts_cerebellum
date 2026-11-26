@@ -56,10 +56,10 @@ def summary_df(
 if __name__=='__main__':
 
     mode = 'normalized' # 'slope', 'normalized', 'jacobian'
-    atlas = 'CST' # 'CST', 'MCP', 'MCP_PONS'
+    atlas = 'pons' # 'CST', 'MCP', 'pons'
     
     space = 'MNISymC'
-    segment = 'WM_mod'
+    segment = 'GM_mod'
     #segment = 'T1_to-MNI152NLin2009cSymC_mode-image_detJ'
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep='\t')
 
@@ -67,12 +67,14 @@ if __name__=='__main__':
         region_names = [''] * 13 + ['CST_L', 'CST_R']
     elif atlas == 'MCP':
         region_names = [''] * 2 + ['MCP_L', 'MCP_R']
-    elif atlas == 'MCP_pons':
-        region_names = [''] * 2 + ['PONS_L', 'PONS_R']
+    elif atlas == 'pons':
+        region_names = [''] * 1 + ['pons_L', 'pons_R']
     else:
         raise ValueError(f'invalid atlas: {atlas}')
 
     summary_df(p_df = p_df, space = space, atlas = atlas, 
                region_names = region_names, segment = segment, mode = mode,
+               label_image = os.path.join(gl.baseDir, 'ROI', 'MNISymC.pons.nii'),
+               folder = 'MNISymC_GM'
                )
     

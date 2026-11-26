@@ -122,10 +122,10 @@ def make_roi(roi, roi_path):
 
 if __name__ == '__main__':
 
-    xtract = os.path.join(gl.baseDir, 'ROI', 'xtract-tract-atlases-maxprob5-1mm.nii.gz')
-    source = os.path.join(gl.baseDir, 'ROI', 'cerebellar_atlases', 'tpl-MNI152NLin6AsymC', 'tpl-MNI152NLin6AsymC_T1w.nii') # "moving"; use cerebellum-only template
-    target = os.path.join(gl.baseDir, 'ROI', 'tpl-MNI152NLin2009cSymC_T1w.nii') # "fixed"
-    warped_path = os.path.join(gl.baseDir, 'ROI', 'MNISymC.xtract.nii')
+    #xtract = os.path.join(gl.baseDir, 'ROI', 'xtract-tract-atlases-maxprob5-1mm.nii.gz')
+    #source = os.path.join(gl.baseDir, 'ROI', 'cerebellar_atlases', 'tpl-MNI152NLin6AsymC', 'tpl-MNI152NLin6AsymC_T1w.nii') # "moving"; use cerebellum-only template
+    #target = os.path.join(gl.baseDir, 'ROI', 'tpl-MNI152NLin2009cSymC_T1w.nii') # "fixed"
+    #warped_path = os.path.join(gl.baseDir, 'ROI', 'MNISymC.xtract.nii')
 
     # 1. warp atlas (only once)
     #warp_atlas(xtract=xtract, source=source, target=target, save_path=warped_path)
@@ -134,8 +134,14 @@ if __name__ == '__main__':
     #nib.save(atlas_cerebellum, warped_path) # save cut roi to the same path
 
     # 3. make each ROI
-    rois = [ 'MCP_with_ventral_pons']
-    for roi in rois:
-        make_roi(roi = roi, roi_path = warped_path)
-        # 'MNISymC.MCP': MCP (no ventral pons): set y = 76; then scroll up in y, remove anything at y>76; save as MNISymC.nii
+    # rois = [ 'MCP_with_ventral_pons']
+    # for roi in rois:
+    #     make_roi(roi = roi, roi_path = warped_path)
+    #     # 'MNISymC.MCP': MCP (no ventral pons): set y = 76; then scroll up in y, remove anything at y>76; save as MNISymC.nii
+
+    # left, right for pons ROI
+    pons_roi_og = os.path.join(gl.baseDir, 'ROI', 'tpl-MNI152NLin2009cSym_res-1_pontine.nii')
+    pons_roi_lr = left_right_roi(pons_roi_og, 1, [2,3])
+    save_path = os.path.join(gl.baseDir, 'ROI', 'MNISymC.pons.nii')
+    nib.save(pons_roi_lr, save_path)
     
