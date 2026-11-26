@@ -141,7 +141,7 @@ if __name__ == '__main__':
 
     # left, right for pons ROI
     pons_roi_og = os.path.join(gl.baseDir, 'ROI', 'tpl-MNI152NLin2009cSym_res-1_pontine.nii')
-    pons_roi_lr = left_right_roi(pons_roi_og, 1, [2,3])
+    pons_roi_lr = left_right_roi(pons_roi_og, 1, [3,2])
     save_path = os.path.join(gl.baseDir, 'ROI', 'MNISymC.pons.nii')
     nib.save(pons_roi_lr, save_path)
     
