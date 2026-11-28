@@ -5,7 +5,7 @@ from smarts_cerebellum.roi_lme import lme_main
 
 if __name__ == '__main__':
 
-    roi_tract = 'pons' # CST, MCP, pons
+    roi_tract = 'CST' # CST, MCP, pons
 
     # anatomicals
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')

@@ -117,6 +117,24 @@ def cut_roi(roi_path, z_start, z_end):
     cut_img = nib.Nifti1Image(cut_arr, affine = roi.affine, header = roi.header)
     return cut_img
 
+def mirror_roi(roi_path, hemisphere):
+    """
+    mirrors one side of ROI to the other side to make symmetric ROI
+    """
+    roi = nib.load(roi_path)
+    arr = roi.get_fdata()
+    
+    middle = arr.shape[0]//2
+    
+    if hemisphere == 'R':
+        arr[-middle:] = arr[:middle][::-1] # right half mirrored (copied) to left
+    elif hemisphere == 'L':
+        arr[:middle] = arr[-middle:][::-1] # left half mirrored (copied) to right
+    else:
+        raise ValueError("invalid hemisphere value")
+    return nib.Nifti1Image(arr, roi.affine)
+
+
 
 def make_roi(roi, roi_path):
     if roi == 'CST':
@@ -139,6 +157,26 @@ def make_roi(roi, roi_path):
         nib.save(lr_tract, tract_path)
     else:
         raise ValueError("invalid roi")
+
+def cut_cst_roi(cst_path, level, hem):
+    cst_levels = {
+        'medulla': dict(z_start = 0, z_end = 20),
+        'pons': dict(z_start = 21, z_end = 48)
+    }
+    if level not in cst_levels:
+        raise ValueError(f"Invalid level {level}")
+    out_path = os.path.join(gl.baseDir, 'ROI', f'MNISymC.CST_{level}.nii')
+    
+    # cut roi to level
+    roi = cut_roi(cst_path, **cst_levels[level])
+    nib.save(roi, out_path)
+
+    # mirror roi to make symmetry
+    nib.save(mirror_roi(out_path, hem), out_path)
+
+    # add left, right labels
+    og_label = 14 if hem == 'R' else 15
+    nib.save(left_right_roi(out_path, og_label = og_label, lr_labels = [15, 14]), out_path)
 
 if __name__ == '__main__':
 
@@ -166,12 +204,9 @@ if __name__ == '__main__':
     # nib.save(pons_roi_lr, save_path)
     
     # cut CST ROIs
-    cst_path = os.path.join(gl.baseDir, 'ROI', 'depreciated', 'MNISymC.CST.nii')
-    
-    # pons
-    pons_cst = cut_roi(cst_path, z_start = 21, z_end = 48)
-    nib.save(pons_cst, os.path.join(gl.baseDir, 'ROI', 'MNISymC.CST_pons.nii'))
-
-    # medulla
-    medulla_cst = cut_roi(cst_path, z_start = 0, z_end = 20)
-    nib.save(medulla_cst, os.path.join(gl.baseDir, 'ROI', 'MNISymC.CST_medulla.nii'))
+    cst_path = os.path.join(gl.baseDir, 'ROI', 'depreciated', 'MNISymC.CST_custom.nii')
+    out_path = os.path.join(gl.baseDir, 'ROI', 'MNISymC.CST.nii')
+    # mirror then add labels
+    mirrored_cst = mirror_roi(cst_path, 'L')
+    nib.save(mirrored_cst, out_path)
+    nib.save(left_right_roi(out_path, og_label = 15, lr_labels = [15, 14]), out_path)
