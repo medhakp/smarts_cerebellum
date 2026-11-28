@@ -56,7 +56,7 @@ def summary_df(
 if __name__=='__main__':
 
     mode = 'normalized' # 'slope', 'normalized', 'jacobian'
-    atlas = 'pons' # 'CST', 'MCP', 'pons'
+    atlas = 'CST_pons' # 'CST', 'MCP', 'pons'
     
     space = 'MNISymC'
     segment = 'WM_mod'
@@ -69,12 +69,16 @@ if __name__=='__main__':
         region_names = [''] * 2 + ['MCP_L', 'MCP_R']
     elif atlas == 'pons':
         region_names = [''] * 1 + ['pons_L', 'pons_R']
+    elif atlas == 'CST_medulla':
+        region_names = [''] * 13 + ['CSTmedulla_L', 'CSTmedulla_R']
+    elif atlas == 'CST_pons':
+        region_names = [''] * 13 + ['CST_pons_L', 'CST_pons_R']
     else:
         raise ValueError(f'invalid atlas: {atlas}')
 
     summary_df(p_df = p_df, space = space, atlas = atlas, 
                region_names = region_names, segment = segment, mode = mode,
-               label_image = os.path.join(gl.baseDir, 'ROI', 'MNISymC.pons.nii'),
+               label_image = os.path.join(gl.baseDir, 'ROI', f'MNISymC.{atlas}.nii'), 
                folder = 'MNISymC_WM'
                )
     

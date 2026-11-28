@@ -96,6 +96,26 @@ def left_right_roi(tract_path, og_label, lr_labels):
     lr_tract = nib.Nifti1Image(tract_arr, tract.affine, tract.header)
     return lr_tract
 
+def cut_roi(roi_path, z_start, z_end):
+    """
+    cuts ROI based on z-coordinates
+    Usage: cutting CST tract into midbrain, pons, medulla
+    """
+    roi = nib.load(roi_path)
+
+    # world coordinates
+    i, j, k = np.indices(roi.shape)
+    x,y,z = nt.affine_transform(i, j, k, roi.affine)
+    roi_arr = nt.sample_image(roi, x, y,z, interpolation = 0) # use nearest-neighbour for discrete values
+
+    cut_arr = np.zeros(roi_arr.shape)
+    cut_arr[:,:, z_start:z_end+1] = roi_arr[:,:, z_start:z_end+1]
+
+    # avoid rounding/floating points in tract labels: round up and save array vals as int
+    cut_arr = np.ceil(cut_arr).astype(int)
+
+    cut_img = nib.Nifti1Image(cut_arr, affine = roi.affine, header = roi.header)
+    return cut_img
 
 
 def make_roi(roi, roi_path):
@@ -140,8 +160,18 @@ if __name__ == '__main__':
     #     # 'MNISymC.MCP': MCP (no ventral pons): set y = 76; then scroll up in y, remove anything at y>76; save as MNISymC.nii
 
     # left, right for pons ROI
-    pons_roi_og = os.path.join(gl.baseDir, 'ROI', 'tpl-MNI152NLin2009cSym_res-1_pontine.nii')
-    pons_roi_lr = left_right_roi(pons_roi_og, 1, [3,2])
-    save_path = os.path.join(gl.baseDir, 'ROI', 'MNISymC.pons.nii')
-    nib.save(pons_roi_lr, save_path)
+    # pons_roi_og = os.path.join(gl.baseDir, 'ROI', 'tpl-MNI152NLin2009cSym_res-1_pontine.nii')
+    # pons_roi_lr = left_right_roi(pons_roi_og, 1, [3,2])
+    # save_path = os.path.join(gl.baseDir, 'ROI', 'MNISymC.pons.nii')
+    # nib.save(pons_roi_lr, save_path)
     
+    # cut CST ROIs
+    cst_path = os.path.join(gl.baseDir, 'ROI', 'depreciated', 'MNISymC.CST.nii')
+    
+    # pons
+    pons_cst = cut_roi(cst_path, z_start = 21, z_end = 48)
+    nib.save(pons_cst, os.path.join(gl.baseDir, 'ROI', 'MNISymC.CST_pons.nii'))
+
+    # medulla
+    medulla_cst = cut_roi(cst_path, z_start = 0, z_end = 20)
+    nib.save(medulla_cst, os.path.join(gl.baseDir, 'ROI', 'MNISymC.CST_medulla.nii'))
