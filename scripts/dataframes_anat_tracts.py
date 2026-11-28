@@ -55,12 +55,12 @@ def summary_df(
     
 if __name__=='__main__':
 
-    mode = 'normalized' # 'slope', 'normalized', 'jacobian'
+    mode = 'jacobian' # 'slope', 'normalized', 'jacobian'
     atlas = 'MCP' # 'CST', 'MCP', 'pons'
     
     space = 'MNISymC'
-    segment = 'WM_mod'
-    #segment = 'T1_to-MNI152NLin2009cSymC_mode-image_detJ'
+    #segment = 'WM_mod'
+    segment = 'T1_to-MNI152NLin2009cSymC_mode-image_detJ' # FOR JACOBIAN
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep='\t')
 
     if atlas == 'CST':
@@ -79,6 +79,6 @@ if __name__=='__main__':
     summary_df(p_df = p_df, space = space, atlas = atlas, 
                region_names = region_names, segment = segment, mode = mode,
                label_image = os.path.join(gl.baseDir, 'ROI', f'MNISymC.{atlas}.nii'), 
-               folder = 'MNISymC_WM'
+               folder = 'MNISymC_trans'
                )
     
