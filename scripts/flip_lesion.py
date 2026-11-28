@@ -73,13 +73,13 @@ def flip_regression_slopes(left_lesion_df):
     for segment in segments:
         flip_left_lesion(path, left_lesion_df, segment = segment, metric = '_slope')
 
-def flip_normalized_images(left_lesion_df):
+def flip_normalized_images(left_lesion_df, metric = '_mod'):
     # flip normalized segment images
     space = 'MNISymC'
     segments = ['WM', 'GM', 'CSF']
     for segment in segments:
         seg_path = os.path.join(gl.baseDir, f'{space}_{segment}')
-        flip_left_lesion(seg_path, left_lesion_df, segment = segment, metric = '_mod', use_weeks = True)
+        flip_left_lesion(seg_path, left_lesion_df, segment = segment, metric = metric, use_weeks = True)
     
 
     # flip normalized T1 images
@@ -104,6 +104,6 @@ if __name__=='__main__':
 
     p_df = pd.read_csv(os.path.join(gl.baseDir, 'participants.tsv'), sep = '\t')
     left_lesion_df = p_df[p_df.LesionSide == 'left ']
-
-    flip_detJ(left_lesion_df)
+    
+    flip_normalized_images(left_lesion_df, metric = '')
     
