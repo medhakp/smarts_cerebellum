@@ -96,10 +96,10 @@ def left_right_roi(tract_path, og_label, lr_labels):
     lr_tract = nib.Nifti1Image(tract_arr, tract.affine, tract.header)
     return lr_tract
 
-def cut_roi(roi_path, z_start, z_end):
+def cut_roi(roi_path, start, end, axis = 'z'):
     """
     cuts ROI based on z-coordinates
-    Usage: cutting CST tract into midbrain, pons, medulla
+    Usage: cutting MCP tract into midbrain, pons, medulla
     """
     roi = nib.load(roi_path)
 
@@ -109,14 +109,16 @@ def cut_roi(roi_path, z_start, z_end):
     roi_arr = nt.sample_image(roi, x, y,z, interpolation = 0) # use nearest-neighbour for discrete values
 
     cut_arr = np.zeros(roi_arr.shape)
-    cut_arr[:,:, z_start:z_end+1] = roi_arr[:,:, z_start:z_end+1]
+    if axis == 'z':
+        cut_arr[:,:, start:end+1] = roi_arr[:,:, start:end+1]
+    elif axis == 'y':
+        cut_arr[:, start:end+1,:] = roi_arr[:, start:end+1,:]
 
     # avoid rounding/floating points in tract labels: round up and save array vals as int
     cut_arr = np.ceil(cut_arr).astype(int)
 
     cut_img = nib.Nifti1Image(cut_arr, affine = roi.affine, header = roi.header)
     return cut_img
-
 def mirror_roi(roi_path, hemisphere):
     """
     mirrors one side of ROI to the other side to make symmetric ROI
@@ -204,9 +206,9 @@ if __name__ == '__main__':
     # nib.save(pons_roi_lr, save_path)
     
     # cut CST ROIs
-    cst_path = os.path.join(gl.baseDir, 'ROI', 'depreciated', 'MNISymC.CST_custom.nii')
-    out_path = os.path.join(gl.baseDir, 'ROI', 'MNISymC.CST.nii')
+    mcp_path = os.path.join(gl.baseDir, 'ROI', 'depreciated', 'MNISymC.MCP_custom.nii') # to cut ROI
+    out_path = os.path.join(gl.baseDir, 'ROI', 'MNISymC.MCP.nii')
     # mirror then add labels
-    mirrored_cst = mirror_roi(cst_path, 'L')
-    nib.save(mirrored_cst, out_path)
-    nib.save(left_right_roi(out_path, og_label = 15, lr_labels = [15, 14]), out_path)
+    mirrored_mcp = mirror_roi(mcp_path, 'L')
+    nib.save(mirrored_mcp, out_path)
+    nib.save(left_right_roi(out_path, og_label = 4, lr_labels = [4, 3]), out_path)
