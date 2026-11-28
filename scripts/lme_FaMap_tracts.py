@@ -30,13 +30,13 @@ if __name__ == '__main__':
 
     # predictors df (x_df) - use obs values.
     x_df = pd.read_csv(os.path.join(gl.baseDir, 'MNISymC_FaMap', f'summary_MNISymC_{roi_tract}_FaMap.tsv'), sep = '\t')
-    #x_df = x_df[x_df.regionname == f'{roi_tract}_R'].copy() # if using ratio, log ratio, or asymmetry index
-    #x_df['regionname'] = f'{roi_tract}_ai'
+    x_df = x_df[x_df.regionname == f'{roi_tract}_R'].copy() # if using ratio, log ratio, or asymmetry index
+    x_df['regionname'] = f'{roi_tract}_ai'
     x_df = x_df[x_df.isPatient == 1]
 
     lme_main(group = 'patients', p_df = p_df, segment = segment, folder = folder, space = 'MNISymC',
                 label_image = label_image, region_names = region_names, save_name = roi_tract, 
-                predictors_df= x_df, stat = 'mean')
+                predictors_df= x_df, stat = 'asymmetry_index')
    
     """
     # FaMap - from .tsv file (dataframe) in JHU-MNI (Eve) (WMPMII atlas)
